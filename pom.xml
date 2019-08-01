@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.deyatech</groupId>
+    <artifactId>cms</artifactId>
+    <version>0.0.1</version>
+    <packaging>pom</packaging>
+
+    <name>cms</name>
+    <description>CMS父级pom依赖</description>
+
+    <parent>
+        <!-- com.deyatech.root 0.0.1 -->
+        <groupId>com.deyatech</groupId>
+        <artifactId>root</artifactId>
+        <version>0.0.1</version>
+        <relativePath/>
+    </parent>
+
+    <properties>
+        <!-- 镜像文件版本号 -->
+        <docker.registry.version>master</docker.registry.version>
+        <!-- 镜像打包之后运行的环境配置 -->
+        <spring.jvm.args>-Djava.security.egd=file:/dev/./urandom -Dspring.profiles.active=prod -Duser.timezone=GMT+08 -Xms128m -Xmx400m
+        </spring.jvm.args>
+    </properties>
+
+    <modules>
+        <module>resource</module>
+        <module>design</module>
+        <module>setting</module>
+        <module>content</module>
+        <module>appeal</module>
+        <module>statistics</module>
+    </modules>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <encoding>utf-8</encoding>
+                    <useDefaultDelimiters>true</useDefaultDelimiters>
+                    <!-- 过滤后缀为pem、pfx的证书文件 -->
+                    <nonFilteredFileExtensions>
+                        <nonFilteredFileExtension>key</nonFilteredFileExtension>
+                    </nonFilteredFileExtensions>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <target>1.8</target>
+                    <source>1.8</source>
+                </configuration>
+            </plugin>
+        </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources/</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
+</project>
