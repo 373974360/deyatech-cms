@@ -1,4 +1,4 @@
-package com.deyatech.design;
+package com.deyatech.station;
 
 import cn.hutool.json.JSONObject;
 import com.deyatech.common.exception.GlobalExceptionHandler;
@@ -16,7 +16,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 /**
  * <p>
- * cms设计模块微服务启动类
+ * cms站点模块微服务启动类
  * </p>
  *
  * @author: lee.
@@ -30,10 +30,10 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 @EnableCaching
 @RestController
-public class DesignServiceApplication {
+public class StationServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(DesignServiceApplication.class, args);
+        SpringApplication.run(StationServiceApplication.class, args);
     }
 
     @Bean

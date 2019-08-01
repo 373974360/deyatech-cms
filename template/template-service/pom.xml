@@ -3,21 +3,21 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>design-service</artifactId>
+    <artifactId>template-service</artifactId>
 
     <name>${project.artifactId}</name>
-    <description>cms设计业务模块</description>
+    <description>cms模板模块业务</description>
 
     <parent>
         <groupId>com.deyatech</groupId>
-        <artifactId>design</artifactId>
+        <artifactId>template</artifactId>
         <version>0.0.1</version>
     </parent>
 
     <dependencies>
         <dependency>
             <groupId>com.deyatech</groupId>
-            <artifactId>design-facade</artifactId>
+            <artifactId>template-facade</artifactId>
             <version>${deyatech.version}</version>
         </dependency>
         <dependency>
