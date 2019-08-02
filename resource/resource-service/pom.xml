@@ -6,7 +6,7 @@
     <artifactId>resource-service</artifactId>
 
     <name>${project.artifactId}</name>
-    <description>统计分析管理业务模块</description>
+    <description>CMS资源模块的基础类</description>
 
     <parent>
         <groupId>com.deyatech</groupId>
