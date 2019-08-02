@@ -1,27 +1,29 @@
 package com.deyatech.resource.controller;
 
 import cn.hutool.core.util.StrUtil;
-import com.deyatech.common.Constants;
-import com.deyatech.resource.entity.StationGroupClassification;
-import com.deyatech.resource.service.StationGroupService;
-import com.deyatech.resource.vo.StationGroupClassificationVo;
-import com.deyatech.resource.service.StationGroupClassificationService;
-import com.deyatech.common.entity.RestResult;
-import com.deyatech.common.entity.CascaderResult;
-import com.deyatech.common.utils.CascaderUtil;
-import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import org.springframework.web.bind.annotation.RestController;
+import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseController;
+import com.deyatech.common.entity.CascaderResult;
+import com.deyatech.common.entity.RestResult;
+import com.deyatech.common.utils.CascaderUtil;
+import com.deyatech.resource.entity.StationGroupClassification;
+import com.deyatech.resource.service.StationGroupClassificationService;
+import com.deyatech.resource.service.StationGroupService;
+import com.deyatech.resource.vo.StationGroupClassificationVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.sql.ResultSet;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * <p>
@@ -39,6 +41,7 @@ public class StationGroupClassificationController extends BaseController {
     StationGroupClassificationService stationGroupClassificationService;
     @Autowired
     StationGroupService stationGroupService;
+
     /**
      * 单个保存或者更新
      *
@@ -54,15 +57,21 @@ public class StationGroupClassificationController extends BaseController {
         if (!Constants.ZERO.equals(stationGroupClassification.getParentId()) && StrUtil.isNotEmpty(stationGroupClassification.getParentId())) {
             long count = stationGroupService.countStationGroupByClassificationId(stationGroupClassification.getParentId());
             if (count > 0) {
-                return RestResult.error("当前分类下已存在站群");
+                return RestResult.error("当前分类下已存在网站");
             }
-            count = stationGroupClassificationService.countNameByParentId(stationGroupClassification.getParentId(), stationGroupClassification.getName());
+            count = stationGroupClassificationService.countNameByParentId(
+                    stationGroupClassification.getId(),
+                    stationGroupClassification.getParentId(),
+                    stationGroupClassification.getName());
             if (count > 0) {
-                return RestResult.error("当前分类下已存在此名称分类");
+                return RestResult.error("当前分类下已存在该名称");
             }
-            count = stationGroupClassificationService.countEnglishNameByParentId(stationGroupClassification.getParentId(), stationGroupClassification.getEnglishName());
+            count = stationGroupClassificationService.countEnglishNameByParentId(
+                    stationGroupClassification.getId(),
+                    stationGroupClassification.getParentId(),
+                    stationGroupClassification.getEnglishName());
             if (count > 0) {
-                return RestResult.error("当前分类下已存在此英文名称分类");
+                return RestResult.error("当前分类下已存在该英文名称");
             }
         }
         boolean result = stationGroupClassificationService.saveOrUpdate(stationGroupClassification);
@@ -111,6 +120,14 @@ public class StationGroupClassificationController extends BaseController {
     @ApiImplicitParam(name = "ids", value = "对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
     public RestResult<Boolean> removeByIds(@RequestParam("ids[]") List<String> ids) {
         log.info(String.format("根据id批量删除: %s ", JSONUtil.toJsonStr(ids)));
+        long count = stationGroupService.countStationGroupByClassificationIdList(ids);
+        if (count > 0) {
+            return RestResult.error("当前分类下已存在网站");
+        }
+        count = stationGroupClassificationService.countClassificationByParentIdList(ids);
+        if (count > 0) {
+            return RestResult.error("当前分类下已存在子分类");
+        }
         boolean result = stationGroupClassificationService.removeByIds(ids);
         return RestResult.ok(result);
     }
@@ -191,5 +208,77 @@ public class StationGroupClassificationController extends BaseController {
         List<CascaderResult> cascaderResults = CascaderUtil.getResult("Id", "Name","TreePosition", stationGroupClassification.getId(), stationGroupClassificationVos);
         log.info(String.format("获取的级联对象: %s ",JSONUtil.toJsonStr(cascaderResults)));
         return RestResult.ok(cascaderResults);
+    }
+
+    /**
+     * 分类名称重名检查
+     *
+     * @param id
+     * @param parentId
+     * @param name
+     * @return
+     */
+    @RequestMapping("/isNameExist")
+    @ApiOperation(value="分类名称重名检查", notes="分类名称重名检查")
+    @ApiImplicitParams ({
+            @ApiImplicitParam(name = "id", value = "分类编号", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "parentId", value = "分类编号", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "name", value = "分类名称", required = true, dataType = "String", paramType = "query")
+    })
+    public RestResult<Boolean> isNameExist(String id, String parentId, String name) {
+        log.info(String.format("分类名称重名检查: id = %s, parentId = %s, name = %s",id, parentId, name));
+        long count = stationGroupClassificationService.countNameByParentId(id, parentId, name);
+        if (count > 0) {
+            return new RestResult(200, "当前分类下已存在该名称", true);
+        } else {
+            return RestResult.ok(false);
+        }
+    }
+
+    /**
+     * 分类英文名称重名检查
+     *
+     * @param id
+     * @param parentId
+     * @param englishName
+     * @return
+     */
+    @RequestMapping("/isEnglishNameExist")
+    @ApiOperation(value="分类英文名称重名检查", notes="分类英文名称重名检查")
+    @ApiImplicitParams ({
+            @ApiImplicitParam(name = "id", value = "分类编号", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "parentId", value = "父分类编号", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "name", value = "分类英文名称", required = true, dataType = "String", paramType = "query")
+    })
+    public RestResult<Boolean> isEnglishNameExist(String id, String parentId, String englishName) {
+        log.info(String.format("分类英文名称重名检查: id = %s, parentId = %s, englishName = %s", id, parentId, englishName));
+        long count = stationGroupClassificationService.countEnglishNameByParentId(id, parentId, englishName);
+        if (count > 0) {
+            return new RestResult(200, "当前分类下已存在该英文名称", true);
+        } else {
+            return RestResult.ok(false);
+        }
+    }
+
+    /**
+     * 检查分类下有无网站或分类
+     *
+     * @param ids
+     * @return
+     */
+    @PostMapping("/hasStationOrClassification")
+    @ApiOperation(value="根据ID批量逻辑删除", notes="根据对象ID批量逻辑删除信息")
+    @ApiImplicitParam(name = "ids", value = "对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
+    public RestResult<Boolean> hasStationOrClassification(@RequestParam("ids[]") List<String> ids) {
+        log.info(String.format("检查分类下有无网站或分类: %s ", JSONUtil.toJsonStr(ids)));
+        long count = stationGroupService.countStationGroupByClassificationIdList(ids);
+        if (count > 0) {
+            return new RestResult(200, "当前分类下已存在网站", true);
+        }
+        count = stationGroupClassificationService.countClassificationByParentIdList(ids);
+        if (count > 0) {
+            return new RestResult(200, "当前分类下已存在子分类", true);
+        }
+        return RestResult.ok(false);
     }
 }

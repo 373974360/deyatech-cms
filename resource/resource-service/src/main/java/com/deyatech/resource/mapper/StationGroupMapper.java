@@ -1,7 +1,13 @@
 package com.deyatech.resource.mapper;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.common.base.BaseMapper;
+import com.deyatech.resource.vo.StationGroupVo;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * <p>
@@ -14,9 +20,55 @@ import com.deyatech.common.base.BaseMapper;
 public interface StationGroupMapper extends BaseMapper<StationGroup> {
 
     /**
-     * 根据分类编号统计站群个数
+     * 根据分类编号统计站网站数
      * @param classificationId
      * @return
      */
     long countStationGroupByClassificationId(String classificationId);
+
+    /**
+     * 根据分类编号列表统计站网站数
+     * @param list
+     * @return
+     */
+    long countStationGroupByClassificationIdList(List<String> list);
+
+    /**
+     * 根据条件查询网站
+     *
+     * @param page
+     * @param stationGroupVo
+     * @return
+     */
+    IPage<StationGroupVo> pageSelectByCondition(@Param("page") Page page, @Param("stationGroupVo") StationGroupVo stationGroupVo);
+
+    /**
+     * 根据分类编号统计名称件数
+     *
+     * @param id
+     * @param classificationId
+     * @param name
+     * @return
+     */
+    long countNameByClassificationId(@Param("id") String id, @Param("classificationId") String classificationId, @Param("name") String name);
+
+    /**
+     * 根据分类编号统计英文名称件数
+     *
+     * @param id
+     * @param classificationId
+     * @param englishName
+     * @return
+     */
+    long countEnglishNameByClassificationId(@Param("id") String id, @Param("classificationId") String classificationId, @Param("englishName") String englishName);
+
+    /**
+     * 根据分类编号统计简称件数
+     *
+     * @param id
+     * @param classificationId
+     * @param abbreviation
+     * @return
+     */
+    long countAbbreviationByClassificationId(@Param("id") String id, @Param("classificationId") String classificationId, @Param("abbreviation") String abbreviation);
 }

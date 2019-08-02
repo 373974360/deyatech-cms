@@ -1,5 +1,6 @@
 package com.deyatech.resource.service.impl;
 
+import com.deyatech.common.entity.RestResult;
 import com.deyatech.resource.entity.StationGroupClassification;
 import com.deyatech.resource.vo.StationGroupClassificationVo;
 import com.deyatech.resource.mapper.StationGroupClassificationMapper;
@@ -10,6 +11,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.deyatech.common.Constants;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Collection;
@@ -97,24 +99,41 @@ public class StationGroupClassificationServiceImpl extends BaseServiceImpl<Stati
     }
 
     /**
-     * 根据分类编号统计名称件数
+     * 根据父分类编号统计名称件数
      *
+     * @param id
      * @param parentId
+     * @param name
      * @return
      */
     @Override
-    public long countNameByParentId(String parentId, String name) {
-        return baseMapper.countNameByParentId(parentId, name);
+    public long countNameByParentId(String id, String parentId, String name) {
+        if (StrUtil.isEmpty(parentId) || Constants.ZERO.equals(parentId)) return 0;
+        return baseMapper.countNameByParentId(id, parentId, name);
     }
 
     /**
-     * 根据分类编号统计英文名称件数
+     * 根据父分类编号统计英文名称件数
      *
+     * @param id
      * @param parentId
+     * @param englishName
      * @return
      */
     @Override
-    public long countEnglishNameByParentId(String parentId, String englishName) {
-        return baseMapper.countEnglishNameByParentId(parentId, englishName);
+    public long countEnglishNameByParentId(String id, String parentId, String englishName) {
+        if (StrUtil.isEmpty(parentId) || Constants.ZERO.equals(parentId)) return 0;
+        return baseMapper.countEnglishNameByParentId(id, parentId, englishName);
+    }
+
+    /**
+     * 根据父分类编号统计分类件数
+     *
+     * @param list
+     * @return
+     */
+    @Override
+    public long countClassificationByParentIdList(List<String> list) {
+        return baseMapper.countClassificationByParentIdList(list);
     }
 }

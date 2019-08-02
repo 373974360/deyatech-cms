@@ -41,18 +41,30 @@ public interface StationGroupClassificationService extends BaseService<StationGr
     List<StationGroupClassificationVo> setVoProperties(Collection stationGroupClassifications);
 
     /**
-     * 根据分类编号统计名称件数
+     * 根据父分类编号统计名称件数
      *
+     * @param id
      * @param parentId
+     * @param name
      * @return
      */
-    long countNameByParentId(String parentId, String name);
+    long countNameByParentId(String id, String parentId, String name);
 
     /**
-     * 根据分类编号统计英文名称件数
+     * 根据父分类编号统计英文名称件数
      *
+     * @param id
      * @param parentId
+     * @param englishName
      * @return
      */
-    long countEnglishNameByParentId(String parentId, String englishName);
+    long countEnglishNameByParentId(String id, String parentId, String englishName);
+
+    /**
+     * 根据父分类编号统计分类件数
+     *
+     * @param list
+     * @return
+     */
+    long countClassificationByParentIdList(List<String> list);
 }
