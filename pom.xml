@@ -29,9 +29,10 @@
 
     <modules>
         <module>resource</module>
-        <module>design</module>
+        <module>station</module>
         <module>setting</module>
         <module>content</module>
+        <module>template</module>
         <module>appeal</module>
         <module>statistics</module>
         <module>monitor</module>

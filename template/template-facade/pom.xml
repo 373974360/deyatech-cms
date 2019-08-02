@@ -4,13 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>design-facade</artifactId>
+    <artifactId>template-facade</artifactId>
 
     <name>${project.artifactId}</name>
-    <description>cms设计模块的基础类</description>
+    <description>cms模板模块的基础类</description>
 
     <parent>
-        <artifactId>design</artifactId>
+        <artifactId>template</artifactId>
         <groupId>com.deyatech</groupId>
         <version>0.0.1</version>
     </parent>
