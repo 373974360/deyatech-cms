@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.resource.mapper.StationGroupClassificationMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.deyatech.resource.entity.StationGroupClassification">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="name_" property="name" />
+        <result column="english_name" property="englishName" />
+        <result column="parent_id" property="parentId" />
+        <result column="tree_position" property="treePosition" />
+        <result column="sort_no" property="sortNo" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id_,
+        enable_,
+        remark_,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        version_,
+        name_, english_name, parent_id, tree_position, sort_no
+    </sql>
+    <!--根据分类编号统计名称件数-->
+    <select id="countNameByParentId" resultType="java.lang.Long">
+
+    </select>
+
+    <!--根据分类编号统计英文名称件数-->
+    <select id="countEnglishNameByParentId" resultType="java.lang.Long">
+
+    </select>
+
+</mapper>
