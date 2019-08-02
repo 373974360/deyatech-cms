@@ -54,7 +54,15 @@ public class StationGroupClassificationController extends BaseController {
         if (!Constants.ZERO.equals(stationGroupClassification.getParentId()) && StrUtil.isNotEmpty(stationGroupClassification.getParentId())) {
             long count = stationGroupService.countStationGroupByClassificationId(stationGroupClassification.getParentId());
             if (count > 0) {
-                return RestResult.error("当前分类下已存在站群，不允许添加分类");
+                return RestResult.error("当前分类下已存在站群");
+            }
+            count = stationGroupClassificationService.countNameByParentId(stationGroupClassification.getParentId(), stationGroupClassification.getName());
+            if (count > 0) {
+                return RestResult.error("当前分类下已存在此名称分类");
+            }
+            count = stationGroupClassificationService.countEnglishNameByParentId(stationGroupClassification.getParentId(), stationGroupClassification.getEnglishName());
+            if (count > 0) {
+                return RestResult.error("当前分类下已存在此英文名称分类");
             }
         }
         boolean result = stationGroupClassificationService.saveOrUpdate(stationGroupClassification);

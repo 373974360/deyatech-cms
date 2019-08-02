@@ -95,4 +95,26 @@ public class StationGroupClassificationServiceImpl extends BaseServiceImpl<Stati
         }
         return stationGroupClassificationVos;
     }
+
+    /**
+     * 根据分类编号统计名称件数
+     *
+     * @param parentId
+     * @return
+     */
+    @Override
+    public long countNameByParentId(String parentId, String name) {
+        return baseMapper.countNameByParentId(parentId, name);
+    }
+
+    /**
+     * 根据分类编号统计英文名称件数
+     *
+     * @param parentId
+     * @return
+     */
+    @Override
+    public long countEnglishNameByParentId(String parentId, String englishName) {
+        return baseMapper.countEnglishNameByParentId(parentId, englishName);
+    }
 }

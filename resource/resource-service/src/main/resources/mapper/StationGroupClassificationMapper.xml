@@ -33,12 +33,12 @@
     </sql>
     <!--根据分类编号统计名称件数-->
     <select id="countNameByParentId" resultType="java.lang.Long">
-
+        select count(*) from resource_station_group_classification where parent_id = #{parentId} and name_ = #{name}
     </select>
 
     <!--根据分类编号统计英文名称件数-->
     <select id="countEnglishNameByParentId" resultType="java.lang.Long">
-
+        select count(*) from resource_station_group_classification where parent_id = #{parentId} and english_name = #{englishName}
     </select>
 
 </mapper>

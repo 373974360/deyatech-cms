@@ -19,7 +19,7 @@ public interface StationGroupClassificationMapper extends BaseMapper<StationGrou
      * @param parentId
      * @return
      */
-    long countNameByParentId(String parentId);
+    long countNameByParentId(String parentId, String name);
 
     /**
      * 根据分类编号统计英文名称件数
@@ -27,5 +27,5 @@ public interface StationGroupClassificationMapper extends BaseMapper<StationGrou
      * @param parentId
      * @return
      */
-    long countEnglishNameByParentId(String parentId);
+    long countEnglishNameByParentId(String parentId, String englishName);
 }

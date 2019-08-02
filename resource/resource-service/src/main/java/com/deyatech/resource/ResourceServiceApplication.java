@@ -1,4 +1,4 @@
-package com.deyatech.design;
+package com.deyatech.resource;
 
 import cn.hutool.json.JSONObject;
 import com.deyatech.common.exception.GlobalExceptionHandler;
