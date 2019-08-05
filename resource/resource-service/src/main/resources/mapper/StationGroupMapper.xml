@@ -36,6 +36,7 @@
         <result column="sort_no" property="sortNo" />
         <result column="station_group_classification_id" property="stationGroupClassificationId" />
         <result column="station_group_classification_name" property="stationGroupClassificationName" />
+        <result column="station_group_classification_tree_position" property="stationGroupClassificationTreePosition" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
@@ -50,6 +51,7 @@
         version_,
         name_, english_name, abbreviation_, description_, sort_no, station_group_classification_id
     </sql>
+
     <!--根据分类编号统计网站个数-->
     <select id="countStationGroupByClassificationId" resultType="java.lang.Long">
         select count(*) from resource_station_group where enable_ != -1 and station_group_classification_id = #{classificationId}
@@ -63,7 +65,7 @@
         </foreach>
     </select>
     <!--根据条件查询网站-->
-    <select id="pageSelectByCondition" resultMap="StationGroupVoResultMap">
+    <select id="pageSelectByStationGroupVo" resultMap="StationGroupVoResultMap">
         select
         s.id_,
         s.enable_,
@@ -79,7 +81,8 @@
         s.description_,
         s.sort_no,
         s.station_group_classification_id,
-        c.name_ as station_group_classification_name
+        c.name_ as station_group_classification_name,
+        c.tree_position as station_group_classification_tree_position
         from resource_station_group s
              join resource_station_group_classification c on c.enable_ = 1 and s.station_group_classification_id = c.id_
         where s.enable_ != -1
@@ -88,14 +91,47 @@
             and s.station_group_classification_id = #{stationGroupVo.stationGroupClassificationId}
             </if>
             <if test="stationGroupVo.name != null and stationGroupVo.name !=''">
-            and ( s.name_ like concat('%',#{stationGroupVo.name},'%') or s.english_name like concat('%',#{stationGroupVo.name},'%') )
+            and ( s.name_ like concat('%',#{stationGroupVo.name},'%') or s.english_name like concat('%',#{stationGroupVo.name},'%') or s.abbreviation_ like concat('%',#{stationGroupVo.name},'%') )
             </if>
         </if>
     </select>
+
+    <!--根据条件查询所有网站-->
+    <select id="listSelectByStationGroupVo" resultType="com.deyatech.resource.vo.StationGroupVo">
+        select
+        s.id_,
+        s.enable_,
+        s.remark_,
+        s.create_by,
+        s.create_time,
+        s.update_by,
+        s.update_time,
+        s.version_,
+        s.name_,
+        s.english_name,
+        s.abbreviation_,
+        s.description_,
+        s.sort_no,
+        s.station_group_classification_id,
+        c.name_ as station_group_classification_name,
+        c.tree_position as station_group_classification_tree_position
+        from resource_station_group s
+        join resource_station_group_classification c on c.enable_ = 1 and s.station_group_classification_id = c.id_
+        where s.enable_ != -1
+        <if test="stationGroupVo != null">
+            <if test="stationGroupVo.stationGroupClassificationId != null and stationGroupVo.stationGroupClassificationId !=''">
+                and s.station_group_classification_id = #{stationGroupVo.stationGroupClassificationId}
+            </if>
+            <if test="stationGroupVo.name != null and stationGroupVo.name !=''">
+                and ( s.name_ like concat('%',#{stationGroupVo.name},'%') or s.english_name like concat('%',#{stationGroupVo.name},'%') or s.abbreviation_ like concat('%',#{stationGroupVo.name},'%') )
+            </if>
+        </if>
+    </select>
+
     <!--根据分类编号统计名称件数-->
     <select id="countNameByClassificationId" resultType="java.lang.Long">
         select count(*) from resource_station_group
-        where enable_ = 1 and station_group_classification_id = #{classificationId} and name_ = #{englishName}
+        where enable_ != -1 and station_group_classification_id = #{classificationId} and name_ = #{name}
         <if test="id != null and id != ''">
             and id_ != #{id}
         </if>
@@ -104,7 +140,7 @@
     <!--根据分类编号统计英文名称件数-->
     <select id="countEnglishNameByClassificationId" resultType="java.lang.Long">
         select count(*) from resource_station_group
-        where enable_ = 1 and station_group_classification_id = #{classificationId} and english_name = #{englishName}
+        where enable_ != -1 and station_group_classification_id = #{classificationId} and english_name = #{englishName}
         <if test="id != null and id != ''">
             and id_ != #{id}
         </if>
@@ -113,9 +149,14 @@
     <!--根据分类编号统计简称件数-->
     <select id="countAbbreviationByClassificationId" resultType="java.lang.Long">
         select count(*) from resource_station_group
-        where enable_ = 1 and abbreviation_ = #{classificationId} and abbreviation_ = #{abbreviation}
+        where enable_ != -1 and station_group_classification_id = #{classificationId} and abbreviation_ = #{abbreviation}
         <if test="id != null and id != ''">
             and id_ != #{id}
         </if>
     </select>
+
+    <!--修改状态根据编号-->
+    <update id="updateEnableById">
+        update resource_station_group set enable_ = #{enable} where id_ = #{id}
+    </update>
 </mapper>

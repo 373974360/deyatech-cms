@@ -7,6 +7,7 @@ import com.deyatech.common.base.BaseMapper;
 import com.deyatech.resource.vo.StationGroupVo;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -34,13 +35,21 @@ public interface StationGroupMapper extends BaseMapper<StationGroup> {
     long countStationGroupByClassificationIdList(List<String> list);
 
     /**
-     * 根据条件查询网站
+     * 根据条件翻页查询网站
      *
      * @param page
      * @param stationGroupVo
      * @return
      */
-    IPage<StationGroupVo> pageSelectByCondition(@Param("page") Page page, @Param("stationGroupVo") StationGroupVo stationGroupVo);
+    IPage<StationGroupVo> pageSelectByStationGroupVo(@Param("page") Page page, @Param("stationGroupVo") StationGroupVo stationGroupVo);
+
+    /**
+     * 根据条件查询所有网站
+     *
+     * @param stationGroupVo
+     * @return
+     */
+    Collection<StationGroupVo> listSelectByStationGroupVo(@Param("stationGroupVo") StationGroupVo stationGroupVo);
 
     /**
      * 根据分类编号统计名称件数
@@ -71,4 +80,13 @@ public interface StationGroupMapper extends BaseMapper<StationGroup> {
      * @return
      */
     long countAbbreviationByClassificationId(@Param("id") String id, @Param("classificationId") String classificationId, @Param("abbreviation") String abbreviation);
+
+    /**
+     * 修改状态根据编号
+     *
+     * @param id
+     * @param enable
+     * @return
+     */
+    long updateEnableById(@Param("id") String id, @Param("enable") int enable);
 }

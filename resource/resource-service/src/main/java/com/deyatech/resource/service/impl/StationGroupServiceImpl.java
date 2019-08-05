@@ -2,6 +2,7 @@ package com.deyatech.resource.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.deyatech.common.enums.EnableEnum;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.vo.StationGroupVo;
 import com.deyatech.resource.mapper.StationGroupMapper;
@@ -83,8 +84,18 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
      * @return
      */
     @Override
-    public IPage<StationGroupVo> pageSelectByCondition(StationGroupVo stationGroupVo) {
-        return baseMapper.pageSelectByCondition(getPageByBean(stationGroupVo), stationGroupVo);
+    public IPage<StationGroupVo> pageSelectByStationGroupVo(StationGroupVo stationGroupVo) {
+        return baseMapper.pageSelectByStationGroupVo(getPageByBean(stationGroupVo), stationGroupVo);
+    }
+
+    /**
+     * 根据条件查询所有网站
+     * @param stationGroupVo
+     * @return
+     */
+    @Override
+    public Collection<StationGroupVo> listSelectByStationGroupVo(StationGroupVo stationGroupVo) {
+        return baseMapper.listSelectByStationGroupVo(stationGroupVo);
     }
 
     /**
@@ -124,5 +135,22 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     @Override
     public long countAbbreviationByClassificationId(String id, String classificationId, String abbreviation) {
         return baseMapper.countAbbreviationByClassificationId(id, classificationId, abbreviation);
+    }
+
+    /**
+     * 修改状态根据编号
+     *
+     * @param id
+     * @param flag
+     * @return
+     */
+    @Override
+    public long runOrStopStationById(String id, String flag) {
+        if ("run".equals(flag)) {
+            return baseMapper.updateEnableById(id, EnableEnum.ENABLE.getCode());
+        } else if ("stop".equals(flag)) {
+            return baseMapper.updateEnableById(id, EnableEnum.DISABLE.getCode());
+        }
+        return 0;
     }
 }

@@ -50,12 +50,19 @@ public interface StationGroupService extends BaseService<StationGroup> {
     long countStationGroupByClassificationIdList(List<String> list);
 
     /**
-     * 根据条件查询网站
+     * 根据条件翻页查询网站
      *
      * @param stationGroupVo
      * @return
      */
-    IPage<StationGroupVo> pageSelectByCondition(StationGroupVo stationGroupVo);
+    IPage<StationGroupVo> pageSelectByStationGroupVo(StationGroupVo stationGroupVo);
+
+    /**
+     * 根据条件查询所有网站
+     * @param stationGroupVo
+     * @return
+     */
+    Collection<StationGroupVo> listSelectByStationGroupVo(StationGroupVo stationGroupVo);
 
     /**
      * 根据分类编号统计名称件数
@@ -86,4 +93,13 @@ public interface StationGroupService extends BaseService<StationGroup> {
      * @return
      */
     long countAbbreviationByClassificationId(String id, String classificationId, String abbreviation);
+
+    /**
+     * 修改状态根据编号
+     *
+     * @param id
+     * @param flag
+     * @return
+     */
+    long runOrStopStationById(String id, String flag);
 }

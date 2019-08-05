@@ -20,4 +20,11 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @ApiModel(value = "扩展对象", description = "扩展对象", parent = Domain.class)
 public class DomainVo extends Domain {
+
+    /**
+     * 网站名称
+     */
+    @ApiModelProperty(value = "网站名称", dataType = "String")
+    private String stationGroupName;
+
 }
