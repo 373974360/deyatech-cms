@@ -1,5 +1,8 @@
 package com.deyatech.resource.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.deyatech.common.enums.EnableEnum;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.vo.StationGroupVo;
 import com.deyatech.resource.mapper.StationGroupMapper;
@@ -55,11 +58,99 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     }
 
     /**
-     * 根据分类编号统计站群个数
+     * 根据分类编号统计网站个数
      * @param classificationId
      * @return
      */
+    @Override
     public long countStationGroupByClassificationId(String classificationId) {
         return baseMapper.countStationGroupByClassificationId(classificationId);
+    }
+
+    /**
+     * 根据分类编号列表统计站网站数
+     * @param list
+     * @return
+     */
+    @Override
+    public long countStationGroupByClassificationIdList(List<String> list) {
+        return baseMapper.countStationGroupByClassificationIdList(list);
+    }
+
+    /**
+     * 根据条件查询网站
+     *
+     * @param stationGroupVo
+     * @return
+     */
+    @Override
+    public IPage<StationGroupVo> pageSelectByStationGroupVo(StationGroupVo stationGroupVo) {
+        return baseMapper.pageSelectByStationGroupVo(getPageByBean(stationGroupVo), stationGroupVo);
+    }
+
+    /**
+     * 根据条件查询所有网站
+     * @param stationGroupVo
+     * @return
+     */
+    @Override
+    public Collection<StationGroupVo> listSelectByStationGroupVo(StationGroupVo stationGroupVo) {
+        return baseMapper.listSelectByStationGroupVo(stationGroupVo);
+    }
+
+    /**
+     * 根据分类编号统计名称件数
+     *
+     * @param id
+     * @param classificationId
+     * @param name
+     * @return
+     */
+    @Override
+    public long countNameByClassificationId(String id, String classificationId, String name) {
+        return baseMapper.countNameByClassificationId(id, classificationId, name);
+    }
+
+    /**
+     * 根据分类编号统计英文名称件数
+     *
+     * @param id
+     * @param classificationId
+     * @param englishName
+     * @return
+     */
+    @Override
+    public long countEnglishNameByClassificationId(String id, String classificationId, String englishName) {
+        return baseMapper.countEnglishNameByClassificationId(id, classificationId, englishName);
+    }
+
+    /**
+     * 根据分类编号统计简称件数
+     *
+     * @param id
+     * @param classificationId
+     * @param abbreviation
+     * @return
+     */
+    @Override
+    public long countAbbreviationByClassificationId(String id, String classificationId, String abbreviation) {
+        return baseMapper.countAbbreviationByClassificationId(id, classificationId, abbreviation);
+    }
+
+    /**
+     * 修改状态根据编号
+     *
+     * @param id
+     * @param flag
+     * @return
+     */
+    @Override
+    public long runOrStopStationById(String id, String flag) {
+        if ("run".equals(flag)) {
+            return baseMapper.updateEnableById(id, EnableEnum.ENABLE.getCode());
+        } else if ("stop".equals(flag)) {
+            return baseMapper.updateEnableById(id, EnableEnum.DISABLE.getCode());
+        }
+        return 0;
     }
 }

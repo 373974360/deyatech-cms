@@ -33,4 +33,56 @@
         name_, description_, sign_, sort_no, station_group_id, port_
     </sql>
 
+    <!--根据条件翻页查询网站-->
+    <select id="pageSelectByDomainVo" resultType="com.deyatech.resource.vo.DomainVo">
+        select
+        d.id_,
+        d.enable_,
+        d.remark_,
+        d.create_by,
+        d.create_time,
+        d.update_by,
+        d.update_time,
+        d.version_,
+        d.name_,
+        d.port_,
+        d.description_,
+        d.sign_,
+        d.sort_no,
+        d.station_group_id,
+        s.name_ as station_group_name
+        from resource_domain d
+             join resource_station_group s on s.enable_ != -1 and d.station_group_id = s.id_
+        where d.enable_ != -1
+        <if test="domainVo != null">
+            <if test="domainVo.stationGroupId != null and domainVo.stationGroupId !=''">
+                and d.station_group_id = #{domainVo.stationGroupId}
+            </if>
+            <if test="domainVo.name != null and domainVo.name !=''">
+                and d.name_ like concat('%',#{domainVo.name},'%')
+            </if>
+        </if>
+    </select>
+
+    <!--根据网站编号统计域名件数-->
+    <select id="countNameByStationGroupId" resultType="java.lang.Long">
+        select count(*) from resource_domain
+        where enable_ != -1 and station_group_id = #{stationGroupId} and name_ = #{name}
+        <if test="id != null and id != ''">
+            and id_ != #{id}
+        </if>
+    </select>
+
+    <!--修改状态根据编号-->
+    <update id="updateEnableById">
+        update resource_domain set enable_ = #{enable} where id_ = #{id}
+    </update>
+
+    <!--更新主域名-->
+    <update id="updateSignByStationGroupId">
+        update resource_domain set sign_ = #{sign} where station_group_id = #{stationGroupId}
+    </update>
+    <update id="updateSignById">
+        update resource_domain set sign_ = #{sign} where id_ = #{id}
+    </update>
 </mapper>

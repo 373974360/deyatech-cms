@@ -31,14 +31,30 @@
         version_,
         name_, english_name, parent_id, tree_position, sort_no
     </sql>
-    <!--根据分类编号统计名称件数-->
+    <!--根据父分类编号统计名称件数-->
     <select id="countNameByParentId" resultType="java.lang.Long">
-        select count(*) from resource_station_group_classification where parent_id = #{parentId} and name_ = #{name}
+        select count(*) from resource_station_group_classification
+        where enable_ = 1 and parent_id = #{parentId} and name_ = #{name}
+        <if test="id != null and id != ''">
+            and id_ != #{id}
+        </if>
     </select>
 
-    <!--根据分类编号统计英文名称件数-->
+    <!--根据父分类编号统计英文名称件数-->
     <select id="countEnglishNameByParentId" resultType="java.lang.Long">
-        select count(*) from resource_station_group_classification where parent_id = #{parentId} and english_name = #{englishName}
+        select count(*) from resource_station_group_classification
+        where enable_ = 1 and parent_id = #{parentId} and english_name = #{englishName}
+        <if test="id != null and id != ''">
+            and id_ != #{id}
+        </if>
+    </select>
+
+    <!--根据父分类编号统计分类件数-->
+    <select id="countClassificationByParentIdList" resultType="java.lang.Long">
+        select count(*) from resource_station_group_classification where enable_ = 1 and parent_id in
+        <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
     </select>
 
 </mapper>

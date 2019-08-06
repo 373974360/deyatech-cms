@@ -20,4 +20,16 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @ApiModel(value = "站群扩展对象", description = "站群扩展对象", parent = StationGroup.class)
 public class StationGroupVo extends StationGroup {
+
+    /**
+     * 分类名称
+     */
+    @ApiModelProperty(value = "分类名称", dataType = "String")
+    private String stationGroupClassificationName;
+
+    /**
+     * 分类树结构索引位置
+     */
+    @ApiModelProperty(value = "分类树结构索引位置", dataType = "String")
+    private String stationGroupClassificationTreePosition;
 }

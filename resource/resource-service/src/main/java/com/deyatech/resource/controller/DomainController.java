@@ -4,6 +4,7 @@ import com.deyatech.resource.entity.Domain;
 import com.deyatech.resource.vo.DomainVo;
 import com.deyatech.resource.service.DomainService;
 import com.deyatech.common.entity.RestResult;
+import io.swagger.annotations.ApiImplicitParams;
 import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -129,17 +130,86 @@ public class DomainController extends BaseController {
     /**
      * 根据Domain对象属性分页检索
      *
-     * @param domain
+     * @param domainVo
      * @return
      */
     @GetMapping("/pageByDomain")
     @ApiOperation(value="根据Domain对象属性分页检索", notes="根据Domain对象属性分页检索信息")
     @ApiImplicitParam(name = "domain", value = "对象", required = false, dataType = "Domain", paramType = "query")
-    public RestResult<IPage<DomainVo>> pageByDomain(Domain domain) {
-        IPage<DomainVo> domains = domainService.pageByBean(domain);
-        domains.setRecords(domainService.setVoProperties(domains.getRecords()));
+    public RestResult<IPage<DomainVo>> pageByDomain(DomainVo domainVo) {
+        IPage<DomainVo> domains = domainService.pageSelectByDomainVo(domainVo);
         log.info(String.format("根据Domain对象属性分页检索: %s ",JSONUtil.toJsonStr(domains)));
         return RestResult.ok(domains);
     }
 
+    /**
+     * 域名重名检查
+     *
+     * @param id
+     * @param stationGroupId
+     * @param name
+     * @return
+     */
+    @RequestMapping("/isNameExist")
+    @ApiOperation(value="域名重名检查", notes="域名重名检查")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "域名编号", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "stationGroupId", value = "网站编号", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "name", value = "网站名称", required = true, dataType = "String", paramType = "query")
+    })
+    public RestResult<Boolean> isNameExist(@RequestParam(required = false) String id, String stationGroupId, String name) {
+        log.info(String.format("域名重名检查: id = %s, stationGroupId = %s, name = %s", id, stationGroupId, name));
+        long count = this.domainService.countNameByStationGroupId(id, stationGroupId, name);
+        if (count > 0) {
+            return new RestResult(200, "当前网站下已存在该域名", true);
+        } else {
+            return RestResult.ok(false);
+        }
+    }
+
+    /**
+     * 启用或停用域名
+     *
+     * @param id
+     * @param flag
+     * @return
+     */
+    @RequestMapping("/runOrStopDomainById")
+    @ApiOperation(value="启用或停用域名", notes="启用或停用域名")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "网站编号", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "flag", value = "运行或停止标记", required = true, dataType = "String", paramType = "query"),
+    })
+    public RestResult<Boolean> runOrStopDomainById(String id, String flag) {
+        log.info(String.format("运行或停止网站 id = %s, flag = %s", id , flag));
+        long count = this.domainService.runOrStopStationById(id, flag);
+        if (count > 0) {
+            return RestResult.ok(true);
+        } else {
+            return RestResult.ok(false);
+        }
+    }
+
+    /**
+     * 更新主域名
+     *
+     * @param id
+     * @param stationGroupId
+     * @return
+     */
+    @RequestMapping("/updateSignByIdAndStationGroupId")
+    @ApiOperation(value="更新主域名", notes="更新主域名")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "网站编号", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "flag", value = "运行或停止标记", required = true, dataType = "String", paramType = "query"),
+    })
+    public RestResult<Boolean> updateSignByIdAndStationGroupId(String id, String stationGroupId) {
+        log.info(String.format("更新主域名 id = %s, stationGroupId = %s", id , stationGroupId));
+        long count = this.domainService.updateSignByIdAndStationGroupId(id, stationGroupId);
+        if (count > 0) {
+            return RestResult.ok(true);
+        } else {
+            return RestResult.ok(false);
+        }
+    }
 }
