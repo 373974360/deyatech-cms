@@ -77,10 +77,16 @@ public class PageServiceImpl extends BaseServiceImpl<PageMapper, Page> implement
             message = "此目录不允许操作";
             return message;
         }
-        String id = page.getId();
-        page.setId(null);
-        Page pageResult = super.getByBean(page);
-        if (ObjectUtil.isNotNull(pageResult) && !pageResult.getId().equals(id)) {
+        if (StrUtil.isEmpty(page.getPageEnglishName())) {
+            message = "英文名称为空";
+            return message;
+        }
+        Page pageQuery = new Page();
+        pageQuery.setPagePath(page.getPagePath());
+        pageQuery.setSiteId(page.getSiteId());
+        pageQuery.setPageEnglishName(page.getPageEnglishName());
+        Page pageResult = super.getByBean(pageQuery);
+        if (ObjectUtil.isNotNull(pageResult) && !pageResult.getId().equals(page.getId())) {
             message = "此地址已存在当前页面";
             return message;
         }
