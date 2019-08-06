@@ -7,6 +7,9 @@ import com.deyatech.common.base.BaseMapper;
 import com.deyatech.resource.vo.DomainVo;
 import org.apache.ibatis.annotations.Param;
 
+import java.io.Serializable;
+import java.util.Collection;
+
 /**
  * <p>
  *  Mapper 接口
@@ -18,13 +21,21 @@ import org.apache.ibatis.annotations.Param;
 public interface DomainMapper extends BaseMapper<Domain> {
 
     /**
-     * 根据条件翻页查询网站
+     * 根据条件翻页查询域名
      *
      * @param page
      * @param domainVo
      * @return
      */
     IPage<DomainVo> pageSelectByDomainVo(@Param("page") Page page, @Param("domainVo") DomainVo domainVo);
+
+    /**
+     * 根据条件查询所有域名
+     *
+     * @param domainVo
+     * @return
+     */
+    Collection<DomainVo> listSelectByDomainVo(@Param("domainVo") DomainVo domainVo);
 
     /**
      * 根据网站编号统计域名件数
@@ -46,7 +57,7 @@ public interface DomainMapper extends BaseMapper<Domain> {
     long updateEnableById(@Param("id") String id, @Param("enable") int enable);
 
     /**
-     * 更新主域名
+     * 更新主域名标记
      *
      * @param stationGroupId
      * @return
@@ -54,10 +65,25 @@ public interface DomainMapper extends BaseMapper<Domain> {
     long updateSignByStationGroupId(@Param("stationGroupId") String stationGroupId, @Param("sign") String sign);
 
     /**
-     * 更新主域名
+     * 更新主域名标记
      *
      * @param id
      * @return
      */
     long updateSignById(@Param("id") String id, @Param("sign") String sign);
+
+    /**
+     * 获取网站下的主域名
+     *
+     * @param stationGroupId
+     * @return
+     */
+    DomainVo getMainByByStationGroupId(@Param("stationGroupId") String stationGroupId);
+
+    /**
+     * 根据编号检索域名
+     *
+     * @return
+     */
+    Domain getDomainById(@Param("id") Serializable id);
 }

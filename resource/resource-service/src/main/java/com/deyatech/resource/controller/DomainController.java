@@ -1,23 +1,25 @@
 package com.deyatech.resource.controller;
 
-import com.deyatech.resource.entity.Domain;
-import com.deyatech.resource.vo.DomainVo;
-import com.deyatech.resource.service.DomainService;
-import com.deyatech.common.entity.RestResult;
-import io.swagger.annotations.ApiImplicitParams;
-import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import org.springframework.web.bind.annotation.RestController;
 import com.deyatech.common.base.BaseController;
+import com.deyatech.common.entity.RestResult;
+import com.deyatech.common.enums.YesNoEnum;
+import com.deyatech.resource.entity.Domain;
+import com.deyatech.resource.service.DomainService;
+import com.deyatech.resource.service.StationGroupService;
+import com.deyatech.resource.vo.DomainVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * <p>
@@ -45,8 +47,14 @@ public class DomainController extends BaseController {
     @ApiImplicitParam(name = "domain", value = "对象", required = true, dataType = "Domain", paramType = "query")
     public RestResult<Boolean> saveOrUpdate(Domain domain) {
         log.info(String.format("保存或者更新: %s ", JSONUtil.toJsonStr(domain)));
-        boolean result = domainService.saveOrUpdate(domain);
-        return RestResult.ok(result);
+        // 检查域名是否存在
+        long count = this.domainService.countNameByStationGroupId(domain.getId(), domain.getStationGroupId(), domain.getName());
+        if (count > 0) {
+            return new RestResult(200, "当前网站下已存在该域名", true);
+        } else {
+            boolean result = domainService.saveOrUpdateAndNginx(domain);
+            return RestResult.ok(result);
+        }
     }
 
     /**
@@ -75,7 +83,14 @@ public class DomainController extends BaseController {
     @ApiImplicitParam(name = "domain", value = "对象", required = true, dataType = "Domain", paramType = "query")
     public RestResult<Boolean> removeByDomain(Domain domain) {
         log.info(String.format("根据Domain对象属性逻辑删除: %s ", domain));
-        boolean result = domainService.removeByBean(domain);
+        domain = domainService.getById(domain.getId());
+        // 主域名
+        if (YesNoEnum.YES.getCode().toString().equals(domain.getSign())) {
+            return RestResult.error("主域名不允许删除");
+        }
+        List<String> ids = new ArrayList<>();
+        ids.add(domain.getId());
+        boolean result = domainService.removeDomainsAndConfig(ids);
         return RestResult.ok(result);
     }
 
@@ -91,7 +106,14 @@ public class DomainController extends BaseController {
     @ApiImplicitParam(name = "ids", value = "对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
     public RestResult<Boolean> removeByIds(@RequestParam("ids[]") List<String> ids) {
         log.info(String.format("根据id批量删除: %s ", JSONUtil.toJsonStr(ids)));
-        boolean result = domainService.removeByIds(ids);
+        for(String id : ids) {
+            Domain domain = domainService.getById(id);
+            // 主域名
+            if (YesNoEnum.YES.getCode().toString().equals(domain.getSign())) {
+                return RestResult.error("主域名不允许删除");
+            }
+        }
+        boolean result = domainService.removeDomainsAndConfig(ids);
         return RestResult.ok(result);
     }
 
@@ -182,6 +204,11 @@ public class DomainController extends BaseController {
     })
     public RestResult<Boolean> runOrStopDomainById(String id, String flag) {
         log.info(String.format("运行或停止网站 id = %s, flag = %s", id , flag));
+        Domain domain = domainService.getById(id);
+        // 主域名不能停用
+        if ("stop".equals(flag) && YesNoEnum.YES.getCode().toString().equals(domain.getSign())) {
+            return RestResult.error("主域名不允许停用");
+        }
         long count = this.domainService.runOrStopStationById(id, flag);
         if (count > 0) {
             return RestResult.ok(true);

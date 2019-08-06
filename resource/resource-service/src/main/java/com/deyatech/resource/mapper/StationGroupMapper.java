@@ -2,11 +2,12 @@ package com.deyatech.resource.mapper;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.common.base.BaseMapper;
+import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.vo.StationGroupVo;
 import org.apache.ibatis.annotations.Param;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
@@ -89,4 +90,11 @@ public interface StationGroupMapper extends BaseMapper<StationGroup> {
      * @return
      */
     long updateEnableById(@Param("id") String id, @Param("enable") int enable);
+
+    /**
+     * 根据编号检索网站
+     *
+     * @return
+     */
+    StationGroup getStationGroupById(@Param("id") Serializable id);
 }

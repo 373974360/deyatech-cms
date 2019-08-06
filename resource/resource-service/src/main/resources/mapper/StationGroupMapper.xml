@@ -97,7 +97,7 @@
     </select>
 
     <!--根据条件查询所有网站-->
-    <select id="listSelectByStationGroupVo" resultType="com.deyatech.resource.vo.StationGroupVo">
+    <select id="listSelectByStationGroupVo" resultMap="StationGroupVoResultMap">
         select
         s.id_,
         s.enable_,
@@ -159,4 +159,11 @@
     <update id="updateEnableById">
         update resource_station_group set enable_ = #{enable} where id_ = #{id}
     </update>
+
+    <!--根据编号检索网站-->
+    <select id="getStationGroupById" resultMap="BaseResultMap">
+        select id_,name_, english_name, abbreviation_, description_, sort_no, station_group_classification_id,enable_,remark_,create_by,create_time,update_by,update_time,version_
+        from resource_station_group
+        where id_ = #{id} and enable_ != -1
+    </select>
 </mapper>

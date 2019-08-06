@@ -3,8 +3,10 @@ package com.deyatech.resource.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseService;
 import com.deyatech.resource.entity.Domain;
+import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.vo.DomainVo;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
@@ -35,12 +37,20 @@ public interface DomainService extends BaseService<Domain> {
     List<DomainVo> setVoProperties(Collection domains);
 
     /**
-     * 根据条件翻页查询网站
+     * 根据条件翻页查询域名
      *
      * @param domainVo
      * @return
      */
     IPage<DomainVo> pageSelectByDomainVo(DomainVo domainVo);
+
+    /**
+     * 根据条件查询所有域名
+     *
+     * @param domainVo
+     * @return
+     */
+    Collection<DomainVo> listSelectByDomainVo(DomainVo domainVo);
 
     /**
      * 根据网站编号统计域名件数
@@ -53,7 +63,7 @@ public interface DomainService extends BaseService<Domain> {
     long countNameByStationGroupId(String id, String stationGroupId, String name);
 
     /**
-     * 修改状态根据编号
+     * 启用停用域名
      *
      * @param id
      * @param flag
@@ -61,12 +71,14 @@ public interface DomainService extends BaseService<Domain> {
      */
     long runOrStopStationById(String id, String flag);
 
+    boolean saveUpdate (Domain entity);
+
     /**
      * 更新或保存
      * @param entity
      * @return
      */
-    boolean saveOrUpdate(Domain entity);
+    boolean saveOrUpdateAndNginx(Domain entity);
 
     /**
      * 更新主域名
@@ -76,4 +88,49 @@ public interface DomainService extends BaseService<Domain> {
      * @return
      */
     long updateSignByIdAndStationGroupId(String id, String stationGroupId);
+
+    /**
+     * 获取网站下的主域名
+     *
+     * @param stationGroupId
+     * @return
+     */
+    DomainVo getMainByByStationGroupId(String stationGroupId);
+
+    /**
+     * 禁用站点配置文件
+     *
+     * @param stationGroup
+     */
+    void disableNginxConfig(StationGroup stationGroup);
+
+    /**
+     * 启用站点配置文件
+     */
+    void enableNginxConfig(StationGroup stationGroup);
+
+    /**
+     * 根据编号检索域名
+     *
+     * @param id
+     * @return
+     */
+    Domain getById(Serializable id);
+
+    /**
+     * 从配置文件中添加或移除域名
+     *
+     * @param stationGroupEnglishName
+     * @param domainName
+     * @param flag
+     */
+    void addOrRemoveDomainFromConfig(String stationGroupEnglishName, String domainName, String flag);
+
+    /**
+     * 删除域名和配置
+     *
+     * @param idList
+     * @return
+     */
+    boolean removeDomainsAndConfig(Collection<String> idList);
 }

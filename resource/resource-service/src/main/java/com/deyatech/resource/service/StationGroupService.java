@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.vo.StationGroupVo;
 import com.deyatech.common.base.BaseService;
+
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
@@ -102,4 +104,12 @@ public interface StationGroupService extends BaseService<StationGroup> {
      * @return
      */
     long runOrStopStationById(String id, String flag);
+
+    /**
+     * 根据编号检索网站
+     *
+     * @param id
+     * @return
+     */
+    StationGroup getById(Serializable id);
 }

@@ -4,13 +4,17 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.common.enums.EnableEnum;
 import com.deyatech.resource.entity.StationGroup;
+import com.deyatech.resource.service.DomainService;
 import com.deyatech.resource.vo.StationGroupVo;
 import com.deyatech.resource.mapper.StationGroupMapper;
 import com.deyatech.resource.service.StationGroupService;
 import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.Serializable;
 import java.util.List;
 import java.util.Collection;
 
@@ -24,6 +28,9 @@ import java.util.Collection;
  */
 @Service
 public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper, StationGroup> implements StationGroupService {
+
+    @Autowired
+    DomainService domainService;
 
     /**
      * 单个将对象转换为vo站群
@@ -146,11 +153,30 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
      */
     @Override
     public long runOrStopStationById(String id, String flag) {
+        long count = 0;
+        StationGroup stationGroup = getById(id);
         if ("run".equals(flag)) {
-            return baseMapper.updateEnableById(id, EnableEnum.ENABLE.getCode());
+            count = baseMapper.updateEnableById(id, EnableEnum.ENABLE.getCode());
+            if (count > 0) {
+                domainService.enableNginxConfig(stationGroup);
+            }
         } else if ("stop".equals(flag)) {
-            return baseMapper.updateEnableById(id, EnableEnum.DISABLE.getCode());
+            count = baseMapper.updateEnableById(id, EnableEnum.DISABLE.getCode());
+            if (count > 0) {
+                domainService.disableNginxConfig(stationGroup);
+            }
         }
-        return 0;
+        return count;
+    }
+
+    /**
+     * 根据编号检索网站
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public StationGroup getById(Serializable id) {
+        return baseMapper.getStationGroupById(id);
     }
 }

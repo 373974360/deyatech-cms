@@ -19,6 +19,23 @@
         <result column="station_group_id" property="stationGroupId" />
         <result column="port_" property="port" />
     </resultMap>
+    <resultMap id="DomainVoResultMap" type="com.deyatech.resource.vo.DomainVo">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="name_" property="name" />
+        <result column="description_" property="description" />
+        <result column="sign_" property="sign" />
+        <result column="sort_no" property="sortNo" />
+        <result column="port_" property="port" />
+        <result column="station_group_id" property="stationGroupId" />
+        <result column="station_group_name" property="stationGroupName" />
+    </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
@@ -33,8 +50,8 @@
         name_, description_, sign_, sort_no, station_group_id, port_
     </sql>
 
-    <!--根据条件翻页查询网站-->
-    <select id="pageSelectByDomainVo" resultType="com.deyatech.resource.vo.DomainVo">
+    <!--根据条件翻页查询域名-->
+    <select id="pageSelectByDomainVo" resultMap="DomainVoResultMap">
         select
         d.id_,
         d.enable_,
@@ -64,6 +81,37 @@
         </if>
     </select>
 
+    <!--根据条件查询所有域名-->
+    <select id="listSelectByDomainVo" resultMap="DomainVoResultMap">
+        select
+        d.id_,
+        d.enable_,
+        d.remark_,
+        d.create_by,
+        d.create_time,
+        d.update_by,
+        d.update_time,
+        d.version_,
+        d.name_,
+        d.port_,
+        d.description_,
+        d.sign_,
+        d.sort_no,
+        d.station_group_id,
+        s.name_ as station_group_name
+        from resource_domain d
+        join resource_station_group s on s.enable_ != -1 and d.station_group_id = s.id_
+        where d.enable_ != -1
+        <if test="domainVo != null">
+            <if test="domainVo.stationGroupId != null and domainVo.stationGroupId !=''">
+                and d.station_group_id = #{domainVo.stationGroupId}
+            </if>
+            <if test="domainVo.name != null and domainVo.name !=''">
+                and d.name_ like concat('%',#{domainVo.name},'%')
+            </if>
+        </if>
+    </select>
+
     <!--根据网站编号统计域名件数-->
     <select id="countNameByStationGroupId" resultType="java.lang.Long">
         select count(*) from resource_domain
@@ -78,11 +126,44 @@
         update resource_domain set enable_ = #{enable} where id_ = #{id}
     </update>
 
-    <!--更新主域名-->
+    <!--更新主域名标记-->
     <update id="updateSignByStationGroupId">
         update resource_domain set sign_ = #{sign} where station_group_id = #{stationGroupId}
     </update>
+
+    <!--更新主域名标记-->
     <update id="updateSignById">
         update resource_domain set sign_ = #{sign} where id_ = #{id}
     </update>
+
+    <!--获取网站下的主域名-->
+    <select id="getMainByByStationGroupId" resultMap="DomainVoResultMap">
+        select
+        d.id_,
+        d.enable_,
+        d.remark_,
+        d.create_by,
+        d.create_time,
+        d.update_by,
+        d.update_time,
+        d.version_,
+        d.name_,
+        d.port_,
+        d.description_,
+        d.sign_,
+        d.sort_no,
+        d.station_group_id,
+        s.name_ as station_group_name
+        from resource_domain d
+        join resource_station_group s on s.enable_ != -1 and d.station_group_id = s.id_
+        where d.enable_ != -1 and d.sign_ = 1 and d.station_group_id = #{stationGroupId}
+    </select>
+
+    <!--根据编号检索域名-->
+    <select id="getDomainById" resultMap="BaseResultMap">
+        select id_,name_,description_,sign_,sort_no,station_group_id,port_,enable_,remark_,create_by,create_time,update_by,update_time,version_
+        from resource_domain
+        where id_ = #{id} and enable_ != -1
+    </select>
+
 </mapper>
