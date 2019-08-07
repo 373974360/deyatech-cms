@@ -38,7 +38,7 @@ public interface DomainMapper extends BaseMapper<Domain> {
     Collection<DomainVo> listSelectByDomainVo(@Param("domainVo") DomainVo domainVo);
 
     /**
-     * 根据网站编号统计域名件数
+     * 根据站群编号统计域名件数
      *
      * @param id
      * @param stationGroupId
@@ -57,6 +57,15 @@ public interface DomainMapper extends BaseMapper<Domain> {
     long updateEnableById(@Param("id") String id, @Param("enable") int enable);
 
     /**
+     * 修改状态根据站群编号
+     *
+     * @param stationGroupId
+     * @param enable
+     * @return
+     */
+    long updateEnableByStationGroupId(@Param("stationGroupId") String stationGroupId, @Param("enable") int enable);
+
+    /**
      * 更新主域名标记
      *
      * @param stationGroupId
@@ -73,7 +82,7 @@ public interface DomainMapper extends BaseMapper<Domain> {
     long updateSignById(@Param("id") String id, @Param("sign") String sign);
 
     /**
-     * 获取网站下的主域名
+     * 获取站群下的主域名
      *
      * @param stationGroupId
      * @return

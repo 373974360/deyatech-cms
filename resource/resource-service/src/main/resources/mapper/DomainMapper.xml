@@ -112,7 +112,7 @@
         </if>
     </select>
 
-    <!--根据网站编号统计域名件数-->
+    <!--根据站群编号统计域名件数-->
     <select id="countNameByStationGroupId" resultType="java.lang.Long">
         select count(*) from resource_domain
         where enable_ != -1 and station_group_id = #{stationGroupId} and name_ = #{name}
@@ -126,6 +126,11 @@
         update resource_domain set enable_ = #{enable} where id_ = #{id}
     </update>
 
+    <!--修改状态根据站群编号-->
+    <update id="updateEnableByStationGroupId">
+        update resource_domain set enable_ = #{enable} where station_group_id = #{stationGroupId}
+    </update>
+
     <!--更新主域名标记-->
     <update id="updateSignByStationGroupId">
         update resource_domain set sign_ = #{sign} where station_group_id = #{stationGroupId}
@@ -136,7 +141,7 @@
         update resource_domain set sign_ = #{sign} where id_ = #{id}
     </update>
 
-    <!--获取网站下的主域名-->
+    <!--获取站群下的主域名-->
     <select id="getMainByByStationGroupId" resultMap="DomainVoResultMap">
         select
         d.id_,

@@ -22,21 +22,21 @@ import java.util.List;
 public interface StationGroupMapper extends BaseMapper<StationGroup> {
 
     /**
-     * 根据分类编号统计站网站数
+     * 根据分类编号统计站站群数
      * @param classificationId
      * @return
      */
     long countStationGroupByClassificationId(String classificationId);
 
     /**
-     * 根据分类编号列表统计站网站数
+     * 根据分类编号列表统计站站群数
      * @param list
      * @return
      */
     long countStationGroupByClassificationIdList(List<String> list);
 
     /**
-     * 根据条件翻页查询网站
+     * 根据条件翻页查询站群
      *
      * @param page
      * @param stationGroupVo
@@ -45,7 +45,7 @@ public interface StationGroupMapper extends BaseMapper<StationGroup> {
     IPage<StationGroupVo> pageSelectByStationGroupVo(@Param("page") Page page, @Param("stationGroupVo") StationGroupVo stationGroupVo);
 
     /**
-     * 根据条件查询所有网站
+     * 根据条件查询所有站群
      *
      * @param stationGroupVo
      * @return
@@ -90,9 +90,10 @@ public interface StationGroupMapper extends BaseMapper<StationGroup> {
      * @return
      */
     long updateEnableById(@Param("id") String id, @Param("enable") int enable);
+    long updateEnableByIds(@Param("list") List<String> list, @Param("enable") int enable);
 
     /**
-     * 根据编号检索网站
+     * 根据编号检索站群
      *
      * @return
      */

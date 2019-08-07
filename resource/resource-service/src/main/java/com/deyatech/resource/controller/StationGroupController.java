@@ -4,6 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseController;
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.common.enums.EnableEnum;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.service.StationGroupService;
 import com.deyatech.resource.vo.StationGroupVo;
@@ -16,7 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -44,6 +47,18 @@ public class StationGroupController extends BaseController {
     @ApiImplicitParam(name = "stationGroup", value = "站群对象", required = true, dataType = "StationGroup", paramType = "query")
     public RestResult<Boolean> saveOrUpdate(StationGroup stationGroup) {
         log.info(String.format("保存或者更新站群: %s ", JSONUtil.toJsonStr(stationGroup)));
+        long count = this.stationGroupService.countNameByClassificationId(stationGroup.getId(), stationGroup.getStationGroupClassificationId(), stationGroup.getName());
+        if (count > 0) {
+            return RestResult.error("当前分类下已存在该名称");
+        }
+        count = this.stationGroupService.countEnglishNameByClassificationId(stationGroup.getId(), stationGroup.getStationGroupClassificationId(), stationGroup.getEnglishName());
+        if (count > 0) {
+            return RestResult.error("当前分类下已存在该英文名称");
+        }
+        count = this.stationGroupService.countAbbreviationByClassificationId(stationGroup.getId(), stationGroup.getStationGroupClassificationId(), stationGroup.getAbbreviation());
+        if (count > 0) {
+            return RestResult.error("当前分类下已存在该名称");
+        }
         boolean result = stationGroupService.saveOrUpdate(stationGroup);
         return RestResult.ok(result);
     }
@@ -90,7 +105,15 @@ public class StationGroupController extends BaseController {
     @ApiImplicitParam(name = "ids", value = "站群对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
     public RestResult<Boolean> removeByIds(@RequestParam("ids[]") List<String> ids) {
         log.info(String.format("根据id批量删除站群: %s ", JSONUtil.toJsonStr(ids)));
-        boolean result = stationGroupService.removeByIds(ids);
+        Map<String, StationGroup> maps = new HashMap<>();
+        for(String id : ids) {
+            StationGroup stationGroup = stationGroupService.getById(id);
+            maps.put(id, stationGroup);
+            if (stationGroup.getEnable() == EnableEnum.ENABLE.getCode()) {
+                return RestResult.error("已启用的站群不允许删除");
+            }
+        }
+        boolean result = stationGroupService.removeStationGroupAndConfig(ids, maps);
         return RestResult.ok(result);
     }
 
@@ -142,7 +165,7 @@ public class StationGroupController extends BaseController {
     }
 
     /**
-     * 网站名称重名检查
+     * 站群名称重名检查
      *
      * @param id
      * @param classificationId
@@ -150,14 +173,14 @@ public class StationGroupController extends BaseController {
      * @return
      */
     @RequestMapping("/isNameExist")
-    @ApiOperation(value="网站名称重名检查", notes="网站名称重名检查")
+    @ApiOperation(value="站群名称重名检查", notes="站群名称重名检查")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", value = "网站编号", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "id", value = "站群编号", required = true, dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "classificationId", value = "分类编号", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "name", value = "网站名称", required = true, dataType = "String", paramType = "query")
+            @ApiImplicitParam(name = "name", value = "站群名称", required = true, dataType = "String", paramType = "query")
     })
     public RestResult<Boolean> isNameExist(@RequestParam(required = false) String id, String classificationId, String name) {
-        log.info(String.format("分类名称重名检查: id = %s, classificationId = %s, name = %s", id, classificationId, name));
+        log.info(String.format("站群名称重名检查: id = %s, classificationId = %s, name = %s", id, classificationId, name));
         long count = this.stationGroupService.countNameByClassificationId(id, classificationId, name);
         if (count > 0) {
             return new RestResult(200, "当前分类下已存在该名称", true);
@@ -167,7 +190,7 @@ public class StationGroupController extends BaseController {
     }
 
     /**
-     * 网站英文名称重名检查
+     * 站群英文名称重名检查
      *
      * @param id
      * @param classificationId
@@ -175,24 +198,24 @@ public class StationGroupController extends BaseController {
      * @return
      */
     @RequestMapping("/isEnglishNameExist")
-    @ApiOperation(value="网站英文名称重名检查", notes="网站英文名称重名检查")
+    @ApiOperation(value="站群英文名称重名检查", notes="站群英文名称重名检查")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", value = "网站编号", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "id", value = "站群编号", required = true, dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "classificationId", value = "分类编号", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "englishName", value = "网站英文名称", required = true, dataType = "String", paramType = "query")
+            @ApiImplicitParam(name = "englishName", value = "站群英文名称", required = true, dataType = "String", paramType = "query")
     })
     public RestResult<Boolean> isEnglishNameExist(@RequestParam(required = false) String id, String classificationId, String englishName) {
-        log.info(String.format("分类名称重名检查: id = %s, classificationId = %s, englishName = %s", id, classificationId, englishName));
+        log.info(String.format("站群英文名称重名检查: id = %s, classificationId = %s, englishName = %s", id, classificationId, englishName));
         long count = this.stationGroupService.countEnglishNameByClassificationId(id, classificationId, englishName);
         if (count > 0) {
-            return new RestResult(200, "当前分类下已存在该名称", true);
+            return new RestResult(200, "当前分类下已存在该英文名称", true);
         } else {
             return RestResult.ok(false);
         }
     }
 
     /**
-     * 网站英文名称重名检查
+     * 站群简称重名检查
      *
      * @param id
      * @param classificationId
@@ -200,14 +223,14 @@ public class StationGroupController extends BaseController {
      * @return
      */
     @RequestMapping("/isAbbreviationExist")
-    @ApiOperation(value="网站英文名称重名检查", notes="网站英文名称重名检查")
+    @ApiOperation(value="站群简称重名检查", notes="站群简称重名检查")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", value = "网站编号", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "id", value = "站群编号", required = true, dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "classificationId", value = "分类编号", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "abbreviation", value = "网站英文名称", required = true, dataType = "String", paramType = "query")
+            @ApiImplicitParam(name = "abbreviation", value = "站群简称", required = true, dataType = "String", paramType = "query")
     })
     public RestResult<Boolean> isAbbreviationExist(@RequestParam(required = false) String id, String classificationId, String abbreviation) {
-        log.info(String.format("分类名称重名检查: id = %s, classificationId = %s, englishName = %s", id, classificationId, abbreviation));
+        log.info(String.format("站群简称重名检查: id = %s, classificationId = %s, englishName = %s", id, classificationId, abbreviation));
         long count = this.stationGroupService.countAbbreviationByClassificationId(id, classificationId, abbreviation);
         if (count > 0) {
             return new RestResult(200, "当前分类下已存在该名称", true);
@@ -217,20 +240,20 @@ public class StationGroupController extends BaseController {
     }
 
     /**
-     * 启用或停用网站
+     * 启用或停用站群
      *
      * @param id
      * @param flag
      * @return
      */
     @RequestMapping("/runOrStopStationById")
-    @ApiOperation(value="启用或停用网站", notes="启用或停用网站")
+    @ApiOperation(value="启用或停用站群", notes="启用或停用站群")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", value = "网站编号", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "id", value = "站群编号", required = true, dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "flag", value = "启用或停用标记", required = true, dataType = "String", paramType = "query"),
     })
     public RestResult<Boolean> runOrStopStationById(String id, String flag) {
-        log.info(String.format("启用或停用网站 id = %s, flag = %s", id , flag));
+        log.info(String.format("启用或停用站群 id = %s, flag = %s", id , flag));
         long count = this.stationGroupService.runOrStopStationById(id, flag);
         if (count > 0) {
             return RestResult.ok(true);

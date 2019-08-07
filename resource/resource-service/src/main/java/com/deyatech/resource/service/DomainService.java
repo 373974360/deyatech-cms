@@ -9,6 +9,7 @@ import com.deyatech.resource.vo.DomainVo;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -53,7 +54,7 @@ public interface DomainService extends BaseService<Domain> {
     Collection<DomainVo> listSelectByDomainVo(DomainVo domainVo);
 
     /**
-     * 根据网站编号统计域名件数
+     * 根据站群编号统计域名件数
      *
      * @param id
      * @param stationGroupId
@@ -90,12 +91,19 @@ public interface DomainService extends BaseService<Domain> {
     long updateSignByIdAndStationGroupId(String id, String stationGroupId);
 
     /**
-     * 获取网站下的主域名
+     * 获取站群下的主域名
      *
      * @param stationGroupId
      * @return
      */
     DomainVo getMainByByStationGroupId(String stationGroupId);
+
+    /**
+     * 删除站点配置文件
+     *
+     * @param stationGroup
+     */
+    void deleteNginxConfig(StationGroup stationGroup);
 
     /**
      * 禁用站点配置文件
@@ -130,7 +138,24 @@ public interface DomainService extends BaseService<Domain> {
      * 删除域名和配置
      *
      * @param idList
+     * @param maps
      * @return
      */
-    boolean removeDomainsAndConfig(Collection<String> idList);
+    boolean removeDomainsAndConfig(Collection<String> idList, Map<String, Domain> maps);
+
+    /**
+     * 修改状态根据站群编号
+     *
+     * @param stationGroupId
+     * @param enable
+     * @return
+     */
+    long updateEnableByStationGroupId(String stationGroupId, int enable);
+
+    /**
+     * 获取nginx端口
+     *
+     * @return
+     */
+    String getNginxPort();
 }

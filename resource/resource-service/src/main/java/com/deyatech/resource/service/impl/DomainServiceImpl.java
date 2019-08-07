@@ -106,7 +106,7 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
     }
 
     /**
-     * 根据网站编号统计域名件数
+     * 根据站群编号统计域名件数
      *
      * @param id
      * @param stationGroupId
@@ -130,7 +130,7 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
         if (Objects.isNull(domainVo)) {
             entity.setSign(YesNoEnum.YES.getCode().toString());
         }
-        // 更新网站下其他域名为非主域名
+        // 更新站群下其他域名为非主域名
         if (YesNoEnum.YES.getCode().toString().equals(entity.getSign())) {
             baseMapper.updateSignByStationGroupId(entity.getStationGroupId(), YesNoEnum.NO.getCode().toString());
         }
@@ -196,14 +196,14 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
     @Transactional(rollbackFor = Exception.class)
     @Override
     public long updateSignByIdAndStationGroupId(String id, String stationGroupId) {
-        // 更新网站下其他域名为非主域名
+        // 更新站群下其他域名为非主域名
         baseMapper.updateSignByStationGroupId(stationGroupId, YesNoEnum.NO.getCode().toString());
         // 把当前域名更新成主域名
         return baseMapper.updateSignById(id, YesNoEnum.YES.getCode().toString());
     }
 
     /**
-     * 获取网站下的主域名
+     * 获取站群下的主域名
      *
      * @param stationGroupId
      * @return
@@ -219,7 +219,7 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
      * @param domain
      */
     public void createOrUpdateNginxConfig(Domain domain) {
-        // 网站
+        // 站群
         StationGroup stationGroup = stationGroupService.getById(domain.getStationGroupId());
         String stationGroupEnglishName = stationGroup.getEnglishName();
         if (YesNoEnum.YES.getCode().toString().equals(domain.getSign())) { //如果是主域名
@@ -302,7 +302,7 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
         String stationGroupEnglishName = stationGroup.getEnglishName();
         DomainVo domainVo = new DomainVo();
         domainVo.setStationGroupId(stationGroup.getId());
-        // 网站下的所有域名
+        // 站群下的所有域名
         Collection<DomainVo> list = listSelectByDomainVo(domainVo);
         List<String> domainList = new ArrayList<>();
         if (list != null) {
@@ -338,6 +338,23 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
     }
 
     /**
+     * 删除站点配置文件
+     *
+     * @param stationGroup
+     */
+    @Override
+    public void deleteNginxConfig(StationGroup stationGroup) {
+        File disabled = new File(siteProperties.getNginxConfigDir(), stationGroup.getEnglishName() + NGINX_DISABLED_SUFFIX);
+        if (Objects.nonNull(disabled) && disabled.exists()) {
+            disabled.delete();
+            this.reloadNginx();
+        } else {
+            log.error("配置文件{}不存在，删除站点操作失败", disabled.getAbsolutePath());
+        }
+
+    }
+
+    /**
      * 禁用站点配置文件
      *
      * @param stationGroup
@@ -346,8 +363,8 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
     public void disableNginxConfig(StationGroup stationGroup) {
         File enable = new File(siteProperties.getNginxConfigDir(), stationGroup.getEnglishName() + NGINX_ENABLE_SUFFIX);
         File disabled = new File(siteProperties.getNginxConfigDir(), stationGroup.getEnglishName() + NGINX_DISABLED_SUFFIX);
-        if (enable.exists()) {
-            if (disabled.exists()) {
+        if (Objects.nonNull(enable) && enable.exists()) {
+            if (Objects.nonNull(disabled) && disabled.exists()) {
                 disabled.delete();
             }
             if (enable.renameTo(disabled)) {
@@ -365,8 +382,8 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
     public void enableNginxConfig(StationGroup stationGroup) {
         File disabled = new File(siteProperties.getNginxConfigDir(), stationGroup.getEnglishName() + NGINX_DISABLED_SUFFIX);
         File enable = new File(siteProperties.getNginxConfigDir(), stationGroup.getEnglishName() + NGINX_ENABLE_SUFFIX);
-        if (disabled.exists()) {
-            if (enable.exists()) {
+        if (Objects.nonNull(disabled) && disabled.exists()) {
+            if (Objects.nonNull(enable) && enable.exists()) {
                 enable.delete();
             }
             if (disabled.renameTo(enable)) {
@@ -434,23 +451,39 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
      * @return
      */
     @Override
-    public boolean removeDomainsAndConfig(Collection<String> idList) {
-        Map<String, String> domainNameMap = new HashMap<>();
-        Map<String, String> englishNameMap = new HashMap<>();
-        idList.stream().forEach(id -> {
-            Domain domain = getById(id);
-            domainNameMap.put(id, domain.getName());
-            StationGroup stationGroup = stationGroupService.getById(domain.getStationGroupId());
-            englishNameMap.put(id, stationGroup.getEnglishName());
-        });
+    public boolean removeDomainsAndConfig(Collection<String> idList, Map<String, Domain> maps) {
         boolean res = super.removeByIds(idList);
         if (res) {
             idList.stream().forEach(id -> {
+                Domain domain = maps.get(id);
+                StationGroup stationGroup = stationGroupService.getById(domain.getStationGroupId());
                 // 移除配置文件的域名
-                addOrRemoveDomainFromConfig(englishNameMap.get(id), domainNameMap.get(id), DOMAIN_NAME_REMOVE);
+                addOrRemoveDomainFromConfig(stationGroup.getEnglishName(), domain.getName(), DOMAIN_NAME_REMOVE);
                 this.reloadNginx();
             });
         }
         return res;
+    }
+
+    /**
+     * 修改状态根据站群编号
+     *
+     * @param stationGroupId
+     * @param enable
+     * @return
+     */
+    @Override
+    public long updateEnableByStationGroupId(String stationGroupId, int enable) {
+        return baseMapper.updateEnableByStationGroupId(stationGroupId, enable);
+    }
+
+    /**
+     * 获取nginx端口
+     *
+     * @return
+     */
+    @Override
+    public String getNginxPort() {
+        return siteProperties.getNginxPort() == null ? "" : siteProperties.getNginxPort().toString();
     }
 }

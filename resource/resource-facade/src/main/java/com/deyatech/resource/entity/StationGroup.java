@@ -23,15 +23,15 @@ import lombok.experimental.Accessors;
 @ApiModel(value = "站群对象", description = "站群", parent = BaseEntity.class)
 public class StationGroup extends BaseEntity {
 
-    @ApiModelProperty(value = "网站名称", dataType = "String")
+    @ApiModelProperty(value = "站群名称", dataType = "String")
     @TableField("name_")
     private String name;
 
-    @ApiModelProperty(value = "网站英文名称", dataType = "String")
+    @ApiModelProperty(value = "站群英文名称", dataType = "String")
     @TableField("english_name")
     private String englishName;
 
-    @ApiModelProperty(value = "网站简称", dataType = "String")
+    @ApiModelProperty(value = "站群简称", dataType = "String")
     @TableField("abbreviation_")
     private String abbreviation;
 
