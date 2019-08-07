@@ -13,9 +13,12 @@ import io.swagger.annotations.ApiImplicitParams;
 import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.web.bind.annotation.RestController;
@@ -253,6 +256,15 @@ public class StationGitController extends BaseController {
     public RestResult unzip(String filePath,String siteId) {
         StationGroup stationGroup = resourceFeign.getStationGroupById(siteId).getData();
         String dir = templateDir + stationGroup.getEnglishName();
-        return RestResult.ok(ZipUtil.unzip(filePath,dir));
+        File local = new File(dir);
+        File file = new File(filePath);
+        try {
+            FileUtils.deleteDirectory(local);
+            ZipUtil.unzip(filePath,dir);
+            FileUtils.deleteQuietly(file);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return RestResult.ok(true);
     }
 }
