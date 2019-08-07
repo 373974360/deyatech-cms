@@ -21,9 +21,8 @@ public interface TemplateFeign {
      * 根据站点ID读取模板文件
      *
      * @param siteId
-     * @param path
      * @return
      */
     @RequestMapping(value = "/feign/template/getTemplateFiles", method = RequestMethod.GET)
-    RestResult<String> getTemplateFiles(@RequestParam("siteId") String siteId,@RequestParam("path") String path);
+    RestResult<String> getTemplateFiles(@RequestParam("siteId") String siteId);
 }

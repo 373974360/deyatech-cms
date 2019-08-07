@@ -5,6 +5,7 @@ import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.feign.ResourceFeign;
 import com.deyatech.template.entity.StationGit;
 import com.deyatech.template.utils.JGitUtil;
+import com.deyatech.template.utils.ZipUtil;
 import com.deyatech.template.vo.StationGitVo;
 import com.deyatech.template.service.StationGitService;
 import com.deyatech.common.entity.RestResult;
@@ -221,4 +222,37 @@ public class StationGitController extends BaseController {
         return RestResult.ok(stationGitService.getTemplateFiles(siteId,path));
     }
 
+    /**
+     * 查看文件内容详情
+     *
+     * @param path
+     * @return
+     */
+    @GetMapping("/getFileContent")
+    @ApiOperation(value="查看文件内容详情", notes="查看文件内容详情")
+    @ApiImplicitParam(name = "path", value = "读取路径", required = true, dataType = "String", paramType = "query")
+    public RestResult<String> getFileContent(String path) {
+        return RestResult.ok(stationGitService.getFileContent(path));
+    }
+
+
+
+    /**
+     * 解压上传的模板压缩包
+     *
+     * @param filePath
+     * @param siteId
+     * @return
+     */
+    @GetMapping("/unzip")
+    @ApiOperation(value="解压上传的模板压缩包", notes="解压上传的模板压缩包")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "fileName", value = "文件名称", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "siteId", value = "站点ID", required = true, dataType = "String", paramType = "query")
+    })
+    public RestResult unzip(String filePath,String siteId) {
+        StationGroup stationGroup = resourceFeign.getStationGroupById(siteId).getData();
+        String dir = templateDir + stationGroup.getEnglishName();
+        return RestResult.ok(ZipUtil.unzip(filePath,dir));
+    }
 }
