@@ -1,5 +1,6 @@
 package com.deyatech.template.utils;
 
+import cn.hutool.core.util.ObjectUtil;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.slf4j.Logger;
@@ -8,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 
 /**
  * @Description: 获取本地指定路径下资源文件夹及文件, 包含文件内容读取
@@ -44,25 +46,30 @@ public class FileResource {
         if (!path.equals(rootDir)) {
             JSONObject parent = new JSONObject();
             parent.put("fileType", "folder");
-            parent.put("fileName", "..");
+            parent.put("fileName", "...");
             parent.put("filePath", file.getParent() + "/");
             files.add(parent);
         }
-        for (int i = 0; i < tempList.length; i++) {
-            JSONObject object = new JSONObject();
-            if (tempList[i].isFile() && !"README.md".equals(tempList[i].getName())) {
-                object.put("fileType", "file");
-                object.put("fileName", tempList[i].getName());
-                object.put("filePath", tempList[i].toString());
-                object.put("lastModified", timestampToDate(tempList[i].lastModified(), "yyyy-MM-dd HH:mm"));
-                files.add(object);
-            }
-            if (tempList[i].isDirectory() && !".git".equals(tempList[i].getName())) {
-                object.put("fileType", "folder");
-                object.put("fileName", tempList[i].getName());
-                object.put("filePath", tempList[i].toString());
-                object.put("lastModified", timestampToDate(tempList[i].lastModified(), "yyyy-MM-dd HH:mm"));
-                files.add(object);
+        if(ObjectUtil.isNotNull(tempList)){
+            tempList = sort(tempList);
+            for (int i = 0; i < tempList.length; i++) {
+                JSONObject object = new JSONObject();
+                if(tempList[i].getName().indexOf(".") != 0){
+                    if (tempList[i].isFile() && !"README.md".equals(tempList[i].getName())) {
+                        object.put("fileType", "file");
+                        object.put("fileName", tempList[i].getName());
+                        object.put("filePath", tempList[i].toString());
+                        object.put("lastModified", timestampToDate(tempList[i].lastModified(), "yyyy-MM-dd HH:mm"));
+                        files.add(object);
+                    }
+                    if (tempList[i].isDirectory()) {
+                        object.put("fileType", "folder");
+                        object.put("fileName", tempList[i].getName());
+                        object.put("filePath", tempList[i].toString());
+                        object.put("lastModified", timestampToDate(tempList[i].lastModified(), "yyyy-MM-dd HH:mm"));
+                        files.add(object);
+                    }
+                }
             }
         }
         logger.info("获取的资源数据为:{}", files.toString());
@@ -200,30 +207,56 @@ public class FileResource {
         JSONArray files = new JSONArray();
         File file = new File(path);
         File[] tempList = file.listFiles();
-        for (int i = 0; i < tempList.length; i++) {
-            JSONObject object = new JSONObject();
-            if (tempList[i].isFile() && !"README.md".equals(tempList[i].getName())) {
-                object.put("fileType", "file");
-                object.put("fileName", tempList[i].getName());
-                object.put("filePath", tempList[i].toString());
-                object.put("lastModified", timestampToDate(tempList[i].lastModified(), "yyyy-MM-dd HH:mm"));
-                files.add(object);
-            }
-            if (tempList[i].isDirectory() && !".git".equals(tempList[i].getName())) {
-                object.put("fileType", "folder");
-                object.put("fileName", tempList[i].getName());
-                object.put("filePath", tempList[i].toString());
-                object.put("lastModified", timestampToDate(tempList[i].lastModified(), "yyyy-MM-dd HH:mm"));
+        if(ObjectUtil.isNotNull(tempList)) {
+            tempList = sort(tempList);
+            for (int i = 0; i < tempList.length; i++) {
+                JSONObject object = new JSONObject();
+                if(tempList[i].getName().indexOf(".") != 0){
+                    if (tempList[i].isFile() && !"README.md".equals(tempList[i].getName())) {
+                        object.put("fileType", "file");
+                        object.put("fileName", tempList[i].getName());
+                        object.put("filePath", tempList[i].toString());
+                        object.put("lastModified", timestampToDate(tempList[i].lastModified(), "yyyy-MM-dd HH:mm"));
+                        files.add(object);
+                    }
+                    if (tempList[i].isDirectory()) {
+                        object.put("fileType", "folder");
+                        object.put("fileName", tempList[i].getName());
+                        object.put("filePath", tempList[i].toString());
+                        object.put("lastModified", timestampToDate(tempList[i].lastModified(), "yyyy-MM-dd HH:mm"));
 
-                String children = getAllFiles(tempList[i].toString());
-                object.put("children", children);
-                files.add(object);
+                        String children = getAllFiles(tempList[i].toString());
+                        object.put("children", children);
+                        files.add(object);
+                    }
+
+                }
             }
         }
         logger.info("获取的资源数据为:{}", files.toString());
         return files.toString();
     }
 
+
+    /**
+     * 将文件数组排序，目录放在上面，文件在下面
+     * @param file
+     * @return
+     */
+    public static File[] sort(File[] file){
+        ArrayList<File> list = new ArrayList<File>();
+        for(File f:file){
+            if(f.isDirectory()){
+                list.add(f);
+            }
+        }
+        for(File f:file){
+            if(f.isFile()){
+                list.add(f);
+            }
+        }
+        return list.toArray(new File[file.length]);
+    }
     public static void main(String[] args) {
 //        getFiles("d:\\temp");
         String files = getAllFiles("D:/temp/");

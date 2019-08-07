@@ -48,5 +48,19 @@ public interface StationGitService extends BaseService<StationGit> {
      */
     String getTemplateFiles(String siteId,String path);
 
+    /**
+     *  根据模板
+     *
+     * @return
+     */
+    String getTemplateAllFiles(String siteId);
+
+    /**
+     *  读取模板内容
+     *
+     * @return
+     */
+    String getFileContent(String path);
+
 
 }

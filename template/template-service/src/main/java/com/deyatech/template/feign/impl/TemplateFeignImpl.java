@@ -19,7 +19,7 @@ public class TemplateFeignImpl implements TemplateFeign {
     StationGitService stationGitService;
 
     @Override
-    public RestResult<String> getTemplateFiles(String siteId,String path) {
-        return RestResult.ok(stationGitService.getTemplateFiles(siteId,path));
+    public RestResult<String> getTemplateFiles(String siteId) {
+        return RestResult.ok(stationGitService.getTemplateAllFiles(siteId));
     }
 }
