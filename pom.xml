@@ -36,6 +36,7 @@
         <module>appeal</module>
         <module>statistics</module>
         <module>monitor</module>
+        <module>generate</module>
     </modules>
 
     <build>

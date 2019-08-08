@@ -22,4 +22,9 @@ public class TemplateFeignImpl implements TemplateFeign {
     public RestResult<String> getTemplateFiles(String siteId) {
         return RestResult.ok(stationGitService.getTemplateAllFiles(siteId));
     }
+
+    @Override
+    public RestResult<String> getTemplateRootPath(String siteId) {
+        return RestResult.ok(stationGitService.getTemplateRootPath(siteId));
+    }
 }

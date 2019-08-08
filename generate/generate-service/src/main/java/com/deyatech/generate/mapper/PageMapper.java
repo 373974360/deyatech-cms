@@ -1,6 +1,6 @@
-package com.deyatech.station.mapper;
+package com.deyatech.generate.mapper;
 
-import com.deyatech.station.entity.Page;
+import com.deyatech.generate.entity.Page;
 import com.deyatech.common.base.BaseMapper;
 
 /**
