@@ -52,19 +52,19 @@
         name_, english_name, abbreviation_, description_, sort_no, station_group_classification_id
     </sql>
 
-    <!--根据分类编号统计网站个数-->
+    <!--根据分类编号统计站群个数-->
     <select id="countStationGroupByClassificationId" resultType="java.lang.Long">
         select count(*) from resource_station_group where enable_ != -1 and station_group_classification_id = #{classificationId}
     </select>
 
-    <!--根据分类编号列表统计网站个数-->
+    <!--根据分类编号列表统计站群个数-->
     <select id="countStationGroupByClassificationIdList" resultType="java.lang.Long">
         select count(*) from resource_station_group where enable_ != -1 and station_group_classification_id in
         <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
             #{item}
         </foreach>
     </select>
-    <!--根据条件查询网站-->
+    <!--根据条件查询站群-->
     <select id="pageSelectByStationGroupVo" resultMap="StationGroupVoResultMap">
         select
         s.id_,
@@ -94,10 +94,11 @@
             and ( s.name_ like concat('%',#{stationGroupVo.name},'%') or s.english_name like concat('%',#{stationGroupVo.name},'%') or s.abbreviation_ like concat('%',#{stationGroupVo.name},'%') )
             </if>
         </if>
+        order by s.sort_no asc, s.update_time desc
     </select>
 
-    <!--根据条件查询所有网站-->
-    <select id="listSelectByStationGroupVo" resultType="com.deyatech.resource.vo.StationGroupVo">
+    <!--根据条件查询所有站群-->
+    <select id="listSelectByStationGroupVo" resultMap="StationGroupVoResultMap">
         select
         s.id_,
         s.enable_,
@@ -126,6 +127,7 @@
                 and ( s.name_ like concat('%',#{stationGroupVo.name},'%') or s.english_name like concat('%',#{stationGroupVo.name},'%') or s.abbreviation_ like concat('%',#{stationGroupVo.name},'%') )
             </if>
         </if>
+        order by s.sort_no asc, s.update_time desc
     </select>
 
     <!--根据分类编号统计名称件数-->
@@ -159,4 +161,17 @@
     <update id="updateEnableById">
         update resource_station_group set enable_ = #{enable} where id_ = #{id}
     </update>
+    <update id="updateEnableByIds">
+        update resource_station_group set enable_ = #{enable} where id_ in
+        <foreach index="index" item="item" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+    <!--根据编号检索站群-->
+    <select id="getStationGroupById" resultMap="BaseResultMap">
+        select id_,name_, english_name, abbreviation_, description_, sort_no, station_group_classification_id,enable_,remark_,create_by,create_time,update_by,update_time,version_
+        from resource_station_group
+        where id_ = #{id} and enable_ != -1
+    </select>
 </mapper>

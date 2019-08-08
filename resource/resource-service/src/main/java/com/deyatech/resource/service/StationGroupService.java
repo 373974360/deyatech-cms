@@ -5,8 +5,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.vo.StationGroupVo;
 import com.deyatech.common.base.BaseService;
+
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -35,7 +38,7 @@ public interface StationGroupService extends BaseService<StationGroup> {
     List<StationGroupVo> setVoProperties(Collection stationGroups);
 
     /**
-     * 根据分类编号统计网站个数
+     * 根据分类编号统计站群个数
      *
      * @param classificationId
      * @return
@@ -43,14 +46,14 @@ public interface StationGroupService extends BaseService<StationGroup> {
     long countStationGroupByClassificationId(String classificationId);
 
     /**
-     * 根据分类编号列表统计站网站数
+     * 根据分类编号列表统计站站群数
      * @param list
      * @return
      */
     long countStationGroupByClassificationIdList(List<String> list);
 
     /**
-     * 根据条件翻页查询网站
+     * 根据条件翻页查询站群
      *
      * @param stationGroupVo
      * @return
@@ -58,7 +61,7 @@ public interface StationGroupService extends BaseService<StationGroup> {
     IPage<StationGroupVo> pageSelectByStationGroupVo(StationGroupVo stationGroupVo);
 
     /**
-     * 根据条件查询所有网站
+     * 根据条件查询所有站群
      * @param stationGroupVo
      * @return
      */
@@ -102,4 +105,20 @@ public interface StationGroupService extends BaseService<StationGroup> {
      * @return
      */
     long runOrStopStationById(String id, String flag);
+
+    /**
+     * 根据编号检索站群
+     *
+     * @param id
+     * @return
+     */
+    StationGroup getById(Serializable id);
+
+    /**
+     * 删除站群
+     *
+     * @param ids
+     * @return
+     */
+    boolean removeStationGroupAndConfig(List<String> ids, Map<String, StationGroup> maps);
 }

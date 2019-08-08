@@ -2,6 +2,7 @@ package com.deyatech.resource.service.impl;
 
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.resource.entity.StationGroupClassification;
+import com.deyatech.resource.service.StationGroupService;
 import com.deyatech.resource.vo.StationGroupClassificationVo;
 import com.deyatech.resource.mapper.StationGroupClassificationMapper;
 import com.deyatech.resource.service.StationGroupClassificationService;
@@ -12,6 +13,7 @@ import com.deyatech.common.Constants;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Collection;
@@ -27,6 +29,9 @@ import java.util.Collection;
 @Service
 public class StationGroupClassificationServiceImpl extends BaseServiceImpl<StationGroupClassificationMapper, StationGroupClassification> implements StationGroupClassificationService {
 
+    @Autowired
+    StationGroupService stationGroupService;
+
     /**
      * 根据StationGroupClassification对象属性检索的tree对象
      *
@@ -40,6 +45,8 @@ public class StationGroupClassificationServiceImpl extends BaseServiceImpl<Stati
         List<StationGroupClassificationVo> rootStationGroupClassifications = CollectionUtil.newArrayList();
         if (CollectionUtil.isNotEmpty(stationGroupClassificationVos)) {
             for (StationGroupClassificationVo stationGroupClassificationVo : stationGroupClassificationVos) {
+                // 分类下站群的件数
+                stationGroupClassificationVo.setStationCount(stationGroupService.countStationGroupByClassificationId(stationGroupClassificationVo.getId()));
                 stationGroupClassificationVo.setLabel(stationGroupClassificationVo.getName());
                 if(StrUtil.isNotBlank(stationGroupClassificationVo.getTreePosition())){
                     String[] split = stationGroupClassificationVo.getTreePosition().split(Constants.DEFAULT_TREE_POSITION_SPLIT);
@@ -108,7 +115,6 @@ public class StationGroupClassificationServiceImpl extends BaseServiceImpl<Stati
      */
     @Override
     public long countNameByParentId(String id, String parentId, String name) {
-        if (StrUtil.isEmpty(parentId) || Constants.ZERO.equals(parentId)) return 0;
         return baseMapper.countNameByParentId(id, parentId, name);
     }
 
@@ -122,7 +128,6 @@ public class StationGroupClassificationServiceImpl extends BaseServiceImpl<Stati
      */
     @Override
     public long countEnglishNameByParentId(String id, String parentId, String englishName) {
-        if (StrUtil.isEmpty(parentId) || Constants.ZERO.equals(parentId)) return 0;
         return baseMapper.countEnglishNameByParentId(id, parentId, englishName);
     }
 
