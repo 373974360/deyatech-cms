@@ -130,28 +130,28 @@
         order by s.sort_no asc, s.update_time desc
     </select>
 
-    <!--根据分类编号统计名称件数-->
-    <select id="countNameByClassificationId" resultType="java.lang.Long">
+    <!--统计名称件数-->
+    <select id="countName" resultType="java.lang.Long">
         select count(*) from resource_station_group
-        where enable_ != -1 and station_group_classification_id = #{classificationId} and name_ = #{name}
+        where enable_ != -1 and name_ = #{name}
         <if test="id != null and id != ''">
             and id_ != #{id}
         </if>
     </select>
 
-    <!--根据分类编号统计英文名称件数-->
-    <select id="countEnglishNameByClassificationId" resultType="java.lang.Long">
+    <!--统计英文名称件数-->
+    <select id="countEnglishName" resultType="java.lang.Long">
         select count(*) from resource_station_group
-        where enable_ != -1 and station_group_classification_id = #{classificationId} and english_name = #{englishName}
+        where enable_ != -1 and english_name = #{englishName}
         <if test="id != null and id != ''">
             and id_ != #{id}
         </if>
     </select>
 
-    <!--根据分类编号统计简称件数-->
-    <select id="countAbbreviationByClassificationId" resultType="java.lang.Long">
+    <!--统计简称件数-->
+    <select id="countAbbreviation" resultType="java.lang.Long">
         select count(*) from resource_station_group
-        where enable_ != -1 and station_group_classification_id = #{classificationId} and abbreviation_ = #{abbreviation}
+        where enable_ != -1 and abbreviation_ = #{abbreviation}
         <if test="id != null and id != ''">
             and id_ != #{id}
         </if>

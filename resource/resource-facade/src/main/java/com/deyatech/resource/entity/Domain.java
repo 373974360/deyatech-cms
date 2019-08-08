@@ -27,13 +27,13 @@ public class Domain extends BaseEntity {
     @TableField("name_")
     private String name;
 
+    @ApiModelProperty(value = "域名英文名称", dataType = "String")
+    @TableField("english_name")
+    private String englishName;
+
     @ApiModelProperty(value = "描述", dataType = "String")
     @TableField("description_")
     private String description;
-
-    @ApiModelProperty(value = "标志", dataType = "String")
-    @TableField("sign_")
-    private String sign;
 
     @ApiModelProperty(value = "排序号", dataType = "Integer", example = "1")
     @TableField("sort_no")

@@ -54,25 +54,22 @@ public interface DomainService extends BaseService<Domain> {
     Collection<DomainVo> listSelectByDomainVo(DomainVo domainVo);
 
     /**
-     * 根据站群编号统计域名件数
+     * 统计域名件数
      *
      * @param id
-     * @param stationGroupId
      * @param name
      * @return
      */
-    long countNameByStationGroupId(String id, String stationGroupId, String name);
+    long countName(String id, String name);
 
     /**
-     * 启用停用域名
+     * 统计英文件数
      *
      * @param id
-     * @param flag
+     * @param englishName
      * @return
      */
-    long runOrStopStationById(String id, String flag);
-
-    boolean saveUpdate (Domain entity);
+    long countEnglishName(String id, String englishName);
 
     /**
      * 更新或保存
@@ -80,42 +77,6 @@ public interface DomainService extends BaseService<Domain> {
      * @return
      */
     boolean saveOrUpdateAndNginx(Domain entity);
-
-    /**
-     * 更新主域名
-     *
-     * @param id
-     * @param stationGroupId
-     * @return
-     */
-    long updateSignByIdAndStationGroupId(String id, String stationGroupId);
-
-    /**
-     * 获取站群下的主域名
-     *
-     * @param stationGroupId
-     * @return
-     */
-    DomainVo getMainByByStationGroupId(String stationGroupId);
-
-    /**
-     * 删除站点配置文件
-     *
-     * @param stationGroup
-     */
-    void deleteNginxConfig(StationGroup stationGroup);
-
-    /**
-     * 禁用站点配置文件
-     *
-     * @param stationGroup
-     */
-    void disableNginxConfig(StationGroup stationGroup);
-
-    /**
-     * 启用站点配置文件
-     */
-    void enableNginxConfig(StationGroup stationGroup);
 
     /**
      * 根据编号检索域名
@@ -126,36 +87,40 @@ public interface DomainService extends BaseService<Domain> {
     Domain getById(Serializable id);
 
     /**
-     * 从配置文件中添加或移除域名
+     * 启用停用域名
      *
-     * @param stationGroupEnglishName
-     * @param domainName
+     * @param id
      * @param flag
+     * @return
      */
-    void addOrRemoveDomainFromConfig(String stationGroupEnglishName, String domainName, String flag);
+    long runOrStopDomainById(String id, String flag);
 
     /**
      * 删除域名和配置
      *
      * @param idList
-     * @param maps
      * @return
      */
-    boolean removeDomainsAndConfig(Collection<String> idList, Map<String, Domain> maps);
+    boolean removeDomainsAndConfig(Collection<String> idList);
 
     /**
-     * 修改状态根据站群编号
+     * 更新 站群下所有域名 nginx 配置
      *
      * @param stationGroupId
-     * @param enable
-     * @return
      */
-    long updateEnableByStationGroupId(String stationGroupId, int enable);
+    void updateStationGroupNginxConfigAndPage(String stationGroupId, String oldStationGroupEnglishName);
 
     /**
-     * 获取nginx端口
+     * 启用停用 站群下所有域名 nginx 配置
      *
-     * @return
+     * @param stationGroupId
      */
-    String getNginxPort();
+    void runOrStopStationGroupNginxConfigAndPage(String stationGroupId);
+
+    /**
+     * 删除 站群下所有域名 nginx 配置
+     *
+     * @param ids
+     */
+    void removeStationGroupNginxConfigAndPage(List<String> ids);
 }

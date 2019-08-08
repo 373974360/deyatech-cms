@@ -13,8 +13,8 @@
         <result column="update_time" property="updateTime" />
         <result column="version_" property="version" />
         <result column="name_" property="name" />
+        <result column="english_name" property="englishName" />
         <result column="description_" property="description" />
-        <result column="sign_" property="sign" />
         <result column="sort_no" property="sortNo" />
         <result column="station_group_id" property="stationGroupId" />
         <result column="port_" property="port" />
@@ -29,8 +29,8 @@
         <result column="update_time" property="updateTime" />
         <result column="version_" property="version" />
         <result column="name_" property="name" />
+        <result column="english_name" property="englishName" />
         <result column="description_" property="description" />
-        <result column="sign_" property="sign" />
         <result column="sort_no" property="sortNo" />
         <result column="port_" property="port" />
         <result column="station_group_id" property="stationGroupId" />
@@ -47,7 +47,7 @@
         update_by,
         update_time,
         version_,
-        name_, description_, sign_, sort_no, station_group_id, port_
+        name_, english_name, description_, sort_no, station_group_id, port_
     </sql>
 
     <!--根据条件翻页查询域名-->
@@ -62,9 +62,9 @@
         d.update_time,
         d.version_,
         d.name_,
+        d.english_name,
         d.port_,
         d.description_,
-        d.sign_,
         d.sort_no,
         d.station_group_id,
         s.name_ as station_group_name
@@ -93,9 +93,9 @@
         d.update_time,
         d.version_,
         d.name_,
+        d.english_name,
         d.port_,
         d.description_,
-        d.sign_,
         d.sort_no,
         d.station_group_id,
         s.name_ as station_group_name
@@ -112,10 +112,19 @@
         </if>
     </select>
 
-    <!--根据站群编号统计域名件数-->
-    <select id="countNameByStationGroupId" resultType="java.lang.Long">
+    <!--统计域名件数-->
+    <select id="countName" resultType="java.lang.Long">
         select count(*) from resource_domain
-        where enable_ != -1 and station_group_id = #{stationGroupId} and name_ = #{name}
+        where enable_ != -1 and name_ = #{name}
+        <if test="id != null and id != ''">
+            and id_ != #{id}
+        </if>
+    </select>
+
+    <!--统计英文件数-->
+    <select id="countEnglishName" resultType="java.lang.Long">
+        select count(*) from resource_domain
+        where enable_ != -1 and english_name = #{englishName}
         <if test="id != null and id != ''">
             and id_ != #{id}
         </if>
@@ -126,49 +135,27 @@
         update resource_domain set enable_ = #{enable} where id_ = #{id}
     </update>
 
+    <update id="updateEnableByIds">
+        update resource_domain set enable_ = #{enable} where id_ in
+        <foreach index="index" item="item" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
     <!--修改状态根据站群编号-->
     <update id="updateEnableByStationGroupId">
         update resource_domain set enable_ = #{enable} where station_group_id = #{stationGroupId}
     </update>
 
-    <!--更新主域名标记-->
-    <update id="updateSignByStationGroupId">
-        update resource_domain set sign_ = #{sign} where station_group_id = #{stationGroupId}
-    </update>
-
-    <!--更新主域名标记-->
-    <update id="updateSignById">
-        update resource_domain set sign_ = #{sign} where id_ = #{id}
-    </update>
-
-    <!--获取站群下的主域名-->
-    <select id="getMainByByStationGroupId" resultMap="DomainVoResultMap">
-        select
-        d.id_,
-        d.enable_,
-        d.remark_,
-        d.create_by,
-        d.create_time,
-        d.update_by,
-        d.update_time,
-        d.version_,
-        d.name_,
-        d.port_,
-        d.description_,
-        d.sign_,
-        d.sort_no,
-        d.station_group_id,
-        s.name_ as station_group_name
-        from resource_domain d
-        join resource_station_group s on s.enable_ != -1 and d.station_group_id = s.id_
-        where d.enable_ != -1 and d.sign_ = 1 and d.station_group_id = #{stationGroupId}
-    </select>
-
     <!--根据编号检索域名-->
     <select id="getDomainById" resultMap="BaseResultMap">
-        select id_,name_,description_,sign_,sort_no,station_group_id,port_,enable_,remark_,create_by,create_time,update_by,update_time,version_
+        select id_,name_,english_name,description_,sort_no,station_group_id,port_,enable_,remark_,create_by,create_time,update_by,update_time,version_
         from resource_domain
         where id_ = #{id} and enable_ != -1
     </select>
 
+    <!--统计站群下的域名-->
+    <select id="countDomainByStationGroupId" resultType="java.lang.Long">
+        select count(*) from resource_domain where enable_ != -1 and station_group_id = #{stationGroupId}
+    </select>
 </mapper>

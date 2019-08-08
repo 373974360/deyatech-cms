@@ -2,8 +2,8 @@ package com.deyatech.resource.mapper;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.deyatech.resource.entity.Domain;
 import com.deyatech.common.base.BaseMapper;
+import com.deyatech.resource.entity.Domain;
 import com.deyatech.resource.vo.DomainVo;
 import org.apache.ibatis.annotations.Param;
 
@@ -38,14 +38,22 @@ public interface DomainMapper extends BaseMapper<Domain> {
     Collection<DomainVo> listSelectByDomainVo(@Param("domainVo") DomainVo domainVo);
 
     /**
-     * 根据站群编号统计域名件数
+     * 统计域名件数
      *
      * @param id
-     * @param stationGroupId
      * @param name
      * @return
      */
-    long countNameByStationGroupId(@Param("id") String id, @Param("stationGroupId") String stationGroupId, @Param("name") String name);
+    long countName(@Param("id") String id, @Param("name") String name);
+
+    /**
+     * 统计英文件数
+     *
+     * @param id
+     * @param englishName
+     * @return
+     */
+    long countEnglishName(@Param("id") String id, @Param("englishName") String englishName);
 
     /**
      * 修改状态根据编号
@@ -55,6 +63,7 @@ public interface DomainMapper extends BaseMapper<Domain> {
      * @return
      */
     long updateEnableById(@Param("id") String id, @Param("enable") int enable);
+    long updateEnableByIds(@Param("list") Collection<String> list, @Param("enable") int enable);
 
     /**
      * 修改状态根据站群编号
@@ -66,33 +75,17 @@ public interface DomainMapper extends BaseMapper<Domain> {
     long updateEnableByStationGroupId(@Param("stationGroupId") String stationGroupId, @Param("enable") int enable);
 
     /**
-     * 更新主域名标记
-     *
-     * @param stationGroupId
-     * @return
-     */
-    long updateSignByStationGroupId(@Param("stationGroupId") String stationGroupId, @Param("sign") String sign);
-
-    /**
-     * 更新主域名标记
-     *
-     * @param id
-     * @return
-     */
-    long updateSignById(@Param("id") String id, @Param("sign") String sign);
-
-    /**
-     * 获取站群下的主域名
-     *
-     * @param stationGroupId
-     * @return
-     */
-    DomainVo getMainByByStationGroupId(@Param("stationGroupId") String stationGroupId);
-
-    /**
      * 根据编号检索域名
      *
      * @return
      */
     Domain getDomainById(@Param("id") Serializable id);
+
+    /**
+     * 统计站群下的域名
+     *
+     * @param stationGroupId
+     * @return
+     */
+    long countDomainByStationGroupId(@Param("stationGroupId") String stationGroupId);
 }

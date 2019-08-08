@@ -2,11 +2,12 @@ package com.deyatech.resource.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.enums.EnableEnum;
-import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.resource.config.SiteProperties;
 import com.deyatech.resource.entity.Domain;
@@ -18,15 +19,14 @@ import com.deyatech.resource.util.StringHelper;
 import com.deyatech.resource.vo.DomainVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.CharUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 
 import java.io.*;
+import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -42,8 +42,6 @@ import java.util.*;
 public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> implements DomainService {
     public static final String NGINX_DISABLED_SUFFIX = ".disable";
     public static final String NGINX_ENABLE_SUFFIX = ".enable";
-    public static final String DOMAIN_NAME_ADD = "add";
-    public static final String DOMAIN_NAME_REMOVE = "remove";
 
     @Autowired
     StationGroupService stationGroupService;
@@ -106,58 +104,40 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
     }
 
     /**
-     * 根据站群编号统计域名件数
+     * 统计域名件数
      *
      * @param id
-     * @param stationGroupId
      * @param name
      * @return
      */
     @Override
-    public long countNameByStationGroupId(String id, String stationGroupId, String name) {
-        return baseMapper.countNameByStationGroupId(id, stationGroupId, name);
+    public long countName(String id, String name) {
+        return baseMapper.countName(id, name);
     }
 
     /**
-     * 添加或保存
-     * @param entity
-     * @return
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public boolean saveUpdate (Domain entity) {
-        DomainVo domainVo = getMainByByStationGroupId(entity.getStationGroupId());
-        // 没有主域名时，把现在的设置为主域名
-        if (Objects.isNull(domainVo)) {
-            entity.setSign(YesNoEnum.YES.getCode().toString());
-        }
-        // 更新站群下其他域名为非主域名
-        if (YesNoEnum.YES.getCode().toString().equals(entity.getSign())) {
-            baseMapper.updateSignByStationGroupId(entity.getStationGroupId(), YesNoEnum.NO.getCode().toString());
-        }
-        return super.saveOrUpdate(entity);
-    }
-
-    /**
-     * 添加或保存以及生成nginx
+     * 统计英文件数
      *
-     * @param entity
+     * @param id
+     * @param englishName
      * @return
      */
-
     @Override
-    public boolean saveOrUpdateAndNginx(Domain entity) {
-        boolean flag = saveUpdate(entity);
-        if (flag) {
-            //生成 nginx 配置 和 站点目录
-            this.createOrUpdateNginxConfig(entity);
-        }
-        return flag;
+    public long countEnglishName(String id, String englishName) {
+        return baseMapper.countEnglishName(id, englishName);
     }
 
+    /**
+     * 根据编号检索域名
+     *
+     * @param id
+     * @return
+     */
     @Override
     public Domain getById(Serializable id) {
         return baseMapper.getDomainById(id);
     }
+
     /**
      * 启用停用域名
      *
@@ -166,20 +146,23 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
      * @return
      */
     @Override
-    public long runOrStopStationById(String id, String flag) {
+    public long runOrStopDomainById(String id, String flag) {
         long count = 0;
         Domain domain = getById(id);
         StationGroup stationGroup = stationGroupService.getById(domain.getStationGroupId());
+        // 启用
         if ("run".equals(flag)) {
             count = baseMapper.updateEnableById(id, EnableEnum.ENABLE.getCode());
             if (count > 0) {
-                addOrRemoveDomainFromConfig(stationGroup.getEnglishName(), domain.getName(), DOMAIN_NAME_ADD);
+                this.enableNginxConf(stationGroup.getEnglishName(), domain.getEnglishName());
                 this.reloadNginx();
             }
+
+            // 停用
         } else if ("stop".equals(flag)) {
             count = baseMapper.updateEnableById(id, EnableEnum.DISABLE.getCode());
             if (count > 0) {
-                addOrRemoveDomainFromConfig(stationGroup.getEnglishName(), domain.getName(), DOMAIN_NAME_REMOVE);
+                this.disableNginxConf(stationGroup.getEnglishName(), domain.getEnglishName());
                 this.reloadNginx();
             }
         }
@@ -187,210 +170,173 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
     }
 
     /**
-     * 更新主域名
+     * 删除域名和配置
      *
-     * @param id
-     * @param stationGroupId
-     * @return
-     */
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public long updateSignByIdAndStationGroupId(String id, String stationGroupId) {
-        // 更新站群下其他域名为非主域名
-        baseMapper.updateSignByStationGroupId(stationGroupId, YesNoEnum.NO.getCode().toString());
-        // 把当前域名更新成主域名
-        return baseMapper.updateSignById(id, YesNoEnum.YES.getCode().toString());
-    }
-
-    /**
-     * 获取站群下的主域名
-     *
-     * @param stationGroupId
+     * @param idList
      * @return
      */
     @Override
-    public DomainVo getMainByByStationGroupId(String stationGroupId) {
-        return baseMapper.getMainByByStationGroupId(stationGroupId);
+    public boolean removeDomainsAndConfig(Collection<String> idList) {
+        // 删除域名
+        long count = baseMapper.updateEnableByIds(idList, EnableEnum.DELETED.getCode());
+        if (count > 0 && CollectionUtil.isNotEmpty(idList)) {
+            boolean reload = false;
+            for (String id : idList) {
+                Domain domain =  this.getById(id);
+                StationGroup stationGroup = stationGroupService.getById(domain.getStationGroupId());
+                if (domain != null && stationGroup != null) {
+                    reload = true;
+                    this.deleteNginxPage(stationGroup.getEnglishName(), domain.getEnglishName());
+                    this.deleteNginxConf(stationGroup.getEnglishName(), domain.getEnglishName());
+                }
+            }
+            if (reload) {
+                this.reloadNginx();
+            }
+        }
+        return count > 0 ? true : false;
     }
 
     /**
-     * 如果传入的是主域名，则创建目录和 nginx 配置，否则仅将新域名增加到主域名对应的配置文件中
+     * 添加或保存域名生成 nginx
+     *
+     * @param entity
+     * @return
+     */
+
+    @Override
+    public boolean saveOrUpdateAndNginx(Domain entity) {
+        Domain oldEntity = null;
+        if (Objects.nonNull(entity) && StrUtil.isNotEmpty(entity.getId())) {
+            oldEntity = this.getById(entity.getId());
+        }
+        UpdateWrapper<Domain> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.setEntity(entity);
+        updateWrapper.set("enable_", entity.getEnable());
+        boolean flag = super.update(entity, updateWrapper);
+        if (flag) {
+            //生成 nginx 配置 和 站点目录
+            this.createDomainNginxConfigAndPage(entity, oldEntity);
+        }
+        return flag;
+    }
+
+    /**
+     * 每个域名创建一个 nginx 配置
      *
      * @param domain
      */
-    public void createOrUpdateNginxConfig(Domain domain) {
+    private void createDomainNginxConfigAndPage(Domain domain, Domain oldDomain) {
         // 站群
         StationGroup stationGroup = stationGroupService.getById(domain.getStationGroupId());
-        String stationGroupEnglishName = stationGroup.getEnglishName();
-        if (YesNoEnum.YES.getCode().toString().equals(domain.getSign())) { //如果是主域名
-            this.createNginxPage(stationGroupEnglishName);
-            this.createNginxConf(stationGroup);
+        boolean isChange = false;
+        if (Objects.nonNull(oldDomain)) {
+            // 站群变更
+            if (!domain.getStationGroupId().equals(oldDomain.getStationGroupId())) {
+                isChange = true;
+                StationGroup oldStationGroup = stationGroupService.getById(oldDomain.getStationGroupId());
+                this.deleteNginxPage(oldStationGroup.getEnglishName(), oldDomain.getEnglishName());
+                this.deleteNginxConf(oldStationGroup.getEnglishName(), oldDomain.getEnglishName());
+                // 英文名变更
+            } else if (!domain.getEnglishName().equals(oldDomain.getEnglishName())) {
+                isChange = true;
+                this.deleteNginxPage(stationGroup.getEnglishName(), oldDomain.getEnglishName());
+                this.deleteNginxConf(stationGroup.getEnglishName(), oldDomain.getEnglishName());
+            }
         } else {
-            addOrRemoveDomainFromConfig(stationGroupEnglishName, domain.getName(), DOMAIN_NAME_ADD);
+            isChange = true;
         }
-        this.reloadNginx();
+        // 新建或有变更是
+        if (isChange) {
+            // 创建 nginx 站点默认页面
+            this.createNginxPage(stationGroup, domain);
+            // 创建 nginx 配置文件
+            this.createNginxConf(stationGroup, domain);
+            this.reloadNginx();
+        }
     }
 
     /**
-     * 从配置文件中添加或移除域名
+     * 删除 nginx 站点默认页面
      *
      * @param stationGroupEnglishName
-     * @param domainName
-     * @param flag
+     * @param domainEnglishName
      */
-    public void addOrRemoveDomainFromConfig(String stationGroupEnglishName, String domainName, String flag) {
-        //查找到主域名的配置文件添加一个主机名
-        File desc = new File(siteProperties.getNginxConfigDir(), stationGroupEnglishName + NGINX_ENABLE_SUFFIX);
-        try {
-            FileInputStream input = new FileInputStream(desc);
-            List<String> lines = IOUtils.readLines(input, "utf-8");
-            StringBuilder newLine = null;
-            for (int i = 0; i < lines.size(); i++) {
-                String line = lines.get(i);
-                if (line.contains("server_name")) {
-                    if (DOMAIN_NAME_ADD.equals(flag) && !line.contains(domainName)) {
-                        newLine = new StringBuilder(line);
-                        int endIndex = line.indexOf(";");
-                        if (endIndex > -1) {
-                            newLine.insert(endIndex, " " + domainName);
-                            lines.set(i, newLine.toString());
-                        }
-                    } else if (DOMAIN_NAME_REMOVE.equals(flag) && line.contains(domainName)) {
-                        newLine = new StringBuilder(line);
-                        int endIndex = line.indexOf(domainName);
-                        if (endIndex > -1) {
-                            newLine.delete(endIndex - 1, endIndex + domainName.length());
-                            lines.set(i, newLine.toString());
-                        }
-                    }
-                    break;
-                }
-            }
-            if (newLine != null) { //说明有改动 server_name
-                FileUtils.writeStringToFile(desc, StringUtils.join(lines, CharUtils.LF));
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
+    private void deleteNginxPage(String stationGroupEnglishName, String domainEnglishName) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+        File src = new File(this.getRootDirectory(stationGroupEnglishName, domainEnglishName));
+        File dest = new File(this.getRootDirectory(stationGroupEnglishName, "delete_" + domainEnglishName + "_" + format.format(new Date())));
+        if(src != null && src.exists()) {
+            src.renameTo(dest);
         }
     }
 
     /**
      * 创建 nginx 站点默认页面
      *
-     * @param stationGroupEnglishName
+     * @param stationGroup
+     * @param domain
      */
-    private void createNginxPage(String stationGroupEnglishName) {
-        String vhostRootDir = this.getRootDirBySiteEnglishName(stationGroupEnglishName);
+    private void createNginxPage(StationGroup stationGroup, Domain domain) {
+        String vhostRootDir = this.getRootDirectory(stationGroup.getEnglishName(), domain.getEnglishName());
         File vhostRootDirFile = new File(vhostRootDir);
         try {
             File dest = new File(vhostRootDirFile, "index.html");
             if (!dest.getParentFile().exists()) {
-                boolean mkdirs = dest.getParentFile().mkdirs();
+                dest.getParentFile().mkdirs();
             }
-            FileUtils.writeStringToFile(dest, "<!DOCTYPE html><html><head><meta charset=utf-8><link rel=stylesheet href=\"\"><title>新站点创建成功</title></head><body>" + stationGroupEnglishName + "新站点创建成功</body></html>");
+            String data = "<!DOCTYPE html><html><head><meta charset=utf-8><title>新站点创建成功</title></head><body>" + domain.getName() + "新站点创建成功</body></html>";
+            FileUtils.writeStringToFile(dest, data, Charset.forName("UTF-8"));
         } catch (IOException e) {
             e.printStackTrace();
-            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("站点 %s 创建失败", stationGroupEnglishName));
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("站点 %s 创建失败", domain.getName()));
+        }
+    }
+
+    /**
+     * 删除 nginx 配置文件
+     * @param stationGroupEnglishName
+     * @param domainEnglishName
+     */
+    private void deleteNginxConf(String stationGroupEnglishName, String domainEnglishName) {
+        File enable = new File(siteProperties.getNginxConfigDir(), this.getConfigName(stationGroupEnglishName, domainEnglishName, NGINX_ENABLE_SUFFIX));
+        if (enable != null && enable.exists()) {
+            enable.delete();
+        }
+        File disabled = new File(siteProperties.getNginxConfigDir(), this.getConfigName(stationGroupEnglishName, domainEnglishName, NGINX_DISABLED_SUFFIX));
+        if (disabled != null && disabled.exists()) {
+            disabled.delete();
         }
     }
 
     /**
      * 创建 nginx 配置文件
      */
-    private void createNginxConf(StationGroup stationGroup) {
-        String stationGroupEnglishName = stationGroup.getEnglishName();
-        DomainVo domainVo = new DomainVo();
-        domainVo.setStationGroupId(stationGroup.getId());
-        // 站群下的所有域名
-        Collection<DomainVo> list = listSelectByDomainVo(domainVo);
-        List<String> domainList = new ArrayList<>();
-        if (list != null) {
-            for (DomainVo vo : list) {
-                // 启用状态
-                if (vo.getEnable() == EnableEnum.ENABLE.getCode()) {
-                    domainList.add(vo.getName());
-                }
-            }
-        }
-
-        String vhostRootDir = this.getRootDirBySiteEnglishName(stationGroupEnglishName);
-        File vhostRootDirFile = new File(vhostRootDir);
+    private void createNginxConf(StationGroup stationGroup, Domain domain) {
         Map<String, Object> map = new HashMap<>();
-        map.put("sitePort", siteProperties.getNginxPort());
-        map.put("serverNames", StringUtils.join(domainList, " "));
-        map.put("siteRootDir", vhostRootDirFile.getAbsolutePath());
+        // 端口
+        map.put("sitePort", domain.getPort());
+        // 域名
+        map.put("serverNames", domain.getName());
+        // 站点目录
+        map.put("siteRootDir", this.getRootDirectory(stationGroup.getEnglishName(), domain.getEnglishName()));
+        // 代理
         map.put("proxyPass", siteProperties.getNginxProxyPass());
+        // 站群ID
         map.put("siteId", stationGroup.getId());
         //增加配置 nginx
         try {
             File siteNginxTemplateFile = ResourceUtils.getFile("classpath:nginx_site.template");
-            String nginxTemplate = FileUtils.readFileToString(siteNginxTemplateFile);
+            String nginxTemplate = FileUtils.readFileToString(siteNginxTemplateFile, Charset.forName("UTF-8"));
             String nginxContent = StringHelper.processTemplate(nginxTemplate, map);
-            File desc = new File(siteProperties.getNginxConfigDir(), stationGroupEnglishName + NGINX_ENABLE_SUFFIX);
+            // 配置文件
+            File desc = new File(siteProperties.getNginxConfigDir(), this.getConfigName(stationGroup.getEnglishName(), domain.getEnglishName(), NGINX_ENABLE_SUFFIX));
             if (!desc.getParentFile().exists()) {
                 desc.getParentFile().mkdirs();
             }
-            FileUtils.writeStringToFile(desc, nginxContent);
+            FileUtils.writeStringToFile(desc, nginxContent, Charset.forName("UTF-8"));
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    /**
-     * 删除站点配置文件
-     *
-     * @param stationGroup
-     */
-    @Override
-    public void deleteNginxConfig(StationGroup stationGroup) {
-        File disabled = new File(siteProperties.getNginxConfigDir(), stationGroup.getEnglishName() + NGINX_DISABLED_SUFFIX);
-        if (Objects.nonNull(disabled) && disabled.exists()) {
-            disabled.delete();
-            this.reloadNginx();
-        } else {
-            log.error("配置文件{}不存在，删除站点操作失败", disabled.getAbsolutePath());
-        }
-
-    }
-
-    /**
-     * 禁用站点配置文件
-     *
-     * @param stationGroup
-     */
-    @Override
-    public void disableNginxConfig(StationGroup stationGroup) {
-        File enable = new File(siteProperties.getNginxConfigDir(), stationGroup.getEnglishName() + NGINX_ENABLE_SUFFIX);
-        File disabled = new File(siteProperties.getNginxConfigDir(), stationGroup.getEnglishName() + NGINX_DISABLED_SUFFIX);
-        if (Objects.nonNull(enable) && enable.exists()) {
-            if (Objects.nonNull(disabled) && disabled.exists()) {
-                disabled.delete();
-            }
-            if (enable.renameTo(disabled)) {
-                this.reloadNginx();
-            }
-        } else {
-            log.error("配置文件{}不存在，禁用站点操作失败", enable.getAbsolutePath());
-        }
-    }
-
-    /**
-     * 启用站点配置文件
-     */
-    @Override
-    public void enableNginxConfig(StationGroup stationGroup) {
-        File disabled = new File(siteProperties.getNginxConfigDir(), stationGroup.getEnglishName() + NGINX_DISABLED_SUFFIX);
-        File enable = new File(siteProperties.getNginxConfigDir(), stationGroup.getEnglishName() + NGINX_ENABLE_SUFFIX);
-        if (Objects.nonNull(disabled) && disabled.exists()) {
-            if (Objects.nonNull(enable) && enable.exists()) {
-                enable.delete();
-            }
-            if (disabled.renameTo(enable)) {
-                this.reloadNginx();
-            }
-        } else {
-            log.error("配置文件{}不存在，启用站点操作失败", disabled.getAbsolutePath());
         }
     }
 
@@ -424,66 +370,161 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
     }
 
     /**
+     * 站点配置文件名
+     *
+     * @param stationGroupEnglishName
+     * @param domainEnglishName
+     * @param suffix
+     * @return
+     */
+    private String getConfigName(String stationGroupEnglishName, String domainEnglishName, String suffix) {
+        return stationGroupEnglishName + "_" + domainEnglishName + suffix;
+    }
+
+    /**
      * 根据站点返回站点主目录绝对路径
      *
      * @param stationGroupEnglishName
      * @return
      */
-    public String getRootDirBySiteEnglishName(String stationGroupEnglishName) {
-        return new File(siteProperties.getHostsRoot(), stationGroupEnglishName).getAbsolutePath();
-    }
-
-    /**
-     * 根据站点返回站点的模板存放位置的绝对路径
-     *
-     * @param domain
-     * @return
-     */
-    public String getRootTemplateDirByDomain(Domain domain) {
-        StationGroup stationGroup = stationGroupService.getById(domain.getStationGroupId());
-        return new File(new File(siteProperties.getHostsRoot(), stationGroup.getEnglishName()), "template/").getAbsolutePath();
-    }
-
-    /**
-     * 删除域名和配置
-     *
-     * @param idList
-     * @return
-     */
-    @Override
-    public boolean removeDomainsAndConfig(Collection<String> idList, Map<String, Domain> maps) {
-        boolean res = super.removeByIds(idList);
-        if (res) {
-            idList.stream().forEach(id -> {
-                Domain domain = maps.get(id);
-                StationGroup stationGroup = stationGroupService.getById(domain.getStationGroupId());
-                // 移除配置文件的域名
-                addOrRemoveDomainFromConfig(stationGroup.getEnglishName(), domain.getName(), DOMAIN_NAME_REMOVE);
-                this.reloadNginx();
-            });
+    private String getRootDirectory(String stationGroupEnglishName, String domainEnglishName) {
+        String path = siteProperties.getHostsRoot();
+        path = path.replace("\\\\", "/");
+        if (!path.endsWith("/")) {
+            path += "/";
         }
-        return res;
+        path = path + stationGroupEnglishName + "/" + domainEnglishName;
+        path = new File(path).getAbsolutePath();
+        System.out.println(path);
+        return path;
     }
 
     /**
-     * 修改状态根据站群编号
+     * 禁用站点配置文件
+     *
+     * @param stationGroupEnglishName
+     * @param domainEnglishName
+     */
+    private void disableNginxConf(String stationGroupEnglishName, String domainEnglishName) {
+        File enable = new File(siteProperties.getNginxConfigDir(), this.getConfigName(stationGroupEnglishName, domainEnglishName, NGINX_ENABLE_SUFFIX));
+        File disabled = new File(siteProperties.getNginxConfigDir(), this.getConfigName(stationGroupEnglishName, domainEnglishName, NGINX_DISABLED_SUFFIX));
+        if (Objects.nonNull(enable) && enable.exists()) {
+            if (Objects.nonNull(disabled) && disabled.exists()) {
+                disabled.delete();
+            }
+            if (enable.renameTo(disabled)) {
+                this.reloadNginx();
+            }
+        } else {
+            log.error("配置文件{}不存在，禁用站点操作失败", enable.getAbsolutePath());
+        }
+    }
+
+    /**
+     * 启用站点配置文件
+     */
+    private void enableNginxConf(String stationGroupEnglishName, String domainEnglishName) {
+        File enable = new File(siteProperties.getNginxConfigDir(), this.getConfigName(stationGroupEnglishName, domainEnglishName, NGINX_ENABLE_SUFFIX));
+        File disabled = new File(siteProperties.getNginxConfigDir(), this.getConfigName(stationGroupEnglishName, domainEnglishName, NGINX_DISABLED_SUFFIX));
+        if (Objects.nonNull(disabled) && disabled.exists()) {
+            if (Objects.nonNull(enable) && enable.exists()) {
+                enable.delete();
+            }
+            if (disabled.renameTo(enable)) {
+                this.reloadNginx();
+            }
+        } else {
+            log.error("配置文件{}不存在，启用站点操作失败", disabled.getAbsolutePath());
+        }
+    }
+
+    /**
+     * 更新 站群下所有域名 nginx 配置
      *
      * @param stationGroupId
-     * @param enable
-     * @return
+     * @param oldStationGroupEnglishName
      */
     @Override
-    public long updateEnableByStationGroupId(String stationGroupId, int enable) {
-        return baseMapper.updateEnableByStationGroupId(stationGroupId, enable);
+    public void updateStationGroupNginxConfigAndPage(String stationGroupId, String oldStationGroupEnglishName) {
+        StationGroup stationGroup = stationGroupService.getById(stationGroupId);
+        // 文件夹重命名
+        File src = new File(siteProperties.getHostsRoot(), oldStationGroupEnglishName);
+        File dest = new File(siteProperties.getHostsRoot(), stationGroup.getEnglishName());
+        src.renameTo(dest);
+
+        // 配置重新生成
+        DomainVo domainVo = new DomainVo();
+        domainVo.setStationGroupId(stationGroupId);
+        // 检错站群下的所有域名
+        Collection<DomainVo> list = this.listSelectByDomainVo(domainVo);
+        if (CollectionUtil.isNotEmpty(list)) {
+            for (DomainVo domain : list) {
+                // 删除
+                this.deleteNginxPage(oldStationGroupEnglishName, domain.getEnglishName());
+                this.deleteNginxConf(oldStationGroupEnglishName, domain.getEnglishName());
+                // 创建
+                this.createNginxPage(stationGroup, domain);
+                this.createNginxConf(stationGroup, domain);
+
+            }
+            this.reloadNginx();
+        }
     }
 
     /**
-     * 获取nginx端口
+     * 启用停用 站群下所有域名 nginx 配置
      *
-     * @return
+     * @param stationGroupId
      */
     @Override
-    public String getNginxPort() {
-        return siteProperties.getNginxPort() == null ? "" : siteProperties.getNginxPort().toString();
+    public void runOrStopStationGroupNginxConfigAndPage(String stationGroupId) {
+        DomainVo domainVo = new DomainVo();
+        domainVo.setStationGroupId(stationGroupId);
+        // 检错站群下的所有域名
+        Collection<DomainVo> list = this.listSelectByDomainVo(domainVo);
+        if (CollectionUtil.isNotEmpty(list)) {
+            StationGroup stationGroup = stationGroupService.getById(stationGroupId);
+            for (DomainVo domain : list) {
+                // 启用
+                if (EnableEnum.ENABLE.getCode().equals(stationGroup.getEnable())) {
+                    this.enableNginxConf(stationGroup.getEnglishName(), domain.getEnglishName());
+                    // 停用
+                } else if (EnableEnum.DISABLE.getCode().equals(stationGroup.getEnable())) {
+                    this.disableNginxConf(stationGroup.getEnglishName(), domain.getEnglishName());
+                }
+            }
+            this.reloadNginx();
+        }
+    }
+
+    /**
+     * 删除 站群下所有域名 nginx 配置
+     *
+     * @param ids
+     */
+    @Override
+    public void removeStationGroupNginxConfigAndPage(List<String> ids) {
+        if (CollectionUtil.isEmpty(ids)) {
+            return;
+        }
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+        for (String stationGroupId : ids) {
+            // 站群目录标记删除
+            StationGroup stationGroup = stationGroupService.getById(stationGroupId);
+            File src = new File(siteProperties.getHostsRoot(), stationGroup.getEnglishName());
+            File dest = new File(siteProperties.getHostsRoot(), "delete_" + stationGroup.getEnglishName() + "_" + format.format(new Date()));
+            src.renameTo(dest);
+
+            // 删除站群下的所有域名配置
+            DomainVo domainVo = new DomainVo();
+            domainVo.setStationGroupId(stationGroupId);
+            Collection<DomainVo> list = this.listSelectByDomainVo(domainVo);
+            if (CollectionUtil.isNotEmpty(list)) {
+                for (DomainVo domain : list) {
+                    this.deleteNginxConf(domain.getEnglishName(), domain.getEnglishName());
+                }
+            }
+        }
+        this.reloadNginx();
     }
 }

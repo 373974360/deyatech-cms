@@ -68,43 +68,40 @@ public interface StationGroupService extends BaseService<StationGroup> {
     Collection<StationGroupVo> listSelectByStationGroupVo(StationGroupVo stationGroupVo);
 
     /**
-     * 根据分类编号统计名称件数
+     * 统计名称件数
      *
      * @param id
-     * @param classificationId
      * @param name
      * @return
      */
-    long countNameByClassificationId(String id, String classificationId, String name);
+    long countName(String id, String name);
 
     /**
-     * 根据分类编号统计英文名称件数
+     * 统计英文名称件数
      *
      * @param id
-     * @param classificationId
      * @param englishName
      * @return
      */
-    long countEnglishNameByClassificationId(String id, String classificationId, String englishName);
+    long countEnglishName(String id, String englishName);
 
     /**
-     * 根据分类编号统计简称件数
+     * 统计简称件数
      *
      * @param id
-     * @param classificationId
      * @param abbreviation
      * @return
      */
-    long countAbbreviationByClassificationId(String id, String classificationId, String abbreviation);
+    long countAbbreviation(String id, String abbreviation);
 
     /**
-     * 修改状态根据编号
+     * 启用或停用站群
      *
      * @param id
      * @param flag
      * @return
      */
-    long runOrStopStationById(String id, String flag);
+    boolean runOrStopStationById(String id, String flag);
 
     /**
      * 根据编号检索站群
@@ -121,4 +118,11 @@ public interface StationGroupService extends BaseService<StationGroup> {
      * @return
      */
     boolean removeStationGroupAndConfig(List<String> ids, Map<String, StationGroup> maps);
+
+    /**
+     * 更新或保存
+     * @param stationGroup
+     * @return
+     */
+    boolean saveOrUpdateAndNginx(StationGroup stationGroup);
 }

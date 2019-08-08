@@ -45,27 +45,15 @@ public class DomainController extends BaseController {
     public RestResult<Boolean> saveOrUpdate(Domain domain) {
         log.info(String.format("保存或者更新: %s ", JSONUtil.toJsonStr(domain)));
         // 检查域名是否存在
-        long count = this.domainService.countNameByStationGroupId(domain.getId(), domain.getStationGroupId(), domain.getName());
+        long count = this.domainService.countName(domain.getId(), domain.getName());
         if (count > 0) {
-            return new RestResult(200, "当前站群下已存在该域名", true);
-        } else {
-            boolean result = domainService.saveOrUpdateAndNginx(domain);
-            return RestResult.ok(result);
+            return new RestResult(200, "域名已存在", true);
         }
-    }
-
-    /**
-     * 批量保存或者更新
-     *
-     * @param domainList
-     * @return
-     */
-    @PostMapping("/saveOrUpdateBatch")
-    @ApiOperation(value="批量保存或者更新", notes="根据对象集合批量保存或者更新信息")
-    @ApiImplicitParam(name = "domainList", value = "对象集合", required = true, allowMultiple = true, dataType = "Domain", paramType = "query")
-    public RestResult<Boolean> saveOrUpdateBatch(Collection<Domain> domainList) {
-        log.info(String.format("批量保存或者更新: %s ", JSONUtil.toJsonStr(domainList)));
-        boolean result = domainService.saveOrUpdateBatch(domainList);
+        count = this.domainService.countEnglishName(domain.getId(), domain.getEnglishName());
+        if (count > 0) {
+            return new RestResult(200, "英文名称已存在", true);
+        }
+        boolean result = domainService.saveOrUpdateAndNginx(domain);
         return RestResult.ok(result);
     }
 
@@ -80,16 +68,9 @@ public class DomainController extends BaseController {
     @ApiImplicitParam(name = "domain", value = "对象", required = true, dataType = "Domain", paramType = "query")
     public RestResult<Boolean> removeByDomain(Domain domain) {
         log.info(String.format("根据Domain对象属性逻辑删除: %s ", domain));
-        domain = domainService.getById(domain.getId());
-        // 主域名
-        if (YesNoEnum.YES.getCode().toString().equals(domain.getSign())) {
-            return RestResult.error("主域名不允许删除");
-        }
         List<String> ids = new ArrayList<>();
         ids.add(domain.getId());
-        Map<String, Domain> maps = new HashMap<>();
-        maps.put(domain.getId(), domain);
-        boolean result = domainService.removeDomainsAndConfig(ids, maps);
+        boolean result = domainService.removeDomainsAndConfig(ids);
         return RestResult.ok(result);
     }
 
@@ -105,16 +86,7 @@ public class DomainController extends BaseController {
     @ApiImplicitParam(name = "ids", value = "对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
     public RestResult<Boolean> removeByIds(@RequestParam("ids[]") List<String> ids) {
         log.info(String.format("根据id批量删除: %s ", JSONUtil.toJsonStr(ids)));
-        Map<String, Domain> maps = new HashMap<>();
-        for(String id : ids) {
-            Domain domain = domainService.getById(id);
-            maps.put(id, domain);
-            // 主域名
-            if (YesNoEnum.YES.getCode().toString().equals(domain.getSign())) {
-                return RestResult.error("主域名不允许删除");
-            }
-        }
-        boolean result = domainService.removeDomainsAndConfig(ids, maps);
+        boolean result = domainService.removeDomainsAndConfig(ids);
         return RestResult.ok(result);
     }
 
@@ -169,7 +141,6 @@ public class DomainController extends BaseController {
      * 域名重名检查
      *
      * @param id
-     * @param stationGroupId
      * @param name
      * @return
      */
@@ -177,14 +148,36 @@ public class DomainController extends BaseController {
     @ApiOperation(value="域名重名检查", notes="域名重名检查")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "id", value = "域名编号", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "stationGroupId", value = "站群编号", required = true, dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "name", value = "站群名称", required = true, dataType = "String", paramType = "query")
     })
-    public RestResult<Boolean> isNameExist(@RequestParam(required = false) String id, String stationGroupId, String name) {
-        log.info(String.format("域名重名检查: id = %s, stationGroupId = %s, name = %s", id, stationGroupId, name));
-        long count = this.domainService.countNameByStationGroupId(id, stationGroupId, name);
+    public RestResult<Boolean> isNameExist(@RequestParam(required = false) String id, String name) {
+        log.info(String.format("域名重名检查: id = %s, name = %s", id, name));
+        long count = this.domainService.countName(id, name);
         if (count > 0) {
-            return new RestResult(200, "当前站群下已存在该域名", true);
+            return new RestResult(200, "域名已存在", true);
+        } else {
+            return RestResult.ok(false);
+        }
+    }
+
+    /**
+     * 英文名称重名检查
+     *
+     * @param id
+     * @param englishName
+     * @return
+     */
+    @RequestMapping("/isEnglishNameExist")
+    @ApiOperation(value="英文名称重名检查", notes="英文名称重名检查")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "域名编号", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "englishName", value = "站群名称", required = true, dataType = "String", paramType = "query")
+    })
+    public RestResult<Boolean> isEnglishNameExist(@RequestParam(required = false) String id, String englishName) {
+        log.info(String.format("英文名称重名检查: id = %s,  englishName = %s", id, englishName));
+        long count = this.domainService.countEnglishName(id, englishName);
+        if (count > 0) {
+            return new RestResult(200, "英文名称已存在", true);
         } else {
             return RestResult.ok(false);
         }
@@ -205,12 +198,7 @@ public class DomainController extends BaseController {
     })
     public RestResult<Boolean> runOrStopDomainById(String id, String flag) {
         log.info(String.format("运行或停止站群 id = %s, flag = %s", id , flag));
-        Domain domain = domainService.getById(id);
-        // 主域名不能停用
-        if ("stop".equals(flag) && YesNoEnum.YES.getCode().toString().equals(domain.getSign())) {
-            return RestResult.error("主域名不允许停用");
-        }
-        long count = this.domainService.runOrStopStationById(id, flag);
+        long count = this.domainService.runOrStopDomainById(id, flag);
         if (count > 0) {
             return RestResult.ok(true);
         } else {
@@ -218,37 +206,4 @@ public class DomainController extends BaseController {
         }
     }
 
-    /**
-     * 更新主域名
-     *
-     * @param id
-     * @param stationGroupId
-     * @return
-     */
-    @RequestMapping("/updateSignByIdAndStationGroupId")
-    @ApiOperation(value="更新主域名", notes="更新主域名")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", value = "站群编号", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "flag", value = "运行或停止标记", required = true, dataType = "String", paramType = "query"),
-    })
-    public RestResult<Boolean> updateSignByIdAndStationGroupId(String id, String stationGroupId) {
-        log.info(String.format("更新主域名 id = %s, stationGroupId = %s", id , stationGroupId));
-        long count = this.domainService.updateSignByIdAndStationGroupId(id, stationGroupId);
-        if (count > 0) {
-            return RestResult.ok(true);
-        } else {
-            return RestResult.ok(false);
-        }
-    }
-
-    /**
-     * 获取nginx端口
-     *
-     * @return
-     */
-    @RequestMapping("/getNginxPort")
-    @ApiOperation(value="获取nginx端口", notes="获取nginx端口")
-    public RestResult getNginxPort() {
-        return RestResult.ok(domainService.getNginxPort());
-    }
 }

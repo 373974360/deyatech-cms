@@ -53,34 +53,31 @@ public interface StationGroupMapper extends BaseMapper<StationGroup> {
     Collection<StationGroupVo> listSelectByStationGroupVo(@Param("stationGroupVo") StationGroupVo stationGroupVo);
 
     /**
-     * 根据分类编号统计名称件数
+     * 统计名称件数
      *
      * @param id
-     * @param classificationId
      * @param name
      * @return
      */
-    long countNameByClassificationId(@Param("id") String id, @Param("classificationId") String classificationId, @Param("name") String name);
+    long countName(@Param("id") String id, @Param("name") String name);
 
     /**
-     * 根据分类编号统计英文名称件数
+     * 统计英文名称件数
      *
      * @param id
-     * @param classificationId
      * @param englishName
      * @return
      */
-    long countEnglishNameByClassificationId(@Param("id") String id, @Param("classificationId") String classificationId, @Param("englishName") String englishName);
+    long countEnglishName(@Param("id") String id, @Param("englishName") String englishName);
 
     /**
-     * 根据分类编号统计简称件数
+     * 统计简称件数
      *
      * @param id
-     * @param classificationId
      * @param abbreviation
      * @return
      */
-    long countAbbreviationByClassificationId(@Param("id") String id, @Param("classificationId") String classificationId, @Param("abbreviation") String abbreviation);
+    long countAbbreviation(@Param("id") String id, @Param("abbreviation") String abbreviation);
 
     /**
      * 修改状态根据编号

@@ -1,5 +1,6 @@
 package com.deyatech.resource.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.common.enums.EnableEnum;
@@ -19,6 +20,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * <p>
@@ -108,67 +110,39 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     }
 
     /**
-     * 根据分类编号统计名称件数
+     * 统计名称件数
      *
      * @param id
-     * @param classificationId
      * @param name
      * @return
      */
     @Override
-    public long countNameByClassificationId(String id, String classificationId, String name) {
-        return baseMapper.countNameByClassificationId(id, classificationId, name);
+    public long countName(String id, String name) {
+        return baseMapper.countName(id, name);
     }
 
     /**
-     * 根据分类编号统计英文名称件数
+     * 统计英文名称件数
      *
      * @param id
-     * @param classificationId
      * @param englishName
      * @return
      */
     @Override
-    public long countEnglishNameByClassificationId(String id, String classificationId, String englishName) {
-        return baseMapper.countEnglishNameByClassificationId(id, classificationId, englishName);
+    public long countEnglishName(String id, String englishName) {
+        return baseMapper.countEnglishName(id, englishName);
     }
 
     /**
-     * 根据分类编号统计简称件数
+     * 统计简称件数
      *
      * @param id
-     * @param classificationId
      * @param abbreviation
      * @return
      */
     @Override
-    public long countAbbreviationByClassificationId(String id, String classificationId, String abbreviation) {
-        return baseMapper.countAbbreviationByClassificationId(id, classificationId, abbreviation);
-    }
-
-    /**
-     * 修改状态根据编号
-     *
-     * @param id
-     * @param flag
-     * @return
-     */
-    @Override
-    public long runOrStopStationById(String id, String flag) {
-        long count = 0;
-        StationGroup stationGroup = getById(id);
-        if ("run".equals(flag)) {
-            count = baseMapper.updateEnableById(id, EnableEnum.ENABLE.getCode());
-            if (count > 0) {
-                domainService.enableNginxConfig(stationGroup);
-            }
-        } else if ("stop".equals(flag)) {
-            count = baseMapper.updateEnableById(id, EnableEnum.DISABLE.getCode());
-            if (count > 0) {
-                domainService.disableNginxConfig(stationGroup);
-            }
-        }
-        return count;
+    public long countAbbreviation(String id, String abbreviation) {
+        return baseMapper.countAbbreviation(id, abbreviation);
     }
 
     /**
@@ -183,6 +157,30 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     }
 
     /**
+     * 启用或停用站群
+     *
+     * @param id
+     * @param flag
+     * @return
+     */
+    @Override
+    public boolean runOrStopStationById(String id, String flag) {
+        long count = 0;
+        if ("run".equals(flag)) {
+            count = baseMapper.updateEnableById(id, EnableEnum.ENABLE.getCode());
+        } else if ("stop".equals(flag)) {
+            count = baseMapper.updateEnableById(id, EnableEnum.DISABLE.getCode());
+        }
+        if (count > 0) {
+            // 启用停用 站群下所有域名 nginx 配置
+            domainService.runOrStopStationGroupNginxConfigAndPage(id);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * 删除站群
      *
      * @param ids
@@ -194,15 +192,37 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
         // 删除站群
         long count = baseMapper.updateEnableByIds(ids, EnableEnum.DELETED.getCode());
         if (count > 0) {
-            for(String id : ids) {
-                // 删除站群下的域名
-                domainService.updateEnableByStationGroupId(id, EnableEnum.DELETED.getCode());
-                // 删除禁用的配置文件
-                domainService.deleteNginxConfig(maps.get(id));
-            }
+            // 删除 站群下所有域名 nginx 配置
+            domainService.removeStationGroupNginxConfigAndPage(ids);
             return true;
         } else {
             return false;
         }
+    }
+
+    /**
+     * 更新或保存
+     * @param stationGroup
+     * @return
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public boolean saveOrUpdateAndNginx(StationGroup stationGroup) {
+        String oldStationGroupEnglishName = null;
+        // 修改
+        if (Objects.nonNull(stationGroup) && StrUtil.isNotEmpty(stationGroup.getId())) {
+            // 旧站群
+            StationGroup oldStationGroup = this.getById(stationGroup.getId());
+            // 若站群英文名称变更，则 nginx 需要做对应变更
+            if (!stationGroup.getEnglishName().equals(oldStationGroup.getEnglishName())) {
+                oldStationGroupEnglishName = oldStationGroup.getEnglishName();
+            }
+        }
+        boolean result = super.saveOrUpdate(stationGroup);
+        if (result && StrUtil.isNotEmpty(oldStationGroupEnglishName)) {
+            // 更新 站群下所有域名 nginx 配置
+            domainService.updateStationGroupNginxConfigAndPage(stationGroup.getId(), oldStationGroupEnglishName);
+        }
+        return result;
     }
 }
