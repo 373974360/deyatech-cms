@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.station.mapper.ModelMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.deyatech.station.entity.Model">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="description_" property="description" />
+        <result column="english_name" property="englishName" />
+        <result column="meta_data_collection_id" property="metaDataCollectionId" />
+        <result column="name_" property="name" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id_,
+        enable_,
+        remark_,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        version_,
+        description_, english_name, meta_data_collection_id, name_
+    </sql>
+
+    <select id="pageByBean" parameterType="com.deyatech.station.entity.Model"
+        resultType="com.deyatech.station.vo.ModelVo">
+        select sm.*, amdc.name_ as metaDataCollectionName
+        from station_model sm
+        left join admin_meta_data_collection amdc on sm.meta_data_collection_id = amdc.id_
+        where sm.enable_ = 1
+        <if test="model.name != null">
+            and (sm.name_ like concat('%', #{model.name}, '%') or sm.english_name like concat('%', #{model.name}, '%'))
+        </if>
+        <if test="model.metaDataCollectionId != null">
+            and sm.meta_data_collection_id = #{model.metaDataCollectionId}
+        </if>
+    </select>
+</mapper>
