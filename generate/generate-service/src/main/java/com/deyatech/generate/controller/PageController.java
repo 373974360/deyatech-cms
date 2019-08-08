@@ -1,10 +1,11 @@
-package com.deyatech.station.controller;
+package com.deyatech.generate.controller;
 
 import cn.hutool.core.util.StrUtil;
-import com.deyatech.station.entity.Page;
-import com.deyatech.station.vo.PageVo;
-import com.deyatech.station.service.PageService;
+import com.deyatech.generate.entity.Page;
+import com.deyatech.generate.vo.PageVo;
+import com.deyatech.generate.service.PageService;
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.template.feign.TemplateFeign;
 import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -30,11 +31,13 @@ import io.swagger.annotations.ApiOperation;
  */
 @Slf4j
 @RestController
-@RequestMapping("/station/page")
+@RequestMapping("/generate/page")
 @Api(tags = {"页面管理接口"})
 public class PageController extends BaseController {
     @Autowired
     PageService pageService;
+    @Autowired
+    TemplateFeign templateFeign;
 
     /**
      * 单个保存或者更新页面管理
@@ -48,6 +51,9 @@ public class PageController extends BaseController {
     public RestResult<Boolean> saveOrUpdate(Page page) {
         log.info(String.format("保存或者更新页面管理: %s ", JSONUtil.toJsonStr(page)));
         boolean result = pageService.saveOrUpdate(page);
+        if(result){
+            String templateRootPath = templateFeign.getTemplateRootPath(page.getSiteId()).getData();
+        }
         return RestResult.ok(result);
     }
 

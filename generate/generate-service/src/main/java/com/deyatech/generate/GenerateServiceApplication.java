@@ -1,4 +1,4 @@
-package com.deyatech.template;
+package com.deyatech.generate;
 
 import cn.hutool.json.JSONObject;
 import com.deyatech.common.exception.GlobalExceptionHandler;
@@ -17,7 +17,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 /**
  * <p>
- * cms模板模块微服务启动类
+ * cms生成静态页模块微服务启动类
  * </p>
  *
  * @author: lee.
@@ -32,10 +32,10 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 @EnableCaching
 @RestController
-public class TemplateServiceApplication {
+public class GenerateServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(TemplateServiceApplication.class, args);
+        SpringApplication.run(GenerateServiceApplication.class, args);
     }
 
     @Bean

@@ -1,11 +1,10 @@
-package com.deyatech.station.service;
+package com.deyatech.generate.service;
 
-import com.deyatech.station.entity.Page;
-import com.deyatech.station.vo.PageVo;
+import com.deyatech.generate.entity.Page;
+import com.deyatech.generate.vo.PageVo;
 import com.deyatech.common.base.BaseService;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * <p>

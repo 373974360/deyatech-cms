@@ -1,4 +1,4 @@
-package com.deyatech.station.entity;
+package com.deyatech.generate.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.TableField;

@@ -1,6 +1,7 @@
 package com.deyatech.template.controller;
 
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.deyatech.common.Constants;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.feign.ResourceFeign;
 import com.deyatech.template.entity.StationGit;
@@ -199,7 +200,7 @@ public class StationGitController extends BaseController {
     public RestResult<Boolean> sync(String siteId,String gitUrl,String userName,String password) {
         try {
             StationGroup stationGroup = resourceFeign.getStationGroupById(siteId).getData();
-            String dir = templateDir + stationGroup.getEnglishName();
+            String dir = templateDir + stationGroup.getEnglishName() + Constants.TEMPLATE_DIR_NAME;
             JGitUtil.cloneRepository(gitUrl,dir,userName,password);
         }catch (Exception e){
             log.error("远程同步失败，请稍后再试或者检查用户名、密码是否错误", e);
@@ -216,13 +217,26 @@ public class StationGitController extends BaseController {
      * @return
      */
     @GetMapping("/listTemplateFiles")
-    @ApiOperation(value="从git地址远程同步模板文件", notes="从git地址远程同步模板文件")
+    @ApiOperation(value="根据站点ID获取模板文件信息", notes="根据站点ID获取模板文件信息")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "path", value = "读取路径", required = true, dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "siteId", value = "站点ID", required = true, dataType = "String", paramType = "query")
     })
     public RestResult<String> listTemplateFiles(String siteId,String path) {
         return RestResult.ok(stationGitService.getTemplateFiles(siteId,path));
+    }
+
+    /**
+     * 根据站点ID递归获取所有模板文件信息
+     *
+     * @param siteId
+     * @return
+     */
+    @GetMapping("/listTemplateAllFiles")
+    @ApiOperation(value="根据站点ID递归获取所有模板文件信息", notes="根据站点ID递归获取所有模板文件信息")
+    @ApiImplicitParam(name = "siteId", value = "站点ID", required = true, dataType = "String", paramType = "query")
+    public RestResult<String> listTemplateAllFiles(String siteId) {
+        return RestResult.ok(stationGitService.getTemplateAllFiles(siteId));
     }
 
     /**
@@ -266,5 +280,19 @@ public class StationGitController extends BaseController {
             e.printStackTrace();
         }
         return RestResult.ok(true);
+    }
+
+
+    /**
+     * 根据站点ID查询站点git信息
+     *
+     * @param siteId
+     * @return
+     */
+    @GetMapping("/getStationGitBySiteId")
+    @ApiOperation(value="根据站点ID查询站点git信息", notes="根据站点ID查询站点git信息")
+    @ApiImplicitParam(name = "siteId", value = "站点ID", required = true, dataType = "String", paramType = "query")
+    public RestResult<StationGit> getStationGitBySiteId(String siteId) {
+        return RestResult.ok(stationGitService.getStationGitBySiteId(siteId));
     }
 }

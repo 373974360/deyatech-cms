@@ -1,8 +1,7 @@
-package com.deyatech.station.vo;
+package com.deyatech.generate.vo;
 
-import com.deyatech.station.entity.Page;
+import com.deyatech.generate.entity.Page;
 import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;

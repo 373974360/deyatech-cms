@@ -1,11 +1,11 @@
-package com.deyatech.station.service.impl;
+package com.deyatech.generate.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.deyatech.station.entity.Page;
-import com.deyatech.station.vo.PageVo;
-import com.deyatech.station.mapper.PageMapper;
-import com.deyatech.station.service.PageService;
+import com.deyatech.generate.entity.Page;
+import com.deyatech.generate.vo.PageVo;
+import com.deyatech.generate.mapper.PageMapper;
+import com.deyatech.generate.service.PageService;
 import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;

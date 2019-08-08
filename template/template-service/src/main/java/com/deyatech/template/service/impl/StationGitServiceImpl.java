@@ -1,6 +1,8 @@
 package com.deyatech.template.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.deyatech.common.Constants;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.feign.ResourceFeign;
 import com.deyatech.template.entity.StationGit;
@@ -80,7 +82,7 @@ public class StationGitServiceImpl extends BaseServiceImpl<StationGitMapper, Sta
     @Override
     public String getTemplateFiles(String siteId,String path) {
         StationGroup stationGroup = resourceFeign.getStationGroupById(siteId).getData();
-        String dir = templateDir + stationGroup.getEnglishName();
+        String dir = templateDir + stationGroup.getEnglishName() + Constants.TEMPLATE_DIR_NAME;
         JSONObject jsonObject = new JSONObject();
         if(StringUtils.isEmpty(path)){
             path = dir;
@@ -94,7 +96,7 @@ public class StationGitServiceImpl extends BaseServiceImpl<StationGitMapper, Sta
     public String getTemplateAllFiles(String siteId) {
         JSONObject jsonObject = new JSONObject();
         StationGroup stationGroup = resourceFeign.getStationGroupById(siteId).getData();
-        String dir = templateDir + stationGroup.getEnglishName();
+        String dir = templateDir + stationGroup.getEnglishName() + Constants.TEMPLATE_DIR_NAME;
         String files = FileResource.getAllFiles(dir);
         jsonObject.put("files", files);
         return jsonObject.toString();
@@ -103,5 +105,23 @@ public class StationGitServiceImpl extends BaseServiceImpl<StationGitMapper, Sta
     @Override
     public String getFileContent(String path) {
         return FileResource.readToString2(path);
+    }
+
+    @Override
+    public StationGit getStationGitBySiteId(String siteId) {
+        StationGit stationGit = null;
+        List<StationGit> list = getBaseMapper().selectList(new QueryWrapper<StationGit>()
+                .eq("site_id",siteId));
+        if(!list.isEmpty()){
+            stationGit = list.get(0);
+        }
+        return stationGit;
+    }
+
+    @Override
+    public String getTemplateRootPath(String siteId) {
+        StationGroup stationGroup = resourceFeign.getStationGroupById(siteId).getData();
+        String dir = templateDir + stationGroup.getEnglishName() + Constants.TEMPLATE_DIR_NAME;
+        return dir;
     }
 }
