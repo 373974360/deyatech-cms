@@ -1,5 +1,6 @@
 package com.deyatech.template.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.feign.ResourceFeign;
@@ -103,5 +104,16 @@ public class StationGitServiceImpl extends BaseServiceImpl<StationGitMapper, Sta
     @Override
     public String getFileContent(String path) {
         return FileResource.readToString2(path);
+    }
+
+    @Override
+    public StationGit getStationGitBySiteId(String siteId) {
+        StationGit stationGit = null;
+        List<StationGit> list = getBaseMapper().selectList(new QueryWrapper<StationGit>()
+                .eq("site_id",siteId));
+        if(!list.isEmpty()){
+            stationGit = list.get(0);
+        }
+        return stationGit;
     }
 }

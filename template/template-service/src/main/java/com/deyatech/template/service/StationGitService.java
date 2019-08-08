@@ -63,4 +63,11 @@ public interface StationGitService extends BaseService<StationGit> {
     String getFileContent(String path);
 
 
+    /**
+     *  根据站点ID查询站点模板git信息
+     *
+     * @return
+     */
+    StationGit getStationGitBySiteId(String siteId);
+
 }

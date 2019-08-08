@@ -267,4 +267,18 @@ public class StationGitController extends BaseController {
         }
         return RestResult.ok(true);
     }
+
+
+    /**
+     * 根据站点ID查询站点git信息
+     *
+     * @param siteId
+     * @return
+     */
+    @GetMapping("/getStationGitBySiteId")
+    @ApiOperation(value="根据站点ID查询站点git信息", notes="根据站点ID查询站点git信息")
+    @ApiImplicitParam(name = "siteId", value = "站点ID", required = true, dataType = "String", paramType = "query")
+    public RestResult<StationGit> getStationGitBySiteId(String siteId) {
+        return RestResult.ok(stationGitService.getStationGitBySiteId(siteId));
+    }
 }
