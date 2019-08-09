@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.resource.mapper.SettingMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.deyatech.resource.entity.Setting">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="station_group_id" property="stationGroupId" />
+        <result column="upload_file_type" property="uploadFileType" />
+        <result column="upload_file_size" property="uploadFileSize" />
+        <result column="thumbnail_enable" property="thumbnailEnable" />
+        <result column="thumbnail_width" property="thumbnailWidth" />
+        <result column="thumbnail_height" property="thumbnailHeight" />
+        <result column="watermark_enable" property="watermarkEnable" />
+        <result column="watermark_type" property="watermarkType" />
+        <result column="watermark_width" property="watermarkWidth" />
+        <result column="watermark_height" property="watermarkHeight" />
+        <result column="watermark_transparency" property="watermarkTransparency" />
+        <result column="watermark_url" property="watermarkUrl" />
+        <result column="watermark_word" property="watermarkWord" />
+        <result column="watermark_position" property="watermarkPosition" />
+        <result column="ico_url" property="icoUrl" />
+    </resultMap>
+
+    <resultMap id="SettingVoBaseResultMap" type="com.deyatech.resource.vo.SettingVo">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="upload_file_type" property="uploadFileType" />
+        <result column="upload_file_size" property="uploadFileSize" />
+        <result column="thumbnail_enable" property="thumbnailEnable" />
+        <result column="thumbnail_width" property="thumbnailWidth" />
+        <result column="thumbnail_height" property="thumbnailHeight" />
+        <result column="watermark_enable" property="watermarkEnable" />
+        <result column="watermark_type" property="watermarkType" />
+        <result column="watermark_width" property="watermarkWidth" />
+        <result column="watermark_height" property="watermarkHeight" />
+        <result column="watermark_transparency" property="watermarkTransparency" />
+        <result column="watermark_url" property="watermarkUrl" />
+        <result column="watermark_word" property="watermarkWord" />
+        <result column="watermark_position" property="watermarkPosition" />
+        <result column="ico_url" property="icoUrl" />
+        <result column="station_group_id" property="stationGroupId" />
+        <result column="station_group_id" property="stationGroupName" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id_,
+        enable_,
+        remark_,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        version_,
+        station_group_id, upload_file_type, upload_file_size, thumbnail_enable, thumbnail_width, thumbnail_height, watermark_enable, watermark_type, watermark_width, watermark_height, watermark_transparency, watermark_url, watermark_word, watermark_position, ico_url
+    </sql>
+
+
+    <!--获取设置根据站群编号-->
+    <select id="getSettingByStationGroupId" resultMap="SettingVoBaseResultMap">
+        select
+        s.id_,
+        s.enable_,
+        s.remark_,
+        s.create_by,
+        s.create_time,
+        s.update_by,
+        s.update_time,
+        s.version_,
+        s.upload_file_type,
+        s.upload_file_size,
+        s.thumbnail_enable,
+        s.thumbnail_width,
+        s.thumbnail_height,
+        s.watermark_enable,
+        s.watermark_type,
+        s.watermark_width,
+        s.watermark_height,
+        s.watermark_transparency,
+        s.watermark_url,
+        s.watermark_word,
+        s.watermark_position,
+        s.ico_url,
+        s.station_group_id,
+        g.name_ as station_group_name
+        from resource_setting s
+             left join resource_station_group g on g.enable_ != -1 and s.station_group_id = g.id_
+        where s.enable_ = 1
+        <choose>
+            <when test="stationGroupId != null and stationGroupId != ''">
+                and s.station_group_id = #{stationGroupId}
+            </when>
+            <otherwise>
+                and s.station_group_id is null
+            </otherwise>
+        </choose>
+    </select>
+
+    <!--删除设置根据站群编号-->
+    <update id="removeByStationGroupId">
+        update resource_setting set enable_ = -1 where station_group_id in
+        <foreach index="index" item="item" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+</mapper>
