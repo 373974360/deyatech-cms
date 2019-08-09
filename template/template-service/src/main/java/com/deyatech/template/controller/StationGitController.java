@@ -269,7 +269,7 @@ public class StationGitController extends BaseController {
     })
     public RestResult unzip(String filePath,String siteId) {
         StationGroup stationGroup = resourceFeign.getStationGroupById(siteId).getData();
-        String dir = templateDir + stationGroup.getEnglishName();
+        String dir = templateDir + stationGroup.getEnglishName() + Constants.TEMPLATE_DIR_NAME;
         File local = new File(dir);
         File file = new File(filePath);
         try {
