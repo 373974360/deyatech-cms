@@ -174,4 +174,43 @@
         from resource_station_group
         where id_ = #{id} and enable_ != -1
     </select>
+    <!--检索站群根据编号-->
+    <select id="selectStationGroupByIds" resultMap="StationGroupVoResultMap">
+        select
+        s.id_,
+        s.enable_,
+        s.remark_,
+        s.create_by,
+        s.create_time,
+        s.update_by,
+        s.update_time,
+        s.version_,
+        s.name_,
+        s.english_name,
+        s.abbreviation_,
+        s.description_,
+        s.sort_no,
+        s.station_group_classification_id
+        from resource_station_group s
+        where s.enable_ != -1 and s.id_ in
+        <foreach index="index" item="item" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <!--更新站群-->
+    <update id="updateStationGroupById" parameterType="com.deyatech.resource.entity.StationGroup">
+        update resource_station_group set
+        name_ = #{name},
+        english_name = #{englishName},
+        abbreviation_ = #{abbreviation},
+        description_ = #{description},
+        sort_no = #{sortNo},
+        station_group_classification_id = #{stationGroupClassificationId},
+        remark_ = #{remark},
+        update_by = #{updateBy},
+        update_time = sysdate(),
+        version_ = #{version} + 1
+        where enable_ != -1 and id_ = #{id} and version_ = #{version}
+    </update>
 </mapper>

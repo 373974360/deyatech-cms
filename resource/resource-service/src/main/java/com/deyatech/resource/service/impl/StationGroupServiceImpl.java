@@ -193,7 +193,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
         long count = baseMapper.updateEnableByIds(ids, EnableEnum.DELETED.getCode());
         if (count > 0) {
             // 删除 站群下所有域名 nginx 配置
-            domainService.removeStationGroupNginxConfigAndPage(ids);
+            domainService.removeStationGroupNginxConfigAndPage(ids, maps);
             return true;
         } else {
             return false;
@@ -209,20 +209,22 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     @Override
     public boolean saveOrUpdateAndNginx(StationGroup stationGroup) {
         String oldStationGroupEnglishName = null;
-        // 修改
-        if (Objects.nonNull(stationGroup) && StrUtil.isNotEmpty(stationGroup.getId())) {
+        boolean flag;
+        if (StrUtil.isNotEmpty(stationGroup.getId())) {
             // 旧站群
             StationGroup oldStationGroup = this.getById(stationGroup.getId());
             // 若站群英文名称变更，则 nginx 需要做对应变更
             if (!stationGroup.getEnglishName().equals(oldStationGroup.getEnglishName())) {
                 oldStationGroupEnglishName = oldStationGroup.getEnglishName();
             }
+            flag = baseMapper.updateStationGroupById(stationGroup) > 0 ? true : false;
+        } else {
+            flag = super.save(stationGroup);
         }
-        boolean result = super.saveOrUpdate(stationGroup);
-        if (result && StrUtil.isNotEmpty(oldStationGroupEnglishName)) {
+        if (flag && StrUtil.isNotEmpty(oldStationGroupEnglishName)) {
             // 更新 站群下所有域名 nginx 配置
             domainService.updateStationGroupNginxConfigAndPage(stationGroup.getId(), oldStationGroupEnglishName);
         }
-        return result;
+        return flag;
     }
 }

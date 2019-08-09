@@ -88,4 +88,28 @@ public interface DomainMapper extends BaseMapper<Domain> {
      * @return
      */
     long countDomainByStationGroupId(@Param("stationGroupId") String stationGroupId);
+
+    /**
+     * 更新域名
+     *
+     * @param domain
+     * @return
+     */
+    long updateDomainById(Domain domain);
+
+    /**
+     * 根据编号检索域名
+     *
+     * @param list
+     * @return
+     */
+    Collection<DomainVo> selectDomainByIds(@Param("list") Collection<String> list);
+
+    /**
+     * 检索站群根据站群编号检索
+     *
+     * @param stationGroupId
+     * @return
+     */
+    Collection<DomainVo> selectDomainByStationGroupId(@Param("stationGroupId") String stationGroupId);
 }
