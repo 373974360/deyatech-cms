@@ -1,6 +1,7 @@
 package com.deyatech.station.controller;
 
-import cn.hutool.json.JSONArray;
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.deyatech.station.entity.ModelTemplate;
@@ -14,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.web.bind.annotation.RestController;
 import com.deyatech.common.base.BaseController;
 import io.swagger.annotations.Api;
@@ -62,8 +65,17 @@ public class ModelTemplateController extends BaseController {
     public RestResult<Boolean> saveOrUpdateBatch(String modelTemplates) {
         log.info(String.format("批量保存或者更新内容模型模版: %s ", JSONUtil.toJsonStr(modelTemplates)));
         List<ModelTemplate> modelTemplateList = JSONUtil.parseArray(modelTemplates).toList(ModelTemplate.class);
-        boolean result = modelTemplateService.saveOrUpdateBatch(modelTemplateList);
-        return RestResult.ok(result);
+        // 保存或更新
+        List<ModelTemplate> saveOrUpdateList = modelTemplateList.stream().filter(m -> !new Integer(-1).equals(m.getEnable())).collect(Collectors.toList());
+        boolean saveOrUpdateResult = modelTemplateService.saveOrUpdateBatch(saveOrUpdateList);
+        // 删除
+        List<String> removeList = modelTemplateList.stream().filter(m -> StrUtil.isNotEmpty(m.getId()) && new Integer(-1).equals(m.getEnable())).map(ModelTemplate::getId).collect(Collectors.toList());
+        boolean removeResult = true;
+        if (CollectionUtil.isNotEmpty(removeList)) {
+            removeResult = modelTemplateService.removeByIds(removeList);
+        }
+
+        return RestResult.ok(saveOrUpdateResult && removeResult);
     }
 
     /**
