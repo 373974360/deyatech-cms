@@ -147,6 +147,7 @@
         update resource_domain set enable_ = #{enable} where station_group_id = #{stationGroupId}
     </update>
 
+
     <!--根据编号检索域名-->
     <select id="getDomainById" resultMap="BaseResultMap">
         select id_,name_,english_name,description_,sort_no,station_group_id,port_,enable_,remark_,create_by,create_time,update_by,update_time,version_
@@ -157,5 +158,65 @@
     <!--统计站群下的域名-->
     <select id="countDomainByStationGroupId" resultType="java.lang.Long">
         select count(*) from resource_domain where enable_ != -1 and station_group_id = #{stationGroupId}
+    </select>
+
+    <!--更新域名-->
+    <update id="updateDomainById" parameterType="com.deyatech.resource.entity.Domain">
+        update resource_domain set
+        name_ = #{name},
+        english_name = #{englishName},
+        description_ = #{description},
+        sort_no = #{sortNo},
+        station_group_id = #{stationGroupId},
+        port_ = #{port},
+        remark_ = #{remark},
+        update_by = #{updateBy},
+        update_time = sysdate(),
+        version_ = #{version} + 1
+        where enable_ != -1 and id_ = #{id} and version_ = #{version}
+    </update>
+
+    <!--根据编号检索域名-->
+    <select id="selectDomainByIds" resultMap="DomainVoResultMap">
+        select
+        d.id_,
+        d.enable_,
+        d.remark_,
+        d.create_by,
+        d.create_time,
+        d.update_by,
+        d.update_time,
+        d.version_,
+        d.name_,
+        d.english_name,
+        d.port_,
+        d.description_,
+        d.sort_no,
+        d.station_group_id
+        from resource_domain d
+        where d.enable_ != -1 and d.id_ in
+        <foreach index="index" item="item" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+    <!--检索站群根据站群编号检索-->
+    <select id="selectDomainByStationGroupId" resultType="com.deyatech.resource.vo.DomainVo">
+        select
+        d.id_,
+        d.enable_,
+        d.remark_,
+        d.create_by,
+        d.create_time,
+        d.update_by,
+        d.update_time,
+        d.version_,
+        d.name_,
+        d.english_name,
+        d.port_,
+        d.description_,
+        d.sort_no,
+        d.station_group_id
+        from resource_domain d
+        where d.enable_ != -1 and d.station_group_id = #{stationGroupId}
     </select>
 </mapper>

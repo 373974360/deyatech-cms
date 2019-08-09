@@ -4,8 +4,9 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseController;
 import com.deyatech.common.entity.RestResult;
-import com.deyatech.common.enums.YesNoEnum;
+import com.deyatech.common.enums.EnableEnum;
 import com.deyatech.resource.entity.Domain;
+import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.service.DomainService;
 import com.deyatech.resource.vo.DomainVo;
 import io.swagger.annotations.Api;
@@ -68,9 +69,14 @@ public class DomainController extends BaseController {
     @ApiImplicitParam(name = "domain", value = "对象", required = true, dataType = "Domain", paramType = "query")
     public RestResult<Boolean> removeByDomain(Domain domain) {
         log.info(String.format("根据Domain对象属性逻辑删除: %s ", domain));
+        if (domain.getEnable() == EnableEnum.ENABLE.getCode()) {
+            return RestResult.error("已启用的域名不允许删除");
+        }
+        Map<String, Domain> maps = new HashMap<>();
+        maps.put(domain.getId(), domain);
         List<String> ids = new ArrayList<>();
         ids.add(domain.getId());
-        boolean result = domainService.removeDomainsAndConfig(ids);
+        boolean result = domainService.removeDomainsAndConfig(ids, maps);
         return RestResult.ok(result);
     }
 
@@ -86,7 +92,15 @@ public class DomainController extends BaseController {
     @ApiImplicitParam(name = "ids", value = "对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
     public RestResult<Boolean> removeByIds(@RequestParam("ids[]") List<String> ids) {
         log.info(String.format("根据id批量删除: %s ", JSONUtil.toJsonStr(ids)));
-        boolean result = domainService.removeDomainsAndConfig(ids);
+        Map<String, Domain> maps = new HashMap<>();
+        for(String id : ids) {
+            Domain domain = domainService.getById(id);
+            maps.put(id, domain);
+            if (domain.getEnable() == EnableEnum.ENABLE.getCode()) {
+                return RestResult.error("已启用的域名不允许删除");
+            }
+        }
+        boolean result = domainService.removeDomainsAndConfig(ids, maps);
         return RestResult.ok(result);
     }
 

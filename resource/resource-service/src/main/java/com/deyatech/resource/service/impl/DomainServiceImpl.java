@@ -4,7 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.enums.EnableEnum;
@@ -21,13 +20,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -173,16 +172,20 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
      * 删除域名和配置
      *
      * @param idList
+     * @param maps
      * @return
      */
     @Override
-    public boolean removeDomainsAndConfig(Collection<String> idList) {
+    public boolean removeDomainsAndConfig(Collection<String> idList, Map<String, Domain> maps) {
+        if(CollectionUtil.isEmpty(idList)) return false;
         // 删除域名
         long count = baseMapper.updateEnableByIds(idList, EnableEnum.DELETED.getCode());
         if (count > 0 && CollectionUtil.isNotEmpty(idList)) {
             boolean reload = false;
             for (String id : idList) {
-                Domain domain =  this.getById(id);
+                Domain domain =  maps.get(id);
+                if (Objects.isNull(domain))
+                    continue;
                 StationGroup stationGroup = stationGroupService.getById(domain.getStationGroupId());
                 if (domain != null && stationGroup != null) {
                     reload = true;
@@ -200,23 +203,24 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
     /**
      * 添加或保存域名生成 nginx
      *
-     * @param entity
+     * @param domain
      * @return
      */
 
     @Override
-    public boolean saveOrUpdateAndNginx(Domain entity) {
+    public boolean saveOrUpdateAndNginx(Domain domain) {
         Domain oldEntity = null;
-        if (Objects.nonNull(entity) && StrUtil.isNotEmpty(entity.getId())) {
-            oldEntity = this.getById(entity.getId());
+        boolean flag;
+        if (StrUtil.isNotEmpty(domain.getId())) {
+            oldEntity = this.getById(domain.getId());
+            // 更新 enable
+            flag = baseMapper.updateDomainById(domain) > 0 ? true : false;
+        } else {
+            flag = super.save(domain);
         }
-        UpdateWrapper<Domain> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.setEntity(entity);
-        updateWrapper.set("enable_", entity.getEnable());
-        boolean flag = super.update(entity, updateWrapper);
         if (flag) {
             //生成 nginx 配置 和 站点目录
-            this.createDomainNginxConfigAndPage(entity, oldEntity);
+            this.createDomainNginxConfigAndPage(domain, oldEntity);
         }
         return flag;
     }
@@ -265,7 +269,7 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
     private void deleteNginxPage(String stationGroupEnglishName, String domainEnglishName) {
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmssSSS");
         File src = new File(this.getRootDirectory(stationGroupEnglishName, domainEnglishName));
-        File dest = new File(this.getRootDirectory(stationGroupEnglishName, "delete_" + domainEnglishName + "_" + format.format(new Date())));
+        File dest = new File(this.getRootDirectory(stationGroupEnglishName, domainEnglishName + "_delete" + format.format(new Date())));
         if(src != null && src.exists()) {
             src.renameTo(dest);
         }
@@ -285,7 +289,7 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
             if (!dest.getParentFile().exists()) {
                 dest.getParentFile().mkdirs();
             }
-            String data = "<!DOCTYPE html><html><head><meta charset=utf-8><title>新站点创建成功</title></head><body>" + domain.getName() + "新站点创建成功</body></html>";
+            String data = "<!DOCTYPE html><html><head><meta charset=utf-8><title>新站点创建成功</title></head><body>新站点创建成功</body></html>";
             FileUtils.writeStringToFile(dest, data, Charset.forName("UTF-8"));
         } catch (IOException e) {
             e.printStackTrace();
@@ -453,10 +457,7 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
         src.renameTo(dest);
 
         // 配置重新生成
-        DomainVo domainVo = new DomainVo();
-        domainVo.setStationGroupId(stationGroupId);
-        // 检错站群下的所有域名
-        Collection<DomainVo> list = this.listSelectByDomainVo(domainVo);
+        Collection<DomainVo> list = baseMapper.selectDomainByStationGroupId(stationGroupId);;
         if (CollectionUtil.isNotEmpty(list)) {
             for (DomainVo domain : list) {
                 // 删除
@@ -478,12 +479,14 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
      */
     @Override
     public void runOrStopStationGroupNginxConfigAndPage(String stationGroupId) {
-        DomainVo domainVo = new DomainVo();
-        domainVo.setStationGroupId(stationGroupId);
+        if (StrUtil.isEmpty(stationGroupId))
+            return;
         // 检错站群下的所有域名
-        Collection<DomainVo> list = this.listSelectByDomainVo(domainVo);
-        if (CollectionUtil.isNotEmpty(list)) {
-            StationGroup stationGroup = stationGroupService.getById(stationGroupId);
+        Collection<DomainVo> list = baseMapper.selectDomainByStationGroupId(stationGroupId);;
+        StationGroup stationGroup = stationGroupService.getById(stationGroupId);
+        // 设置站群下所有域名的状态
+        long count = baseMapper.updateEnableByStationGroupId(stationGroup.getId(), stationGroup.getEnable());
+        if (count > 0 && CollectionUtil.isNotEmpty(list)) {
             for (DomainVo domain : list) {
                 // 启用
                 if (EnableEnum.ENABLE.getCode().equals(stationGroup.getEnable())) {
@@ -501,27 +504,26 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
      * 删除 站群下所有域名 nginx 配置
      *
      * @param ids
+     * @param maps
      */
     @Override
-    public void removeStationGroupNginxConfigAndPage(List<String> ids) {
-        if (CollectionUtil.isEmpty(ids)) {
+    public void removeStationGroupNginxConfigAndPage(List<String> ids, Map<String, StationGroup> maps) {
+        if (CollectionUtil.isEmpty(ids) || Objects.isNull(maps)) {
             return;
         }
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmssSSS");
         for (String stationGroupId : ids) {
             // 站群目录标记删除
-            StationGroup stationGroup = stationGroupService.getById(stationGroupId);
+            StationGroup stationGroup = maps.get(stationGroupId);
             File src = new File(siteProperties.getHostsRoot(), stationGroup.getEnglishName());
-            File dest = new File(siteProperties.getHostsRoot(), "delete_" + stationGroup.getEnglishName() + "_" + format.format(new Date()));
+            File dest = new File(siteProperties.getHostsRoot(), stationGroup.getEnglishName() + "_delete" + format.format(new Date()));
             src.renameTo(dest);
-
             // 删除站群下的所有域名配置
-            DomainVo domainVo = new DomainVo();
-            domainVo.setStationGroupId(stationGroupId);
-            Collection<DomainVo> list = this.listSelectByDomainVo(domainVo);
-            if (CollectionUtil.isNotEmpty(list)) {
+            Collection<DomainVo> list = baseMapper.selectDomainByStationGroupId(stationGroupId);
+            long count = baseMapper.updateEnableByStationGroupId(stationGroup.getId(), EnableEnum.DELETED.getCode());
+            if (count > 0 && CollectionUtil.isNotEmpty(list)) {
                 for (DomainVo domain : list) {
-                    this.deleteNginxConf(domain.getEnglishName(), domain.getEnglishName());
+                    this.deleteNginxConf(stationGroup.getEnglishName(), domain.getEnglishName());
                 }
             }
         }

@@ -95,4 +95,20 @@ public interface StationGroupMapper extends BaseMapper<StationGroup> {
      * @return
      */
     StationGroup getStationGroupById(@Param("id") Serializable id);
+
+    /**
+     * 检索站群根据编号
+     *
+     * @param list
+     * @return
+     */
+    Collection<StationGroupVo> selectStationGroupByIds(@Param("list") List<String> list);
+
+    /**
+     * 更新站群
+     *
+     * @param stationGroup
+     * @return
+     */
+    long updateStationGroupById(StationGroup stationGroup);
 }
