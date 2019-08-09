@@ -31,4 +31,20 @@ public interface ModelService extends BaseService<Model> {
      * @return
      */
     List<ModelVo> setVoProperties(Collection models);
+
+    /**
+     * 判断Model对象中文名称是否存在
+     *
+     * @param model
+     * @return
+     */
+    boolean checkNameExist(Model model);
+
+    /**
+     * 判断Model对象英文名称是否存在
+     *
+     * @param model
+     * @return
+     */
+    boolean checkEnglishNameExist(Model model);
 }

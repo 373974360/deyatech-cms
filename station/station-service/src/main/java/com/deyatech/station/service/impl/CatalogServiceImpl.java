@@ -1,5 +1,6 @@
 package com.deyatech.station.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.mapper.CatalogMapper;
@@ -106,13 +107,8 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
      * @return
      */
     @Override
-    public String existsName(Catalog catalog) {
-        Catalog catalogResult = this.getCatalogByDifferentNames(catalog);
-        if (ObjectUtil.isNotNull(catalogResult) && !catalogResult.getId().equals(catalog.getId())) {
-            String message = "栏目名称已存在";
-            return message;
-        }
-        return null;
+    public boolean existsName(Catalog catalog) {
+        return this.getCatalogByDifferentNames(catalog);
     }
 
     /**
@@ -122,13 +118,8 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
      * @return
      */
     @Override
-    public String existsAliasName(Catalog catalog) {
-        Catalog catalogResult = this.getCatalogByDifferentNames(catalog);
-        if (ObjectUtil.isNotNull(catalogResult) && !catalogResult.getId().equals(catalog.getId())) {
-            String message = "栏目别名已存在";
-            return message;
-        }
-        return null;
+    public boolean existsAliasName(Catalog catalog) {
+        return this.getCatalogByDifferentNames(catalog);
     }
 
     /**
@@ -138,30 +129,27 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
      * @return
      */
     @Override
-    public String existsEname(Catalog catalog) {
-        Catalog catalogResult = this.getCatalogByDifferentNames(catalog);
-        if (ObjectUtil.isNotNull(catalogResult) && !catalogResult.getId().equals(catalog.getId())) {
-            String message = "栏目英文名称已存在";
-            return message;
-        }
-        return null;
+    public boolean existsEname(Catalog catalog) {
+        return this.getCatalogByDifferentNames(catalog);
     }
 
-    private Catalog getCatalogByDifferentNames(Catalog catalog) {
-        Catalog catalogQuery = new Catalog();
-        catalogQuery.setParentId(catalog.getParentId());
-        catalogQuery.setSiteId(catalog.getSiteId());
+    private boolean getCatalogByDifferentNames(Catalog catalog) {
+        QueryWrapper<Catalog> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("parent_id", catalog.getParentId())
+                .eq("site_id", catalog.getSiteId());
+        if (StrUtil.isNotEmpty(catalog.getId())) {
+            queryWrapper.ne("id_", catalog.getId());
+        }
         if (StrUtil.isNotEmpty(catalog.getName())) {
-            catalogQuery.setName(catalog.getName());
+            queryWrapper.eq("name", catalog.getName());
         }
         else if (StrUtil.isNotEmpty(catalog.getAliasName())) {
-            catalogQuery.setAliasName(catalog.getAliasName());
+            queryWrapper.eq("alias_name", catalog.getAliasName());
         }
         else if (StrUtil.isNotEmpty(catalog.getEname())) {
-            catalogQuery.setEname(catalog.getEname());
+            queryWrapper.eq("ename", catalog.getEname());
         }
-        Catalog catalogResult = super.getByBean(catalogQuery);
-        return catalogResult;
+        return super.count(queryWrapper) > 0;
     }
 
     @Override

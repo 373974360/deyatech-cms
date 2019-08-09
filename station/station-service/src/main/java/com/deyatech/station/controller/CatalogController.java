@@ -187,12 +187,8 @@ public class CatalogController extends BaseController {
     @ApiImplicitParam(name = "catalog", value = "catalog", required = false, dataType = "Catalog", paramType = "query")
     public RestResult<Boolean> existsName(Catalog catalog) {
         log.info(String.format("验证当前输入栏目名称是否已经存在: %s ", JSONUtil.toJsonStr(catalog)));
-        String message = catalogService.existsName(catalog);
-        if (StrUtil.isEmpty(message)) {
-            return RestResult.ok();
-        } else {
-            return RestResult.error(message);
-        }
+        boolean result = catalogService.existsName(catalog);
+        return RestResult.ok(result);
     }
 
     /**
@@ -206,12 +202,8 @@ public class CatalogController extends BaseController {
     @ApiImplicitParam(name = "catalog", value = "catalog", required = false, dataType = "Catalog", paramType = "query")
     public RestResult<Boolean> existsAliasName(Catalog catalog) {
         log.info(String.format("验证当前输入栏目别名是否已经存在: %s ", JSONUtil.toJsonStr(catalog)));
-        String message = catalogService.existsAliasName(catalog);
-        if (StrUtil.isEmpty(message)) {
-            return RestResult.ok();
-        } else {
-            return RestResult.error(message);
-        }
+        boolean result = catalogService.existsAliasName(catalog);
+        return RestResult.ok(result);
     }
 
     /**
@@ -225,11 +217,7 @@ public class CatalogController extends BaseController {
     @ApiImplicitParam(name = "catalog", value = "catalog", required = false, dataType = "Catalog", paramType = "query")
     public RestResult<Boolean> existsEname(Catalog catalog) {
         log.info(String.format("验证当前输入栏目英文名称是否已经存在: %s ", JSONUtil.toJsonStr(catalog)));
-        String message = catalogService.existsEname(catalog);
-        if (StrUtil.isEmpty(message)) {
-            return RestResult.ok();
-        } else {
-            return RestResult.error(message);
-        }
+        boolean result = catalogService.existsEname(catalog);
+        return RestResult.ok(result);
     }
 }

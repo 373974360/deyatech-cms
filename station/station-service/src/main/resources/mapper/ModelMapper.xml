@@ -43,5 +43,6 @@
         <if test="model.metaDataCollectionId != null">
             and sm.meta_data_collection_id = #{model.metaDataCollectionId}
         </if>
+        order by sm.update_time desc
     </select>
 </mapper>

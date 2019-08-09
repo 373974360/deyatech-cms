@@ -93,7 +93,7 @@ public class ModelTemplateServiceImpl extends BaseServiceImpl<ModelTemplateMappe
         QueryWrapper<ModelTemplate> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("content_model_id", modelTemplate.getContentModelId())
                 .eq("site_id", modelTemplate.getSiteId());
-        return super.count(queryWrapper) != 0;
+        return super.count(queryWrapper) > 0;
     }
 
 }

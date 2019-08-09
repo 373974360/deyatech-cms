@@ -46,7 +46,7 @@ public interface CatalogService extends BaseService<Catalog> {
      * @param catalog
      * @return
      */
-    String existsName(Catalog catalog);
+    boolean existsName(Catalog catalog);
 
     /**
      * 验证当前输入栏目别名是否已经存在
@@ -54,7 +54,7 @@ public interface CatalogService extends BaseService<Catalog> {
      * @param catalog
      * @return
      */
-    String existsAliasName(Catalog catalog);
+    boolean existsAliasName(Catalog catalog);
 
     /**
      * 验证当前输入栏目英文名称是否已经存在
@@ -62,5 +62,5 @@ public interface CatalogService extends BaseService<Catalog> {
      * @param catalog
      * @return
      */
-    String existsEname(Catalog catalog);
+    boolean existsEname(Catalog catalog);
 }
