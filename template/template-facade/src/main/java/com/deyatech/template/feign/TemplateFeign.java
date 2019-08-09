@@ -2,10 +2,15 @@ package com.deyatech.template.feign;
 
 
 import com.deyatech.common.entity.RestResult;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.io.File;
+import java.util.Map;
 
 /**
  * 描述：template模块feign远程调用类
@@ -33,4 +38,32 @@ public interface TemplateFeign {
      */
     @RequestMapping(value = "/feign/template/getTemplateRootPath", method = RequestMethod.GET)
     RestResult<String> getTemplateRootPath(@RequestParam("siteId") String siteId);
+    /**
+     * 获取站点根路径
+     *
+     * @param siteId
+     * @return
+     */
+    @RequestMapping(value = "/feign/template/getSiteRootPath", method = RequestMethod.GET)
+    RestResult<String> getSiteRootPath(@RequestParam("siteId") String siteId);
+
+    /**
+     * 获取静态页后缀名
+     *
+     * @return
+     */
+    @RequestMapping(value = "/feign/template/getPageSuffix", method = RequestMethod.GET)
+    RestResult<String> getPageSuffix();
+
+    /**
+     * 生成静态页面
+     *
+     * @param templateRootPath 模板根路径
+     * @param templatePath 模板路径
+     * @param distFile     输出文件路径
+     * @param varMap       模板用到的变量
+     * @return
+     */
+    @RequestMapping(value = "/feign/template/generateStaticPage", method = RequestMethod.POST)
+    RestResult generateStaticPage(@RequestParam("templateRootPath") String templateRootPath, @RequestParam("templatePath") String templatePath, @RequestParam("distFile") File distFile, @RequestBody Map<String, Object> varMap);
 }

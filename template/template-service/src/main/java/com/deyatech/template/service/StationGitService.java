@@ -78,4 +78,12 @@ public interface StationGitService extends BaseService<StationGit> {
      */
     String getTemplateRootPath(String siteId);
 
+
+    /**
+     *  获取站点根路径
+     *
+     * @return
+     */
+    String getSiteRootPath(String siteId);
+
 }
