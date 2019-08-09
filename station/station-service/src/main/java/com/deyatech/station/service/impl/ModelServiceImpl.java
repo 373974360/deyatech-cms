@@ -1,5 +1,7 @@
 package com.deyatech.station.service.impl;
 
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.station.entity.Model;
 import com.deyatech.station.vo.ModelVo;
@@ -56,6 +58,38 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
             }
         }
         return modelVos;
+    }
+
+    /**
+     * 判断Model对象中文名称是否存在
+     *
+     * @param model
+     * @return
+     */
+    @Override
+    public boolean checkNameExist(Model model) {
+        QueryWrapper<Model> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("name_", model.getName());
+        if (StrUtil.isNotEmpty(model.getId())) {
+            queryWrapper.ne("id_", model.getId());
+        }
+        return super.count(queryWrapper) > 0;
+    }
+
+    /**
+     * 判断Model对象英文名称是否存在
+     *
+     * @param model
+     * @return
+     */
+    @Override
+    public boolean checkEnglishNameExist(Model model) {
+        QueryWrapper<Model> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("english_name", model.getEnglishName());
+        if (StrUtil.isNotEmpty(model.getId())) {
+            queryWrapper.ne("id_", model.getId());
+        }
+        return super.count(queryWrapper) > 0;
     }
 
     @Override

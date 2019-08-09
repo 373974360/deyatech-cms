@@ -47,6 +47,7 @@
         <if test="modelTemplate.defaultFlag != null">
             and smt.default_flag = #{modelTemplate.defaultFlag}
         </if>
+        order by smt.update_time desc
     </select>
 
 </mapper>
