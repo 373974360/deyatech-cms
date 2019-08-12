@@ -38,7 +38,7 @@
 
     <select id="getGroupList" resultMap="BaseResultMap" parameterType="java.lang.String">
         <![CDATA[
-            select * from monitor_group where run_type=2 and (next_dtime <=#{currTime} or next_dtime is null)
+            select * from monitor_group where run_type=2 and (next_dtime <=#{currTime} or next_dtime is null) and enable_ = 1
         ]]>
     </select>
 </mapper>
