@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.monitor.mapper.GroupMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.deyatech.monitor.entity.Group">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="group_name" property="groupName" />
+        <result column="trigger_type" property="triggerType" />
+        <result column="increment_seconds" property="incrementSeconds" />
+        <result column="calendar_time" property="calendarTime" />
+        <result column="calendar_type" property="calendarType" />
+        <result column="calendar_workday" property="calendarWorkday" />
+        <result column="last_dtime" property="lastDtime" />
+        <result column="next_dtime" property="nextDtime" />
+        <result column="run_type" property="runType" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id_,
+        enable_,
+        remark_,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        version_,
+        group_name, trigger_type, increment_seconds, calendar_time, calendar_type, calendar_workday, last_dtime, next_dtime, run_type
+    </sql>
+
+    <select id="getGroupList" resultMap="BaseResultMap" parameterType="java.lang.String">
+        <![CDATA[
+            select * from monitor_group where run_type=2 and (next_dtime <=#{currTime} or next_dtime is null) and enable_ = 1
+        ]]>
+    </select>
+</mapper>
