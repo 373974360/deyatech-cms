@@ -47,4 +47,11 @@ public interface SettingService extends BaseService<Setting> {
      * @return
      */
     long removeByStationGroupId(List<String> stationGroupIds);
+
+    /**
+     * 保存或更新
+     * @param setting
+     * @return
+     */
+    boolean saveOrUpdateExtend(Setting setting);
 }

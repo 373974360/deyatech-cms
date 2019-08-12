@@ -2,6 +2,7 @@ package com.deyatech.resource.mapper;
 
 import com.deyatech.resource.entity.Setting;
 import com.deyatech.common.base.BaseMapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -21,7 +22,7 @@ public interface SettingMapper extends BaseMapper<Setting> {
      * @param stationGroupId
      * @return
      */
-    Setting getSettingByStationGroupId(String stationGroupId);
+    Setting getSettingByStationGroupId(@Param("stationGroupId") String stationGroupId);
 
     /**
      * 删除设置根据站群编号

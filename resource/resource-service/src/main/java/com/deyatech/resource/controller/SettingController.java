@@ -44,7 +44,7 @@ public class SettingController extends BaseController {
     @ApiImplicitParam(name = "setting", value = "对象", required = true, dataType = "Setting", paramType = "query")
     public RestResult<Boolean> saveOrUpdate(Setting setting) {
         log.info(String.format("保存或者更新: %s ", JSONUtil.toJsonStr(setting)));
-        boolean result = settingService.saveOrUpdate(setting);
+        boolean result = settingService.saveOrUpdateExtend(setting);
         return RestResult.ok(result);
     }
 

@@ -53,7 +53,7 @@
         <result column="watermark_position" property="watermarkPosition" />
         <result column="ico_url" property="icoUrl" />
         <result column="station_group_id" property="stationGroupId" />
-        <result column="station_group_id" property="stationGroupName" />
+        <result column="station_group_name" property="stationGroupName" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
