@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.monitor.mapper.GroupSiteMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.deyatech.monitor.entity.GroupSite">
+        <result column="id_" property="id" />
+        <result column="site_id" property="siteId" />
+        <result column="group_id" property="groupId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id_,
+        site_id, group_id
+    </sql>
+
+
+
+    <delete id="deleteGroupSiteByGroupId" parameterType="java.util.List">
+        delete from monitor_group_site where group_id in
+        <foreach collection="groupIds" index="index" item="id" separator="," close=")" open="(">
+            #{id}
+        </foreach>
+    </delete>
+    <delete id="deleteGroupSiteBySiteId" parameterType="java.util.List">
+        delete from monitor_group_site where site_id in
+        <foreach collection="siteIds" index="index" item="id" separator="," close=")" open="(">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>
