@@ -1,9 +1,14 @@
 package com.deyatech.station.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.HttpStatus;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.common.exception.BusinessException;
 import com.deyatech.station.entity.Model;
+import com.deyatech.station.entity.ModelTemplate;
+import com.deyatech.station.index.IndexService;
+import com.deyatech.station.service.ModelTemplateService;
 import com.deyatech.station.vo.ModelVo;
 import com.deyatech.station.mapper.ModelMapper;
 import com.deyatech.station.service.ModelService;
@@ -12,8 +17,11 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.Serializable;
 import java.util.List;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -28,6 +36,11 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
 
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private ModelTemplateService modelTemplateService;
+    @Autowired
+    private IndexService indexService;
+
     /**
      * 单个将对象转换为vo内容模型
      *
@@ -58,6 +71,39 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
             }
         }
         return modelVos;
+    }
+
+    @Override
+    public boolean saveOrUpdate(Model entity) {
+        if (this.checkNameExist(entity)) {
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "名称不能重复");
+        }
+        if (this.checkEnglishNameExist(entity)) {
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "英文名不能重复");
+        }
+        boolean result = super.saveOrUpdate(entity);
+        // 创建索引 TODO
+        indexService.createIndex(this.getIndexByModelId(entity.getId()), true, entity.getId(), entity.getMetaDataCollectionId());
+        return result;
+    }
+
+    @Override
+    public boolean removeByIds(Collection<? extends Serializable> ids) {
+        boolean result = super.removeByIds(ids);
+        // 删除内容模型模版关联关系
+        QueryWrapper<ModelTemplate> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("content_model_id", ids);
+        modelTemplateService.remove(queryWrapper);
+        // 删除索引 TODO
+        ids.stream().forEach(
+                id -> indexService.deleteIndex(this.getIndexByModelId((String) id))
+        );
+        return result;
+    }
+
+    @Override
+    public IPage<Model> pageByBean(Model entity) {
+        return modelMapper.pageByBean(getPageByBean(entity), entity);
     }
 
     /**
@@ -92,8 +138,35 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
         return super.count(queryWrapper) > 0;
     }
 
+    /**
+     * 根据站点id属性检索所有内容模型
+     *
+     * @param siteId
+     * @return
+     */
     @Override
-    public IPage<Model> pageByBean(Model entity) {
-        return modelMapper.pageByBean(getPageByBean(entity), entity);
+    public Collection<Model> getAllModelBySiteId(String siteId) {
+        Collection<Model> modelList = null;
+        // 通过查询ModelTemplate获取model id
+        QueryWrapper<ModelTemplate> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("content_model_id").eq("site_id", siteId);
+        List<ModelTemplate> modelTemplateList = modelTemplateService.list(queryWrapper);
+        List<String> modelIds = modelTemplateList.stream().map(m -> m.getContentModelId()).distinct().collect(Collectors.toList());
+        // 通过model id获取Model集合
+        if (CollectionUtil.isNotEmpty(modelIds)) {
+            modelList = super.listByIds(modelIds);
+        }
+        return modelList;
+    }
+
+    /**
+     * 根据内容模型id获取索引
+     * @param modelId
+     * @return
+     */
+    @Override
+    public String getIndexByModelId(String modelId) {
+        Model model = super.getById(modelId);
+        return "cms_" + model.getEnglishName();
     }
 }

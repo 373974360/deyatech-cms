@@ -1,9 +1,6 @@
 package com.deyatech.station.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.deyatech.station.entity.Model;
-import com.deyatech.station.entity.ModelTemplate;
-import com.deyatech.station.service.ModelTemplateService;
 import com.deyatech.station.vo.ModelVo;
 import com.deyatech.station.service.ModelService;
 import com.deyatech.common.entity.RestResult;
@@ -35,8 +32,6 @@ import io.swagger.annotations.ApiOperation;
 public class ModelController extends BaseController {
     @Autowired
     ModelService modelService;
-    @Autowired
-    ModelTemplateService modelTemplateService;
 
     /**
      * 单个保存或者更新内容模型
@@ -50,8 +45,6 @@ public class ModelController extends BaseController {
     public RestResult<Boolean> saveOrUpdate(Model model) {
         log.info(String.format("保存或者更新内容模型: %s ", JSONUtil.toJsonStr(model)));
         boolean result = modelService.saveOrUpdate(model);
-        // 创建索引 TODO
-//        indexManager.createIndex(this.getIndexNameByContentModel(contentModel.getId()), true, contentModel.getId(), contentModel.getMetaDataCollectionId());
         return RestResult.ok(result);
     }
 
@@ -98,12 +91,6 @@ public class ModelController extends BaseController {
     public RestResult<Boolean> removeByIds(@RequestParam("ids[]") List<String> ids) {
         log.info(String.format("根据id批量删除内容模型: %s ", JSONUtil.toJsonStr(ids)));
         boolean result = modelService.removeByIds(ids);
-        // 删除删除内容模型模版关联关系
-        QueryWrapper<ModelTemplate> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in("content_model_id", ids);
-        modelTemplateService.remove(queryWrapper);
-        // 删除索引 TODO
-//        byId.ifPresent(contentModel -> indexManager.deleteIndex(getIndexNameByContentModel(contentModel.getId())));
         return RestResult.ok(result);
     }
 
@@ -183,5 +170,21 @@ public class ModelController extends BaseController {
         log.info(String.format("判断Model对象英文名称是否存在: %s ", model));
         boolean result = modelService.checkEnglishNameExist(model);
         return RestResult.ok(result);
+    }
+
+    /**
+     * 根据站点id属性检索所有内容模型
+     *
+     * @param siteId
+     * @return
+     */
+    @GetMapping("/getAllModelBySiteId")
+    @ApiOperation(value="根据站点id属性检索所有内容模型", notes="根据站点id属性检索所有内容模型")
+    @ApiImplicitParam(name = "siteId", value = "内容模型对象", required = false, dataType = "String", paramType = "query")
+    public RestResult<Collection<ModelVo>> getAllModelBySiteId(String siteId) {
+        Collection<Model> models = modelService.getAllModelBySiteId(siteId);
+        Collection<ModelVo> modelVos = modelService.setVoProperties(models);
+        log.info(String.format("根据站点id属性检索所有内容模型: %s ",JSONUtil.toJsonStr(modelVos)));
+        return RestResult.ok(modelVos);
     }
 }

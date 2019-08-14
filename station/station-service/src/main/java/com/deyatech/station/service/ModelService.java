@@ -47,4 +47,19 @@ public interface ModelService extends BaseService<Model> {
      * @return
      */
     boolean checkEnglishNameExist(Model model);
+
+    /**
+     * 根据站点id属性检索所有内容模型
+     *
+     * @param siteId
+     * @return
+     */
+    Collection<Model> getAllModelBySiteId(String siteId);
+
+    /**
+     * 根据内容模型id获取索引
+     * @param modelId
+     * @return
+     */
+    String getIndexByModelId(String modelId);
 }

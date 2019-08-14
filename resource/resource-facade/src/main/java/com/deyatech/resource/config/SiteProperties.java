@@ -22,8 +22,8 @@ public class SiteProperties {
     private String nginxProxyPass;
 
 //    private Integer nginxPort;
-//    private String elasticSearchHostname;
-//    private Integer elasticSearchPort;
+    private String elasticSearchHostname;
+    private Integer elasticSearchPort;
 //    private boolean debug = false;
 
 //    public String getElasticSearchHostname() {

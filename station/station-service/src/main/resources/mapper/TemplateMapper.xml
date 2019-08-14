@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.station.mapper.TemplateMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.deyatech.station.entity.Template">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="site_id" property="siteId" />
+        <result column="template_path" property="templatePath" />
+        <result column="cms_catalog_id" property="cmsCatalogId" />
+        <result column="content_model_id" property="contentModelId" />
+        <result column="content_id" property="contentId" />
+        <result column="status_" property="status" />
+        <result column="content_model_template_id" property="contentModelTemplateId" />
+        <result column="url_" property="url" />
+        <result column="author_" property="author" />
+        <result column="editor_" property="editor" />
+        <result column="source_" property="source" />
+        <result column="thumbnail_" property="thumbnail" />
+        <result column="title_" property="title" />
+        <result column="flag_search" property="flagSearch" />
+        <result column="sort_no" property="sortNo" />
+        <result column="flag_top" property="flagTop" />
+        <result column="views_" property="views" />
+        <result column="flag_external" property="flagExternal" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id_,
+        enable_,
+        remark_,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        version_,
+        site_id, template_path, cms_catalog_id, content_model_id, content_id, status_, content_model_template_id, url_, author_, editor_, source_, thumbnail_, title_, flag_search, sort_no, flag_top, views_, flag_external
+    </sql>
+
+    <select id="pageByTemplate" parameterType="com.deyatech.station.entity.Template"
+            resultType="com.deyatech.station.vo.TemplateVo">
+        select st.*, sm.name_ as contentModelName
+        from station_template st
+        left join station_model sm on st.content_model_id = sm.id_
+        where st.enable_ = 1
+        <if test="template.title != null">
+            and (st.title_ like concat('%', #{template.title}, '%') or st.author_ like concat('%', #{template.title}, '%'))
+        </if>
+        <if test="template.siteId != null">
+            and st.site_id = #{template.siteId}
+        </if>
+        <if test="template.cmsCatalogId != null">
+            and st.cms_catalog_id = #{template.cmsCatalogId}
+        </if>
+        order by st.update_time desc
+    </select>
+
+</mapper>

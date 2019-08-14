@@ -1,6 +1,8 @@
 package com.deyatech.station.service.impl;
 
+import cn.hutool.http.HttpStatus;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.deyatech.common.exception.BusinessException;
 import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.mapper.CatalogMapper;
@@ -11,6 +13,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.deyatech.common.Constants;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -28,7 +31,11 @@ import java.util.Collection;
 public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> implements CatalogService {
 
     @Autowired
-    CatalogMapper catalogMapper;
+    private CatalogMapper catalogMapper;
+    @Autowired
+    private AmqpTemplate rabbitmqTemplate;
+
+
     /**
      * 根据Catalog对象属性检索栏目的tree对象
      *
@@ -154,6 +161,16 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
 
     @Override
     public boolean saveOrUpdate(Catalog entity) {
+        if (this.existsName(entity)) {
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "当前栏目中已存在相同名称");
+        }
+        if (this.existsAliasName(entity)) {
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "当前栏目中已存在相同别名");
+        }
+        if (this.existsEname(entity)) {
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "当前栏目中已存在相同英文名称");
+        }
+
         // 设置排序号
         if (ObjectUtil.isNull(entity.getSortNo())) {
             int maxSortNo = catalogMapper.selectMaxSortNo();
@@ -169,8 +186,8 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
         }
         entity.setPathName(parentPathName == null ? entity.getEname() : (parentPathName + "/" + entity.getEname()));
 
-        // TODO 发送栏目修改的消息
-//        jmsTemplate.convertAndSend(JmsConfig.TOPIC_CMS, AppMessage.newAppMessage(ActiveMQConstats.MQ_MESSAGE_CODE_CATALOG_EDIT, cmsCatalog.getId()));
+        // TODO 发送栏目修改的消息, 老版本并没有接收处理消息
+//        rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, AppMessage.newAppMessage(RabbitMQConstants.MQ_MESSAGE_CODE_CATALOG_EDIT, cmsCatalog.getId()));
 
         return super.saveOrUpdate(entity);
     }

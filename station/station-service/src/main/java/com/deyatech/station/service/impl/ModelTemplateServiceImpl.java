@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 public class ModelTemplateServiceImpl extends BaseServiceImpl<ModelTemplateMapper, ModelTemplate> implements ModelTemplateService {
 
     @Autowired
-    ModelTemplateMapper modelTemplateMapper;
+    private ModelTemplateMapper modelTemplateMapper;
 
     /**
      * 单个将对象转换为vo内容模型模版
