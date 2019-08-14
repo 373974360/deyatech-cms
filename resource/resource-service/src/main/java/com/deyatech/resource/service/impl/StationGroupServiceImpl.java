@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.common.enums.EnableEnum;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.service.DomainService;
+import com.deyatech.resource.service.SettingService;
 import com.deyatech.resource.vo.StationGroupVo;
 import com.deyatech.resource.mapper.StationGroupMapper;
 import com.deyatech.resource.service.StationGroupService;
@@ -35,6 +36,9 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
 
     @Autowired
     DomainService domainService;
+
+    @Autowired
+    SettingService settingService;
 
     /**
      * 单个将对象转换为vo站群
@@ -192,6 +196,8 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
         // 删除站群
         long count = baseMapper.updateEnableByIds(ids, EnableEnum.DELETED.getCode());
         if (count > 0) {
+            // 删除站群配置
+            settingService.removeByStationGroupId(ids);
             // 删除 站群下所有域名 nginx 配置
             domainService.removeStationGroupNginxConfigAndPage(ids, maps);
             return true;

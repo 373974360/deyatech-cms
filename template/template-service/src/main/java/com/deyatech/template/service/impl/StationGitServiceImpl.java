@@ -124,4 +124,11 @@ public class StationGitServiceImpl extends BaseServiceImpl<StationGitMapper, Sta
         String dir = templateDir + stationGroup.getEnglishName() + Constants.TEMPLATE_DIR_NAME;
         return dir;
     }
+
+    @Override
+    public String getSiteRootPath(String siteId) {
+        StationGroup stationGroup = resourceFeign.getStationGroupById(siteId).getData();
+        String dir = templateDir + stationGroup.getEnglishName();
+        return dir;
+    }
 }

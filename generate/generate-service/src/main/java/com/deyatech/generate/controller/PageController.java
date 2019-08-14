@@ -11,9 +11,9 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+
+import java.io.File;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.web.bind.annotation.RestController;
@@ -52,7 +52,7 @@ public class PageController extends BaseController {
         log.info(String.format("保存或者更新页面管理: %s ", JSONUtil.toJsonStr(page)));
         boolean result = pageService.saveOrUpdate(page);
         if(result){
-            String templateRootPath = templateFeign.getTemplateRootPath(page.getSiteId()).getData();
+            replay(page);
         }
         return RestResult.ok(result);
     }
@@ -169,5 +169,23 @@ public class PageController extends BaseController {
         } else {
             return RestResult.error(message);
         }
+    }
+
+    /**
+     * 发布静态页
+     *
+     * @param page
+     * @return
+     */
+    @PostMapping("/replay")
+    @ApiOperation(value="发布静态页", notes="发布静态页")
+    @ApiImplicitParam(name = "page", value = "页面管理对象", required = true, dataType = "Page", paramType = "query")
+    public RestResult<Boolean> replay(Page page) {
+        String templateRootPath = templateFeign.getTemplateRootPath(page.getSiteId()).getData();
+        String siteRootPath = templateFeign.getSiteRootPath(page.getSiteId()).getData();
+        String templatePath = page.getTemplatePath();
+        String pagePath = siteRootPath + page.getPagePath() + page.getPageEnglishName() + templateFeign.getPageSuffix().getData();
+        templateFeign.generateStaticPage(templateRootPath,templatePath,new File(pagePath),new HashMap<>());
+        return RestResult.ok(true);
     }
 }
