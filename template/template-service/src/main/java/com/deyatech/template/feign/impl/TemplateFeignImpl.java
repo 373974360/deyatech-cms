@@ -1,8 +1,10 @@
 package com.deyatech.template.feign.impl;
 
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.template.feign.TemplateFeign;
 import com.deyatech.template.service.StationGitService;
+import com.deyatech.template.thymeleaf.TemplateContextUtils;
 import com.deyatech.template.thymeleaf.ThymeleafUtil;
 import com.deyatech.template.thymeleaf.utils.TemplateConstants;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,9 @@ public class TemplateFeignImpl implements TemplateFeign {
     StationGitService stationGitService;
     @Autowired
     private ThymeleafUtil thymeleafUtil;
+    @Autowired
+    TemplateContextUtils templateContextUtils;
+
 
     @Override
     public RestResult<String> getTemplateFiles(String siteId) {
@@ -38,5 +43,10 @@ public class TemplateFeignImpl implements TemplateFeign {
     public RestResult generateStaticPage(String templateRootPath, String templatePath, File distFile, Map<String, Object> varMap) {
         thymeleafUtil.thyToStaticFile(templateRootPath,templatePath,distFile,varMap);
         return RestResult.ok();
+    }
+
+    @Override
+    public RestResult generateStaticTemplate(TemplateVo templateVo) {
+        return RestResult.ok(templateContextUtils.genStaticContentPage(templateVo));
     }
 }

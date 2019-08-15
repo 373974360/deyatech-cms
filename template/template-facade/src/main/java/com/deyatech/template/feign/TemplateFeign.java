@@ -2,6 +2,7 @@ package com.deyatech.template.feign;
 
 
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.station.vo.TemplateVo;
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -50,4 +51,13 @@ public interface TemplateFeign {
      */
     @RequestMapping(value = "/feign/template/generateStaticPage", method = RequestMethod.POST)
     RestResult generateStaticPage(@RequestParam("templateRootPath") String templateRootPath, @RequestParam("templatePath") String templatePath, @RequestParam("distFile") File distFile, @RequestBody Map<String, Object> varMap);
+
+    /**
+     * 生成静态页面
+     *
+     * @param templateVo       模板用到的变量
+     * @return
+     */
+    @RequestMapping(value = "/feign/template/generateStaticTemplate", method = RequestMethod.POST)
+    RestResult generateStaticTemplate(@RequestBody TemplateVo templateVo);
 }

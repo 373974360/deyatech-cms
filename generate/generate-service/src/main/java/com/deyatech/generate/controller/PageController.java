@@ -188,7 +188,9 @@ public class PageController extends BaseController {
         String siteRootPath = stationFeign.getStationGroupRootPath(page.getSiteId()).getData();
         String templatePath = page.getTemplatePath();
         String pagePath = siteRootPath + page.getPagePath() + page.getPageEnglishName() + templateFeign.getPageSuffix().getData();
-        templateFeign.generateStaticPage(templateRootPath,templatePath,new File(pagePath),new HashMap<>());
+        Map<String,Object> varMap = new HashMap<>();
+        varMap.put("site",stationFeign.getStationGroupById(page.getSiteId()).getData());
+        templateFeign.generateStaticPage(templateRootPath,templatePath,new File(pagePath),varMap);
         return RestResult.ok(true);
     }
 }
