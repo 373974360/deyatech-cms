@@ -30,22 +30,6 @@ public interface TemplateFeign {
      */
     @RequestMapping(value = "/feign/template/getTemplateFiles", method = RequestMethod.GET)
     RestResult<String> getTemplateFiles(@RequestParam("siteId") String siteId);
-    /**
-     * 获取模板根路径
-     *
-     * @param siteId
-     * @return
-     */
-    @RequestMapping(value = "/feign/template/getTemplateRootPath", method = RequestMethod.GET)
-    RestResult<String> getTemplateRootPath(@RequestParam("siteId") String siteId);
-    /**
-     * 获取站点根路径
-     *
-     * @param siteId
-     * @return
-     */
-    @RequestMapping(value = "/feign/template/getSiteRootPath", method = RequestMethod.GET)
-    RestResult<String> getSiteRootPath(@RequestParam("siteId") String siteId);
 
     /**
      * 获取静态页后缀名

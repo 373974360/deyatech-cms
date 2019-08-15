@@ -29,17 +29,6 @@ public class TemplateFeignImpl implements TemplateFeign {
     public RestResult<String> getTemplateFiles(String siteId) {
         return RestResult.ok(stationGitService.getTemplateAllFiles(siteId));
     }
-
-    @Override
-    public RestResult<String> getTemplateRootPath(String siteId) {
-        return RestResult.ok(stationGitService.getTemplateRootPath(siteId));
-    }
-
-    @Override
-    public RestResult<String> getSiteRootPath(String siteId) {
-        return RestResult.ok(stationGitService.getSiteRootPath(siteId));
-    }
-
     @Override
     public RestResult<String> getPageSuffix() {
         return RestResult.ok(TemplateConstants.PAGE_SUFFIX);

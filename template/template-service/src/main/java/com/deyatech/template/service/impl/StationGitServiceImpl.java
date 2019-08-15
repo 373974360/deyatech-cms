@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.deyatech.common.Constants;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.feign.ResourceFeign;
+import com.deyatech.station.feign.StationFeign;
 import com.deyatech.template.entity.StationGit;
 import com.deyatech.template.utils.FileResource;
 import com.deyatech.template.vo.StationGitVo;
@@ -32,15 +33,10 @@ import java.util.Collection;
 @Service
 public class StationGitServiceImpl extends BaseServiceImpl<StationGitMapper, StationGit> implements StationGitService {
 
-    /**
-     * 模板文件存放路径
-     */
-    @Value("${site.hosts-root}")
-    String templateDir;
+    @Autowired
+    StationFeign stationFeign;
     @Autowired
     StationGitMapper stationGitMapper;
-    @Autowired
-    ResourceFeign resourceFeign;
 
     /**
      * 单个将对象转换为vo站点git模板地址信息
@@ -81,8 +77,7 @@ public class StationGitServiceImpl extends BaseServiceImpl<StationGitMapper, Sta
 
     @Override
     public String getTemplateFiles(String siteId,String path) {
-        StationGroup stationGroup = resourceFeign.getStationGroupById(siteId).getData();
-        String dir = templateDir + stationGroup.getEnglishName() + Constants.TEMPLATE_DIR_NAME;
+        String dir = stationFeign.getStationGroupTemplatePathBySiteId(siteId).getData();
         JSONObject jsonObject = new JSONObject();
         if(StringUtils.isEmpty(path)){
             path = dir;
@@ -95,8 +90,7 @@ public class StationGitServiceImpl extends BaseServiceImpl<StationGitMapper, Sta
     @Override
     public String getTemplateAllFiles(String siteId) {
         JSONObject jsonObject = new JSONObject();
-        StationGroup stationGroup = resourceFeign.getStationGroupById(siteId).getData();
-        String dir = templateDir + stationGroup.getEnglishName() + Constants.TEMPLATE_DIR_NAME;
+        String dir = stationFeign.getStationGroupTemplatePathBySiteId(siteId).getData();
         String files = FileResource.getAllFiles(dir);
         jsonObject.put("files", files);
         return jsonObject.toString();
@@ -116,19 +110,5 @@ public class StationGitServiceImpl extends BaseServiceImpl<StationGitMapper, Sta
             stationGit = list.get(0);
         }
         return stationGit;
-    }
-
-    @Override
-    public String getTemplateRootPath(String siteId) {
-        StationGroup stationGroup = resourceFeign.getStationGroupById(siteId).getData();
-        String dir = templateDir + stationGroup.getEnglishName() + Constants.TEMPLATE_DIR_NAME;
-        return dir;
-    }
-
-    @Override
-    public String getSiteRootPath(String siteId) {
-        StationGroup stationGroup = resourceFeign.getStationGroupById(siteId).getData();
-        String dir = templateDir + stationGroup.getEnglishName();
-        return dir;
     }
 }

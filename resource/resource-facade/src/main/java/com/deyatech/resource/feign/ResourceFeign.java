@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
+
 /**
  * 描述：resouorve模块feign远程调用类
  *
@@ -15,14 +17,11 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 @FeignClient(value = "resource-service")
 public interface ResourceFeign {
-
-
     /**
-     * 根据站点ID返回站点信息
+     * 查询所有站点列表
      *
-     * @param siteId
      * @return
      */
-    @RequestMapping(value = "/feign/resource/getStationGroupById", method = RequestMethod.GET)
-    RestResult<StationGroup> getStationGroupById(@RequestParam("siteId") String siteId);
+    @RequestMapping(value = "/feign/resource/getStationGroupAll", method = RequestMethod.GET)
+    RestResult<List<StationGroup>> getStationGroupAll();
 }

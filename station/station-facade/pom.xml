@@ -22,6 +22,11 @@
             <version>${deyatech.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.deyatech</groupId>
+            <artifactId>resource-facade</artifactId>
+            <version>${deyatech.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>

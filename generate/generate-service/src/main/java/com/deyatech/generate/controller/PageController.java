@@ -5,6 +5,7 @@ import com.deyatech.generate.entity.Page;
 import com.deyatech.generate.vo.PageVo;
 import com.deyatech.generate.service.PageService;
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.station.feign.StationFeign;
 import com.deyatech.template.feign.TemplateFeign;
 import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
@@ -36,6 +37,8 @@ import io.swagger.annotations.ApiOperation;
 public class PageController extends BaseController {
     @Autowired
     PageService pageService;
+    @Autowired
+    StationFeign stationFeign;
     @Autowired
     TemplateFeign templateFeign;
 
@@ -181,8 +184,8 @@ public class PageController extends BaseController {
     @ApiOperation(value="发布静态页", notes="发布静态页")
     @ApiImplicitParam(name = "page", value = "页面管理对象", required = true, dataType = "Page", paramType = "query")
     public RestResult<Boolean> replay(Page page) {
-        String templateRootPath = templateFeign.getTemplateRootPath(page.getSiteId()).getData();
-        String siteRootPath = templateFeign.getSiteRootPath(page.getSiteId()).getData();
+        String templateRootPath = stationFeign.getStationGroupTemplatePathBySiteId(page.getSiteId()).getData();
+        String siteRootPath = stationFeign.getStationGroupRootPath(page.getSiteId()).getData();
         String templatePath = page.getTemplatePath();
         String pagePath = siteRootPath + page.getPagePath() + page.getPageEnglishName() + templateFeign.getPageSuffix().getData();
         templateFeign.generateStaticPage(templateRootPath,templatePath,new File(pagePath),new HashMap<>());

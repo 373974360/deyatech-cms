@@ -7,6 +7,8 @@ import com.deyatech.resource.service.StationGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 /**
  * 描述：
  *
@@ -20,7 +22,7 @@ public class ResourceFeignImpl implements ResourceFeign {
     StationGroupService stationGroupService;
 
     @Override
-    public RestResult<StationGroup> getStationGroupById(String siteId) {
-        return RestResult.ok(stationGroupService.getById(siteId));
+    public RestResult<List<StationGroup>> getStationGroupAll() {
+        return RestResult.ok(stationGroupService.list());
     }
 }
