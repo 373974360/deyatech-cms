@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.deyatech.common.Constants;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.feign.ResourceFeign;
+import com.deyatech.station.feign.StationFeign;
 import com.deyatech.template.entity.StationGit;
 import com.deyatech.template.utils.JGitUtil;
 import com.deyatech.template.utils.ZipUtil;
@@ -42,16 +43,11 @@ import io.swagger.annotations.ApiOperation;
 public class StationGitController extends BaseController {
 
 
-    /**
-     * 模板文件存放路径
-     */
-    @Value("${site.hosts-root}")
-    String templateDir;
+    @Autowired
+    StationFeign stationFeign;
 
     @Autowired
     StationGitService stationGitService;
-    @Autowired
-    ResourceFeign resourceFeign;
 
     /**
      * 单个保存或者更新站点git模板地址信息
@@ -199,8 +195,7 @@ public class StationGitController extends BaseController {
     })
     public RestResult<Boolean> sync(String siteId,String gitUrl,String userName,String password) {
         try {
-            StationGroup stationGroup = resourceFeign.getStationGroupById(siteId).getData();
-            String dir = templateDir + stationGroup.getEnglishName() + Constants.TEMPLATE_DIR_NAME;
+            String dir = stationFeign.getStationGroupTemplatePathBySiteId(siteId).getData();
             JGitUtil.cloneRepository(gitUrl,dir,userName,password);
         }catch (Exception e){
             log.error("远程同步失败，请稍后再试或者检查用户名、密码是否错误", e);
@@ -268,8 +263,7 @@ public class StationGitController extends BaseController {
             @ApiImplicitParam(name = "siteId", value = "站点ID", required = true, dataType = "String", paramType = "query")
     })
     public RestResult unzip(String filePath,String siteId) {
-        StationGroup stationGroup = resourceFeign.getStationGroupById(siteId).getData();
-        String dir = templateDir + stationGroup.getEnglishName() + Constants.TEMPLATE_DIR_NAME;
+        String dir = stationFeign.getStationGroupTemplatePathBySiteId(siteId).getData();
         File local = new File(dir);
         File file = new File(filePath);
         try {

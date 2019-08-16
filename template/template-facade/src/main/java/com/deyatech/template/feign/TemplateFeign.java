@@ -2,6 +2,7 @@ package com.deyatech.template.feign;
 
 
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.station.vo.TemplateVo;
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,22 +31,6 @@ public interface TemplateFeign {
      */
     @RequestMapping(value = "/feign/template/getTemplateFiles", method = RequestMethod.GET)
     RestResult<String> getTemplateFiles(@RequestParam("siteId") String siteId);
-    /**
-     * 获取模板根路径
-     *
-     * @param siteId
-     * @return
-     */
-    @RequestMapping(value = "/feign/template/getTemplateRootPath", method = RequestMethod.GET)
-    RestResult<String> getTemplateRootPath(@RequestParam("siteId") String siteId);
-    /**
-     * 获取站点根路径
-     *
-     * @param siteId
-     * @return
-     */
-    @RequestMapping(value = "/feign/template/getSiteRootPath", method = RequestMethod.GET)
-    RestResult<String> getSiteRootPath(@RequestParam("siteId") String siteId);
 
     /**
      * 获取静态页后缀名
@@ -66,4 +51,13 @@ public interface TemplateFeign {
      */
     @RequestMapping(value = "/feign/template/generateStaticPage", method = RequestMethod.POST)
     RestResult generateStaticPage(@RequestParam("templateRootPath") String templateRootPath, @RequestParam("templatePath") String templatePath, @RequestParam("distFile") File distFile, @RequestBody Map<String, Object> varMap);
+
+    /**
+     * 生成静态页面
+     *
+     * @param templateVo       模板用到的变量
+     * @return
+     */
+    @RequestMapping(value = "/feign/template/generateStaticTemplate", method = RequestMethod.POST)
+    RestResult generateStaticTemplate(@RequestBody TemplateVo templateVo);
 }
