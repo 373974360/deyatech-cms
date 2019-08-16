@@ -89,15 +89,15 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
 
     @Override
     public boolean removeByIds(Collection<? extends Serializable> ids) {
+        // 删除索引 TODO
+        ids.stream().forEach(
+                id -> indexService.deleteIndex(this.getIndexByModelId((String) id))
+        );
         boolean result = super.removeByIds(ids);
         // 删除内容模型模版关联关系
         QueryWrapper<ModelTemplate> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("content_model_id", ids);
         modelTemplateService.remove(queryWrapper);
-        // 删除索引 TODO
-        ids.stream().forEach(
-                id -> indexService.deleteIndex(this.getIndexByModelId((String) id))
-        );
         return result;
     }
 

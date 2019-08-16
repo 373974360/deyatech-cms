@@ -8,6 +8,7 @@ import cn.hutool.http.HttpStatus;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.exception.BusinessException;
+import com.deyatech.content.entity.ReviewProcess;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.entity.Template;
@@ -108,12 +109,12 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         super.saveOrUpdate(entity);
 
         // 启动审核流程生命周期 TODO
-/*        ContentReviewProcess contentReviewProcess = new ContentReviewProcess();
-        String workflowId = (String) contentTemplateDto.getContent().get("workflowId");
-        contentReviewProcess.setWorkflowId(workflowId);
-        contentReviewProcess.setStatus(0);
+        /*ReviewProcess reviewProcess = new ReviewProcess();
+        String workflowId = (String) entity.getContent().get("workflowId");
+        reviewProcess.setWorkflowId(workflowId);
+        reviewProcess.setStatus(0);
         ContentTemplate contentTemplate = BeanMapper.map(contentTemplateDto, ContentTemplate.class);
-        contentReviewProcess.setContentTemplate(contentTemplate);
+        reviewProcess.setContentTemplate(contentTemplate);
         contentReviewProcessManager.save(contentReviewProcess);*/
 
         // 启动工作流 TODO
@@ -159,7 +160,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
      * @param code
      */
     private void addIndexTask(Template template, String code) {
-        // TODO 设置其他附加属性this.setVoProperties(template）
+        // TODO 设置其他附加属性this.setVoProperties(template） 设置contentModelName
         TemplateVo templateVo = this.setVoProperties(template);
         templateVo.setCode(code);
         // 获取索引

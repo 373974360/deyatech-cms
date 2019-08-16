@@ -35,7 +35,7 @@
         resultType="com.deyatech.station.vo.ModelVo">
         select sm.*, amdc.name_ as metaDataCollectionName
         from station_model sm
-        left join admin_meta_data_collection amdc on sm.meta_data_collection_id = amdc.id_
+        left join admin_metadata_collection amdc on sm.meta_data_collection_id = amdc.id_
         where sm.enable_ = 1
         <if test="model.name != null">
             and (sm.name_ like concat('%', #{model.name}, '%') or sm.english_name like concat('%', #{model.name}, '%'))

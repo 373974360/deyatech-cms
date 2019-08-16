@@ -50,11 +50,11 @@ public class CmsTaskQueueConsumer {
 
         // 索引/删除、更新数据
         if (RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD.equalsIgnoreCase(messageCode)) {
-//            this.addIndex(templateVo);
+            this.addIndex(templateVo);
         } else if (RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE.equalsIgnoreCase(messageCode)) {
-//            this.updateIndex(templateVo);
+            this.updateIndex(templateVo);
         } else if (RabbitMQConstants.MQ_CMS_INDEX_COMMAND_DELETE.equalsIgnoreCase(messageCode)) {
-//            this.deleteIndex(templateVo);
+            this.deleteIndex(templateVo);
         } else {
             log.warn("未知的索引任务: %s ", JSONUtil.toJsonStr(templateVo));
         }
@@ -64,7 +64,6 @@ public class CmsTaskQueueConsumer {
         BeanMap dataRow = BeanMap.create(templateVo);
         HashMap<Object, Object> objectObjectHashMap = CollectionUtil.newHashMap();
         objectObjectHashMap.putAll(dataRow);
-        objectObjectHashMap.put("id", templateVo.getId());
         // 筛选要删除的key
         Set<Object> removeKey = new HashSet<>();
         for (Object key : objectObjectHashMap.keySet()) {
@@ -97,14 +96,12 @@ public class CmsTaskQueueConsumer {
         for (Object key : removeKey) {
             objectObjectHashMap.remove(key);
         }
-        // 增加内容模型的英文名称，方便在搜索结果中根据内容模型的类型渲染对应的格式
-        objectObjectHashMap.put("contentModelName", templateVo.getContentModelName());
-        // 生成索引 TODO
+        // 向索引中添加数据 TODO
         indexService.addData(templateVo.getIndex(), templateVo.getId(), objectObjectHashMap);
     }
 
     private void deleteIndex(TemplateVo templateVo) {
-        // 删除索引 TODO
+        // 删除索引中数据 TODO
         indexService.deleteData(templateVo.getIndex(), templateVo.getId());
     }
 
@@ -113,5 +110,14 @@ public class CmsTaskQueueConsumer {
         this.addIndex(templateVo);
     }
 
+
+    public static void main(String[] args) {
+        TemplateVo templateVo = new TemplateVo();
+        templateVo.setId("1");
+        templateVo.setContentId("11");
+        BeanMap dataRow = BeanMap.create(templateVo);
+        System.out.println(dataRow.get("id"));
+        System.out.println(dataRow.get("contentId"));
+    }
 
 }

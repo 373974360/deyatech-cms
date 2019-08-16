@@ -26,6 +26,11 @@
             <version>${deyatech.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.deyatech</groupId>
+            <artifactId>content-facade</artifactId>
+            <version>${deyatech.version}</version>
+        </dependency>
+        <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
         </dependency>
@@ -74,6 +79,7 @@
             <artifactId>elasticsearch</artifactId>
             <version>6.4.3</version>
         </dependency>
+        <!--elasticsearch高级客户端-->
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>elasticsearch-rest-high-level-client</artifactId>
@@ -86,6 +92,7 @@
             </exclusions>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.elasticsearch.client/elasticsearch-rest-client -->
+        <!--elasticsearch低级客户端-->
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>elasticsearch-rest-client</artifactId>

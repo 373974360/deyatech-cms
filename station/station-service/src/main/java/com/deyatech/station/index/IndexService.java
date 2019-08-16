@@ -23,6 +23,7 @@ public interface IndexService {
      *
      * @param indexes    索引,多个使用逗号分隔
      * @param keywords 关键字
+     * @param fields 字段，多个用英文逗号分隔
      * @return
      */
     String searchData(String indexes, String keywords, String fields);
