@@ -34,4 +34,9 @@ public class StationFeignImpl implements StationFeign {
     public RestResult<StationGroup> getStationGroupById(String siteId) {
         return RestResult.ok(siteCache.getStationGroupById(siteId));
     }
+
+    @Override
+    public RestResult<StationGroup> getNginxConfigDir() {
+        return RestResult.ok(siteCache.getNginxConfigDir());
+    }
 }

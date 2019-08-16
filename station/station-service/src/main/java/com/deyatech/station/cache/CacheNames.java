@@ -53,4 +53,8 @@ public class CacheNames {
      * 字典项 KEY = 字典项id，value 是字典项dto
      */
     static final String DICT_ITEM_CACHE_KEY = "dictItemKey";
+    /**
+     * nginx配置文件目录 KEY= nginxConfigDir ,value = 目录字符串
+     * */
+    static final  String NGINX_CONFIG_DIR_CACHE_KEY = "nginxConfigDir";
 }

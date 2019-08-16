@@ -61,6 +61,19 @@ public class SiteCache {
         return s;
     }
 
+    /**
+     * 获取nginx配置文件目录
+     *
+     * @return
+     */
+    public String getNginxConfigDir() {
+        String s = this.cacheManager.getCache(CacheNames.NGINX_CONFIG_DIR_CACHE_KEY).get("nginxConfigDir", String.class);
+        if (s == null) {
+            log.error(String.format("缓存中没有获取到站点%s根路径的信息", "nginxConfigDir"));
+        }
+        return s;
+    }
+
 
 
     /**
@@ -95,6 +108,8 @@ public class SiteCache {
                 this.cacheManager.getCache(CacheNames.STATION_GROUP_TEMPLATE_ROOT_CACHE_KEY).put(stationGroup.getId(), this.siteProperties.getHostsRoot() + stationGroup.getEnglishName() + Constants.TEMPLATE_DIR_NAME);
                 log.debug("缓存站点根路径信息{}", stationGroup.getId());
                 this.cacheManager.getCache(CacheNames.STATION_GROUP_ROOT_CACHE_KEY).put(stationGroup.getId(), this.siteProperties.getHostsRoot() + stationGroup.getEnglishName());
+                log.debug("缓存nginx配置文件根目录{}");
+                this.cacheManager.getCache(CacheNames.NGINX_CONFIG_DIR_CACHE_KEY).put("nginxConfigDir", this.siteProperties.getNginxConfigDir());
             }
         } catch (Exception e) {
             log.error("缓存站点信息失败", e);

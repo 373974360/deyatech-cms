@@ -41,4 +41,11 @@ public interface StationFeign {
      */
     @RequestMapping(value = "/feign/station/getStationGroupById", method = RequestMethod.GET)
     RestResult<StationGroup> getStationGroupById(@RequestParam("siteId") String siteId);
+    /**
+     * 获取nginx配置文件目录
+     *
+     * @return
+     */
+    @RequestMapping(value = "/feign/station/getNginxConfigDir", method = RequestMethod.GET)
+    RestResult<StationGroup> getNginxConfigDir();
 }
