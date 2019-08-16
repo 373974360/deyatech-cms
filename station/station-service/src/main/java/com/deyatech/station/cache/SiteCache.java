@@ -1,7 +1,7 @@
 package com.deyatech.station.cache;
 
 import com.deyatech.common.Constants;
-import com.deyatech.resource.config.SiteProperties;
+import com.deyatech.station.config.SiteProperties;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.feign.ResourceFeign;
 import lombok.extern.slf4j.Slf4j;
@@ -66,12 +66,12 @@ public class SiteCache {
      *
      * @return
      */
-    public String getNginxConfigDir() {
-        String s = this.cacheManager.getCache(CacheNames.NGINX_CONFIG_DIR_CACHE_KEY).get("nginxConfigDir", String.class);
-        if (s == null) {
-            log.error(String.format("缓存中没有获取到站点%s根路径的信息", "nginxConfigDir"));
+    public SiteProperties getSiteProperties() {
+        SiteProperties siteProperties = this.cacheManager.getCache(CacheNames.SITE_PROPERTIES_CACHE_KEY).get("siteProperties", SiteProperties.class);
+        if (siteProperties == null) {
+            log.error(String.format("缓存中没有获取到站点%s根路径的信息", "siteProperties"));
         }
-        return s;
+        return siteProperties;
     }
 
 
@@ -108,9 +108,15 @@ public class SiteCache {
                 this.cacheManager.getCache(CacheNames.STATION_GROUP_TEMPLATE_ROOT_CACHE_KEY).put(stationGroup.getId(), this.siteProperties.getHostsRoot() + stationGroup.getEnglishName() + Constants.TEMPLATE_DIR_NAME);
                 log.debug("缓存站点根路径信息{}", stationGroup.getId());
                 this.cacheManager.getCache(CacheNames.STATION_GROUP_ROOT_CACHE_KEY).put(stationGroup.getId(), this.siteProperties.getHostsRoot() + stationGroup.getEnglishName());
-                log.debug("缓存nginx配置文件根目录{}");
-                this.cacheManager.getCache(CacheNames.NGINX_CONFIG_DIR_CACHE_KEY).put("nginxConfigDir", this.siteProperties.getNginxConfigDir());
             }
+            log.debug("缓存nginx配置文件根目录{}");
+            SiteProperties cacheSiteProperties = new SiteProperties();
+            cacheSiteProperties.setElasticSearchHostname(siteProperties.getElasticSearchHostname());
+            cacheSiteProperties.setElasticSearchPort(siteProperties.getElasticSearchPort());
+            cacheSiteProperties.setHostsRoot(siteProperties.getHostsRoot());
+            cacheSiteProperties.setNginxConfigDir(siteProperties.getNginxConfigDir());
+            cacheSiteProperties.setNginxProxyPass(siteProperties.getNginxProxyPass());
+            this.cacheManager.getCache(CacheNames.SITE_PROPERTIES_CACHE_KEY).put("siteProperties", cacheSiteProperties);
         } catch (Exception e) {
             log.error("缓存站点信息失败", e);
             throw new RuntimeException("缓存站点信息失败", e);

@@ -3,6 +3,7 @@ package com.deyatech.station.feign.impl;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.cache.SiteCache;
+import com.deyatech.station.config.SiteProperties;
 import com.deyatech.station.feign.StationFeign;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,7 +37,7 @@ public class StationFeignImpl implements StationFeign {
     }
 
     @Override
-    public RestResult<StationGroup> getNginxConfigDir() {
-        return RestResult.ok(siteCache.getNginxConfigDir());
+    public RestResult<SiteProperties> getSiteProperties() {
+        return RestResult.ok(siteCache.getSiteProperties());
     }
 }

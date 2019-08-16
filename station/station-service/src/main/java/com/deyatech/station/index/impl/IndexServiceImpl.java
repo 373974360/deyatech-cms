@@ -3,7 +3,7 @@ package com.deyatech.station.index.impl;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
 import com.deyatech.common.exception.BusinessException;
-import com.deyatech.resource.config.SiteProperties;
+import com.deyatech.station.config.SiteProperties;
 import com.deyatech.station.index.IndexService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;

@@ -2,6 +2,7 @@ package com.deyatech.station.feign;
 
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.resource.entity.StationGroup;
+import com.deyatech.station.config.SiteProperties;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -46,6 +47,6 @@ public interface StationFeign {
      *
      * @return
      */
-    @RequestMapping(value = "/feign/station/getNginxConfigDir", method = RequestMethod.GET)
-    RestResult<StationGroup> getNginxConfigDir();
+    @RequestMapping(value = "/feign/station/getSiteProperties", method = RequestMethod.GET)
+    RestResult<SiteProperties> getSiteProperties();
 }

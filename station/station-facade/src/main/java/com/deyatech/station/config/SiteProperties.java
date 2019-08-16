@@ -1,4 +1,4 @@
-package com.deyatech.resource.config;
+package com.deyatech.station.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

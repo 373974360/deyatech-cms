@@ -8,7 +8,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.enums.EnableEnum;
 import com.deyatech.common.exception.BusinessException;
-import com.deyatech.resource.config.SiteProperties;
 import com.deyatech.resource.entity.Domain;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.mapper.DomainMapper;
@@ -16,6 +15,7 @@ import com.deyatech.resource.service.DomainService;
 import com.deyatech.resource.service.StationGroupService;
 import com.deyatech.resource.util.StringHelper;
 import com.deyatech.resource.vo.DomainVo;
+import com.deyatech.station.feign.StationFeign;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,6 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -46,7 +45,7 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
     StationGroupService stationGroupService;
 
     @Autowired
-    SiteProperties siteProperties;
+    StationFeign stationFeign;
 
     /**
      * 单个将对象转换为vo
@@ -303,11 +302,11 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
      * @param domainEnglishName
      */
     private void deleteNginxConf(String stationGroupEnglishName, String domainEnglishName) {
-        File enable = new File(siteProperties.getNginxConfigDir(), this.getConfigName(stationGroupEnglishName, domainEnglishName, NGINX_ENABLE_SUFFIX));
+        File enable = new File(stationFeign.getSiteProperties().getData().getNginxConfigDir(), this.getConfigName(stationGroupEnglishName, domainEnglishName, NGINX_ENABLE_SUFFIX));
         if (enable != null && enable.exists()) {
             enable.delete();
         }
-        File disabled = new File(siteProperties.getNginxConfigDir(), this.getConfigName(stationGroupEnglishName, domainEnglishName, NGINX_DISABLED_SUFFIX));
+        File disabled = new File(stationFeign.getSiteProperties().getData().getNginxConfigDir(), this.getConfigName(stationGroupEnglishName, domainEnglishName, NGINX_DISABLED_SUFFIX));
         if (disabled != null && disabled.exists()) {
             disabled.delete();
         }
@@ -325,7 +324,7 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
         // 站点目录
         map.put("siteRootDir", this.getRootDirectory(stationGroup.getEnglishName(), domain.getEnglishName()));
         // 代理
-        map.put("proxyPass", siteProperties.getNginxProxyPass());
+        map.put("proxyPass", stationFeign.getSiteProperties().getData().getNginxProxyPass());
         // 站群ID
         map.put("siteId", stationGroup.getId());
         //增加配置 nginx
@@ -334,7 +333,7 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
             String nginxTemplate = FileUtils.readFileToString(siteNginxTemplateFile, Charset.forName("UTF-8"));
             String nginxContent = StringHelper.processTemplate(nginxTemplate, map);
             // 配置文件
-            File desc = new File(siteProperties.getNginxConfigDir(), this.getConfigName(stationGroup.getEnglishName(), domain.getEnglishName(), NGINX_ENABLE_SUFFIX));
+            File desc = new File(stationFeign.getSiteProperties().getData().getNginxConfigDir(), this.getConfigName(stationGroup.getEnglishName(), domain.getEnglishName(), NGINX_ENABLE_SUFFIX));
             if (!desc.getParentFile().exists()) {
                 desc.getParentFile().mkdirs();
             }
@@ -392,7 +391,7 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
      * @return
      */
     private String getRootDirectory(String stationGroupEnglishName, String domainEnglishName) {
-        String path = siteProperties.getHostsRoot();
+        String path = stationFeign.getSiteProperties().getData().getHostsRoot();
         path = path.replace("\\\\", "/");
         if (!path.endsWith("/")) {
             path += "/";
@@ -410,8 +409,8 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
      * @param domainEnglishName
      */
     private void disableNginxConf(String stationGroupEnglishName, String domainEnglishName) {
-        File enable = new File(siteProperties.getNginxConfigDir(), this.getConfigName(stationGroupEnglishName, domainEnglishName, NGINX_ENABLE_SUFFIX));
-        File disabled = new File(siteProperties.getNginxConfigDir(), this.getConfigName(stationGroupEnglishName, domainEnglishName, NGINX_DISABLED_SUFFIX));
+        File enable = new File(stationFeign.getSiteProperties().getData().getNginxConfigDir(), this.getConfigName(stationGroupEnglishName, domainEnglishName, NGINX_ENABLE_SUFFIX));
+        File disabled = new File(stationFeign.getSiteProperties().getData().getNginxConfigDir(), this.getConfigName(stationGroupEnglishName, domainEnglishName, NGINX_DISABLED_SUFFIX));
         if (Objects.nonNull(enable) && enable.exists()) {
             if (Objects.nonNull(disabled) && disabled.exists()) {
                 disabled.delete();
@@ -428,8 +427,8 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
      * 启用站点配置文件
      */
     private void enableNginxConf(String stationGroupEnglishName, String domainEnglishName) {
-        File enable = new File(siteProperties.getNginxConfigDir(), this.getConfigName(stationGroupEnglishName, domainEnglishName, NGINX_ENABLE_SUFFIX));
-        File disabled = new File(siteProperties.getNginxConfigDir(), this.getConfigName(stationGroupEnglishName, domainEnglishName, NGINX_DISABLED_SUFFIX));
+        File enable = new File(stationFeign.getSiteProperties().getData().getNginxConfigDir(), this.getConfigName(stationGroupEnglishName, domainEnglishName, NGINX_ENABLE_SUFFIX));
+        File disabled = new File(stationFeign.getSiteProperties().getData().getNginxConfigDir(), this.getConfigName(stationGroupEnglishName, domainEnglishName, NGINX_DISABLED_SUFFIX));
         if (Objects.nonNull(disabled) && disabled.exists()) {
             if (Objects.nonNull(enable) && enable.exists()) {
                 enable.delete();
@@ -452,8 +451,8 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
     public void updateStationGroupNginxConfigAndPage(String stationGroupId, String oldStationGroupEnglishName) {
         StationGroup stationGroup = stationGroupService.getById(stationGroupId);
         // 文件夹重命名
-        File src = new File(siteProperties.getHostsRoot(), oldStationGroupEnglishName);
-        File dest = new File(siteProperties.getHostsRoot(), stationGroup.getEnglishName());
+        File src = new File(stationFeign.getSiteProperties().getData().getHostsRoot(), oldStationGroupEnglishName);
+        File dest = new File(stationFeign.getSiteProperties().getData().getHostsRoot(), stationGroup.getEnglishName());
         src.renameTo(dest);
 
         // 配置重新生成
@@ -515,8 +514,8 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
         for (String stationGroupId : ids) {
             // 站群目录标记删除
             StationGroup stationGroup = maps.get(stationGroupId);
-            File src = new File(siteProperties.getHostsRoot(), stationGroup.getEnglishName());
-            File dest = new File(siteProperties.getHostsRoot(), stationGroup.getEnglishName() + "_delete" + format.format(new Date()));
+            File src = new File(stationFeign.getSiteProperties().getData().getHostsRoot(), stationGroup.getEnglishName());
+            File dest = new File(stationFeign.getSiteProperties().getData().getHostsRoot(), stationGroup.getEnglishName() + "_delete" + format.format(new Date()));
             src.renameTo(dest);
             // 删除站群下的所有域名配置
             Collection<DomainVo> list = baseMapper.selectDomainByStationGroupId(stationGroupId);
