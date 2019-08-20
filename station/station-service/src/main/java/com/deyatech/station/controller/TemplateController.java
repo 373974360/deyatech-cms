@@ -36,15 +36,15 @@ public class TemplateController extends BaseController {
     /**
      * 单个保存或者更新内容模板
      *
-     * @param template
+     * @param templateVo
      * @return
      */
     @PostMapping("/saveOrUpdate")
     @ApiOperation(value="单个保存或者更新内容模板", notes="根据内容模板对象保存或者更新内容模板信息")
-    @ApiImplicitParam(name = "template", value = "内容模板对象", required = true, dataType = "Template", paramType = "query")
-    public RestResult<Boolean> saveOrUpdate(Template template) {
-        log.info(String.format("保存或者更新内容模板: %s ", JSONUtil.toJsonStr(template)));
-        boolean result = templateService.saveOrUpdate(template);
+    @ApiImplicitParam(name = "templateVo", value = "内容模板对象", required = true, dataType = "TemplateVo", paramType = "query")
+    public RestResult<Boolean> saveOrUpdate(TemplateVo templateVo) {
+        log.info(String.format("保存或者更新内容模板: %s ", JSONUtil.toJsonStr(templateVo)));
+        boolean result = templateService.saveOrUpdateTemplateVo(templateVo);
         return RestResult.ok(result);
     }
 
@@ -184,6 +184,23 @@ public class TemplateController extends BaseController {
     public RestResult<Boolean> reindex(TemplateVo templateVo) {
         log.info(String.format("生成索引: %s ", templateVo));
         boolean result = templateService.reindex(templateVo);
+        return RestResult.ok(result);
+    }
+
+    /**
+     * 更新内容状态
+     *
+     * @param template
+     * @return
+     */
+    @PostMapping("/updateContentStatus")
+    @ApiOperation(value="更新内容状态", notes="更新内容状态")
+    @ApiImplicitParam(name = "template", value = "内容模板对象", required = true, dataType = "Template", paramType = "query")
+    public RestResult<Boolean> updateContentStatus(Template template) {
+        log.info(String.format("更新内容状态: %s ", JSONUtil.toJsonStr(template)));
+        // 内容发布状态：1-草稿，2-已发布
+        template.setStatus(2);
+        boolean result = templateService.updateById(template);
         return RestResult.ok(result);
     }
 }

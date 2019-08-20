@@ -2,9 +2,12 @@ package com.deyatech.station.rabbit.consumer;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
+import com.deyatech.station.entity.Template;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.index.IndexService;
+import com.deyatech.station.service.TemplateService;
 import com.deyatech.station.vo.TemplateVo;
+import com.deyatech.template.feign.TemplateFeign;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -26,17 +29,22 @@ public class CmsTaskQueueConsumer {
 
     @Autowired
     IndexService indexService;
+    @Autowired
+    TemplateFeign templateFeign;
+    @Autowired
+    TemplateService templateService;
 
     /**
      * 处理生成静态页面任务
-     * @param templateVo
+     * @param template
      */
     @RabbitListener(queues = RabbitMQConstants.QUEUE_NAME_STATIC_PAGE_TASK)
-    public void handleCmsStaticTask(TemplateVo templateVo) {
-        log.info(String.format("处理生成静态页面任务：%s", JSONUtil.toJsonStr(templateVo)));
-
-        // 立即生成静态页面 TODO
-//        templateContextUtils.genStaticContentPage(templateVo);
+    public void handleCmsStaticTask(Template template) {
+        log.info(String.format("处理生成静态页面任务：%s", JSONUtil.toJsonStr(template)));
+        // TODO 设置其他附加属性this.setVoProperties(template）
+        TemplateVo templateVoResult = templateService.setVoProperties(template);
+        // 立即生成静态页面
+        templateFeign.generateStaticTemplate(templateVoResult);
     }
 
     /**
@@ -61,7 +69,9 @@ public class CmsTaskQueueConsumer {
     }
 
     private void addIndex(TemplateVo templateVo) {
-        BeanMap dataRow = BeanMap.create(templateVo);
+        // TODO 设置其他附加属性this.setVoProperties(template） 设置contentModelName
+        TemplateVo templateVoResult = templateService.setVoProperties(templateVo);
+        BeanMap dataRow = BeanMap.create(templateVoResult);
         HashMap<Object, Object> objectObjectHashMap = CollectionUtil.newHashMap();
         objectObjectHashMap.putAll(dataRow);
         // 筛选要删除的key
@@ -96,12 +106,12 @@ public class CmsTaskQueueConsumer {
         for (Object key : removeKey) {
             objectObjectHashMap.remove(key);
         }
-        // 向索引中添加数据 TODO
+        // 向索引中添加数据
         indexService.addData(templateVo.getIndex(), templateVo.getId(), objectObjectHashMap);
     }
 
     private void deleteIndex(TemplateVo templateVo) {
-        // 删除索引中数据 TODO
+        // 删除索引中数据
         indexService.deleteData(templateVo.getIndex(), templateVo.getId());
     }
 

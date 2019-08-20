@@ -34,6 +34,20 @@ public interface TemplateService extends BaseService<Template> {
     List<TemplateVo> setVoProperties(Collection templates);
 
     /**
+     * 保存或更新
+     * @param templateVo
+     * @return
+     */
+    boolean saveOrUpdateTemplateVo(TemplateVo templateVo);
+
+    /**
+     * 分页查询
+     * @param entity
+     * @return
+     */
+    IPage<TemplateVo> pageByTemplate(Template entity);
+
+    /**
      * 判断Template对象标题是否存在
      *
      * @param template
@@ -57,10 +71,4 @@ public interface TemplateService extends BaseService<Template> {
      */
     boolean reindex(TemplateVo templateVo);
 
-    /**
-     * 分页查询
-     * @param entity
-     * @return
-     */
-    IPage<TemplateVo> pageByTemplate(Template entity);
 }

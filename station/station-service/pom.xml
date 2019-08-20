@@ -31,6 +31,16 @@
             <version>${deyatech.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.deyatech</groupId>
+            <artifactId>workflow-facade</artifactId>
+            <version>${deyatech.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.deyatech</groupId>
+            <artifactId>template-facade</artifactId>
+            <version>${deyatech.version}</version>
+        </dependency>
+        <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
         </dependency>

@@ -37,4 +37,8 @@ public class TemplateVo extends Template {
      * 内容模型名称
      */
     private String contentModelName;
+    /**
+     * 工作流ID
+     */
+    private String workflowId;
 }
