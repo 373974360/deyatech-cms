@@ -55,6 +55,10 @@ public class Catalog extends BaseEntity {
     @TableField("workflow_id")
     private String workflowId;
 
+    @ApiModelProperty(value = "工作流key", dataType = "String")
+    @TableField("workflow_key")
+    private String workflowKey;
+
     @ApiModelProperty(value = "首页模板", dataType = "String")
     @TableField("index_template")
     private String indexTemplate;

@@ -20,6 +20,7 @@
         <result column="showable" property="showable" />
         <result column="link_url" property="linkUrl" />
         <result column="workflow_id" property="workflowId" />
+        <result column="workflow_key" property="workflowKey" />
         <result column="index_template" property="indexTemplate" />
         <result column="list_template" property="listTemplate" />
         <result column="sort_no" property="sortNo" />
@@ -50,7 +51,7 @@
         update_by,
         update_time,
         version_,
-        site_id, parent_id, name, alias_name, ename, showable, link_url, workflow_id, index_template, list_template, sort_no, tree_position, status, allow_comment, allow_share, application_id, attribute_id, auto_release, contect_object_id, display_number, generate_home, navigation_show_able, participant, tree_show_able, workflow_enable, path_name
+        site_id, parent_id, name, alias_name, ename, showable, link_url, workflow_id, workflow_key, index_template, list_template, sort_no, tree_position, status, allow_comment, allow_share, application_id, attribute_id, auto_release, contect_object_id, display_number, generate_home, navigation_show_able, participant, tree_show_able, workflow_enable, path_name
     </sql>
 
     <select id="selectMaxSortNo" resultType="int">

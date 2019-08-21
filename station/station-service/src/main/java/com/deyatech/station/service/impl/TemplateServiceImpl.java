@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -90,6 +91,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean saveOrUpdateTemplateVo(TemplateVo templateVo) {
         boolean toUpdate = StrUtil.isNotBlank(templateVo.getId());
         if (this.checkTitleExist(templateVo)) {
@@ -116,28 +118,31 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         // 保存
         super.saveOrUpdate(templateVo);
 
-        // 启动审核流程生命周期 TODO
-        ReviewProcess reviewProcess = new ReviewProcess();
-        String workflowId = templateVo.getWorkflowId();
-        reviewProcess.setContentId(templateVo.getId());
-        reviewProcess.setWorkflowId(workflowId);
-        // 审核生命周期状态：0.启动 1.审核 2.完成
-        reviewProcess.setStatus(0);
-        contentFeign.saveOrUpdate(reviewProcess);
+        // 工作流相关
+        String workflowKey = templateVo.getWorkflowKey();
+        if (StrUtil.isNotEmpty(workflowKey)) {
+            // 启动审核流程生命周期 TODO
+/*            ReviewProcess reviewProcess = new ReviewProcess();
+            reviewProcess.setContentId(templateVo.getId());
+            reviewProcess.setWorkflowId(workflowId);
+            // 审核生命周期状态：0.启动 1.审核 2.完成
+            reviewProcess.setStatus(0);
+            contentFeign.saveOrUpdate(reviewProcess);*/
 
-        // 启动工作流 TODO
-        ProcessInstanceVo processInstanceVo = new ProcessInstanceVo();
-        processInstanceVo.setActDefinitionKey(workflowId);
-        processInstanceVo.setBusinessId(String.valueOf(System.currentTimeMillis()));
-        processInstanceVo.setSource("CMS");
-        processInstanceVo.setUserId(UserContextHelper.getUserId());
-        Map<String, Object> mapParams = new HashMap();
-        mapParams.put("title", templateVo.getTitle());
-        mapParams.put("author", templateVo.getAuthor());
-        mapParams.put("contentId", templateVo.getId());
-        mapParams.put("siteId", templateVo.getSiteId());
-        processInstanceVo.setVariables(mapParams);
-        workflowFeign.startInstance(processInstanceVo);
+            // 启动工作流 TODO
+            ProcessInstanceVo processInstanceVo = new ProcessInstanceVo();
+            processInstanceVo.setActDefinitionKey(workflowKey);
+            processInstanceVo.setBusinessId(String.valueOf(System.currentTimeMillis()));
+            processInstanceVo.setSource("CMS");
+            processInstanceVo.setUserId(UserContextHelper.getUserId());
+            Map<String, Object> mapParams = CollectionUtil.newHashMap();
+            mapParams.put("title", templateVo.getTitle());
+            mapParams.put("author", templateVo.getAuthor());
+            mapParams.put("contentId", templateVo.getId());
+            mapParams.put("siteId", templateVo.getSiteId());
+            processInstanceVo.setVariables(mapParams);
+            workflowFeign.startInstance(processInstanceVo);
+        }
 
         // 生成静态页面任务 TODO
         this.addStaticPageTask(templateVo);
