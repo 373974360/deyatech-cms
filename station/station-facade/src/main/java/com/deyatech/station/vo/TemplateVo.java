@@ -1,11 +1,14 @@
 package com.deyatech.station.vo;
 
+import com.deyatech.admin.vo.MetadataCollectionVo;
 import com.deyatech.station.entity.Template;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+
+import java.util.Map;
 
 /**
  * <p>
@@ -41,4 +44,19 @@ public class TemplateVo extends Template {
      * 工作流key
      */
     private String workflowKey;
+
+    /**
+     * 元数据附加在信息都保存在此map中
+     */
+    private String contentMapStr;
+
+    /**
+     * 元数据附加在信息都保存在此map中
+     */
+    private Map content;
+
+    /**
+     * 元数据集
+     */
+    private MetadataCollectionVo metadataCollectionVo;
 }

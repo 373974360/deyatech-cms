@@ -88,7 +88,7 @@ public class TemplateController extends BaseController {
     @PostMapping("/removeByIds")
     @ApiOperation(value="根据ID批量逻辑删除内容模板", notes="根据内容模板对象ID批量逻辑删除内容模板信息")
     @ApiImplicitParam(name = "ids", value = "内容模板对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
-    public RestResult<Boolean> removeByIds(@RequestParam("ids[]") List<String> ids) {
+    public RestResult<Boolean> removeByIds(String ids) {
         log.info(String.format("根据id批量删除内容模板: %s ", JSONUtil.toJsonStr(ids)));
         boolean result = templateService.removeByIds(ids);
         return RestResult.ok(result);

@@ -41,6 +41,13 @@ public interface TemplateService extends BaseService<Template> {
     boolean saveOrUpdateTemplateVo(TemplateVo templateVo);
 
     /**
+     * 批量删除
+     * @param ids
+     * @return
+     */
+    boolean removeByIds(String ids);
+
+    /**
      * 分页查询
      * @param entity
      * @return
