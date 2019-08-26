@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.interview.mapper.CategoryMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.deyatech.interview.entity.Category">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="name_" property="name" />
+        <result column="site_id" property="siteId" />
+    </resultMap>
+
+    <resultMap id="CategoryVoResultMap" type="com.deyatech.interview.vo.CategoryVo">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="name_" property="name" />
+        <result column="site_id" property="siteId" />
+        <result column="site_name" property="siteName" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id_,
+        enable_,
+        remark_,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        version_,
+        name_, site_id
+    </sql>
+    <!-- 检索访谈分类根据名称和站点 -->
+    <select id="pageByNameAndSiteId" resultMap="CategoryVoResultMap">
+        SELECT c.site_id,s.name_ as site_name, c.id_,c.name_,c.enable_,c.remark_,c.create_by,c.create_time,c.update_by,c.update_time,c.version_
+        FROM interview_category c
+        left join resource_station_group s on c.site_id = s.id_ and s.enable_ != -1
+        WHERE c.enable_ = 1
+        <if test="category != null">
+            <if test="category.name != null and category.name != ''">
+                and c.name_ like concat('%', #{category.name}, '%')
+            </if>
+            <if test="category.siteId != null and category.siteId != ''">
+                and c.site_id = #{category.siteId}
+            </if>
+        </if>
+    </select>
+
+</mapper>

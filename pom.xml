@@ -37,6 +37,7 @@
         <module>statistics</module>
         <module>monitor</module>
         <module>generate</module>
+        <module>interview</module>
     </modules>
 
     <build>
