@@ -60,4 +60,17 @@ public interface TemplateFeign {
      */
     @RequestMapping(value = "/feign/template/generateStaticTemplate", method = RequestMethod.POST)
     RestResult generateStaticTemplate(@RequestBody TemplateVo templateVo);
+
+
+
+    /**
+     * 处理模板文件返回字符串
+     *
+     * @param templatePath 模板路径
+     * @param varMap       模板用到的变量
+     * @return
+     */
+    @RequestMapping(value = "/feign/template/thyToString", method = RequestMethod.POST)
+    RestResult<String> thyToString(@RequestParam("siteTemplateRoot") String siteTemplateRoot,@RequestParam("templatePath")  String templatePath,@RequestBody Map<String, Object> varMap);
+
 }

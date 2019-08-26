@@ -40,15 +40,6 @@ public class TemplateServiceApplication {
         SpringApplication.run(TemplateServiceApplication.class, args);
     }
 
-
-    /**
-     * 模板自定义内置对象-格式化工具
-     */
-    @Bean(TemplateConstants.TEMPLATE_OBJ_CATALOG_UTIL)
-    public FormatExpressionObject catalogExpressionObject() {
-        return new FormatExpressionObject();
-    }
-
     @Bean
     GlobalExceptionHandler getGlobalExceptionHandler() {
         return new GlobalExceptionHandler();

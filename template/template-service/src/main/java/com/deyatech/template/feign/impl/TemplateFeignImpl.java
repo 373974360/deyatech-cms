@@ -49,4 +49,9 @@ public class TemplateFeignImpl implements TemplateFeign {
     public RestResult generateStaticTemplate(TemplateVo templateVo) {
         return RestResult.ok(templateContextUtils.genStaticContentPage(templateVo));
     }
+
+    @Override
+    public RestResult<String> thyToString(String siteTemplateRoot, String templatePath, Map<String, Object> varMap) {
+        return RestResult.ok(thymeleafUtil.thyToString(siteTemplateRoot,templatePath,varMap));
+    }
 }
