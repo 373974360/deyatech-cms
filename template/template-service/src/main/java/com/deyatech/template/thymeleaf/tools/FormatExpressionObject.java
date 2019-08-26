@@ -11,7 +11,7 @@ import com.deyatech.template.thymeleaf.utils.TemplateConstants;
 import org.springframework.stereotype.Component;
 
 /**
- * 模板内置对象 - 栏目工具
+ * 模板内置对象 - 格式化工具
  */
 @Component(TemplateConstants.TEMPLATE_OBJ_FORMAT_UTIL)
 public class FormatExpressionObject {

@@ -4,12 +4,16 @@ import com.deyatech.common.Constants;
 import com.deyatech.station.config.SiteProperties;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.feign.ResourceFeign;
+import com.deyatech.station.entity.Catalog;
+import com.deyatech.station.service.CatalogService;
+import com.deyatech.station.vo.CatalogVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -30,6 +34,8 @@ public class SiteCache {
     CacheManager cacheManager;
     @Autowired
     SiteProperties siteProperties;
+    @Autowired
+    CatalogService catalogService;
 
 
     /**
@@ -91,6 +97,20 @@ public class SiteCache {
     }
 
     /**
+     * 获取栏目信息
+     *
+     * @param siteId
+     * @return
+     */
+    public Collection<CatalogVo> getCatalogTreeBySiteId(String siteId) {
+        Collection<CatalogVo> catalogVoCollection = this.cacheManager.getCache(CacheNames.CATALOG_CACHE_KEY).get(siteId, Collection.class);
+        if (catalogVoCollection == null) {
+            log.error(String.format("缓存中没有获取到站点%s的信息", siteId));
+        }
+        return catalogVoCollection;
+    }
+
+    /**
      * 本地缓存站点信息
      */
     @Scheduled(initialDelay = 5000L, fixedRate = 10 * 60 * 1000)
@@ -108,6 +128,10 @@ public class SiteCache {
                 this.cacheManager.getCache(CacheNames.STATION_GROUP_TEMPLATE_ROOT_CACHE_KEY).put(stationGroup.getId(), this.siteProperties.getHostsRoot() + stationGroup.getEnglishName() + Constants.TEMPLATE_DIR_NAME);
                 log.debug("缓存站点根路径信息{}", stationGroup.getId());
                 this.cacheManager.getCache(CacheNames.STATION_GROUP_ROOT_CACHE_KEY).put(stationGroup.getId(), this.siteProperties.getHostsRoot() + stationGroup.getEnglishName());
+                log.debug("缓存栏目信息{}", stationGroup.getId());
+                Catalog catalog = new Catalog();
+                catalog.setSiteId(stationGroup.getId());
+                this.cacheManager.getCache(CacheNames.CATALOG_CACHE_KEY).put(stationGroup.getId(),this.catalogService.getCatalogTree(catalog));
             }
             log.debug("缓存nginx配置文件根目录{}");
             SiteProperties cacheSiteProperties = new SiteProperties();

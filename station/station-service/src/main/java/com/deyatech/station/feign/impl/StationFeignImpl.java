@@ -4,9 +4,14 @@ import com.deyatech.common.entity.RestResult;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.config.SiteProperties;
+import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.feign.StationFeign;
+import com.deyatech.station.service.CatalogService;
+import com.deyatech.station.vo.CatalogVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Collection;
 
 /**
  * 描述：
@@ -20,6 +25,8 @@ public class StationFeignImpl implements StationFeign {
 
     @Autowired
     SiteCache siteCache;
+    @Autowired
+    CatalogService catalogService;
 
     @Override
     public RestResult<String> getStationGroupTemplatePathBySiteId(String siteId) {
@@ -39,5 +46,10 @@ public class StationFeignImpl implements StationFeign {
     @Override
     public RestResult<SiteProperties> getSiteProperties() {
         return RestResult.ok(siteCache.getSiteProperties());
+    }
+
+    @Override
+    public RestResult<Collection<CatalogVo>> getCatalogTreeBySiteId(String siteId) {
+        return RestResult.ok(siteCache.getCatalogTreeBySiteId(siteId));
     }
 }
