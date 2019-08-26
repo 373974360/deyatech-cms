@@ -1,7 +1,13 @@
 package com.deyatech.station.index.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
+import com.deyatech.admin.entity.Metadata;
+import com.deyatech.admin.feign.AdminFeign;
+import com.deyatech.admin.vo.MetadataCollectionMetadataVo;
+import com.deyatech.admin.vo.MetadataCollectionVo;
+import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.station.config.SiteProperties;
 import com.deyatech.station.index.IndexService;
@@ -41,6 +47,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static org.elasticsearch.common.xcontent.DeprecationHandler.THROW_UNSUPPORTED_OPERATION;
@@ -58,6 +65,9 @@ public class IndexServiceImpl implements IndexService {
     private RestHighLevelClient client = null;
     private RestClient restClient = null;
     private ObjectMapper objectMapper = new ObjectMapper();
+
+    @Autowired
+    private AdminFeign adminFeign;
 
     public IndexServiceImpl(@Autowired SiteProperties siteProperties) {
         log.info("siteProperties: " + siteProperties);
@@ -168,209 +178,136 @@ public class IndexServiceImpl implements IndexService {
     @Override
     public String createIndex(String index, Boolean override, String indexAlias, String mcId) {
 
-        // 获取元数据集 TODO
-//        MetaDataCollectionVo metaDataCollectionVo = this.getMetaDataCollectionById(mcId);
-//        if (metaDataCollectionVo != null) {
+        // 获取元数据集
+        MetadataCollectionVo metadataCollectionVo = new MetadataCollectionVo();
+        metadataCollectionVo.setId(mcId);
+        RestResult<List<MetadataCollectionVo>> restResult = adminFeign.findAllData(metadataCollectionVo);
+        if (CollectionUtil.isEmpty(restResult.getData())) {
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("创建索引失败，查询元数据集错误，元数据集 id =  %s", mcId));
+        }
+        try {
+            boolean indexExists;
+            // 检索有关索引的信息的请求
+            GetIndexRequest getIndexRequest = new GetIndexRequest();
+            // 设置操作与之关联的索引
+            getIndexRequest.indices(index);
+            // 设置“include_defaults”的值
+            getIndexRequest.includeDefaults(true);
             try {
-                boolean indexExists;
-                // 检索有关索引的信息的请求
-                GetIndexRequest getIndexRequest = new GetIndexRequest();
-                // 设置操作与之关联的索引
-                getIndexRequest.indices(index);
-                // 设置“include_defaults”的值
-                getIndexRequest.includeDefaults(true);
-                try {
-                    // 检查索引（索引）是否存在, client.indices()返回IndicesClient提供了访问Indices API的方法
-                    // RequestOptions: Elasticsearch的HTTP请求部分，可以在不改变Elasticsearch行为的情况下进行操作
-                    indexExists = client.indices().exists(getIndexRequest, RequestOptions.DEFAULT);
-                } catch (IOException e) {
-                    log.error(String.format("判断索引是否存在失败 %s", index), e);
-                    throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("判断索引是否存在失败 %s", index));
-                }
-                // 存在索引
-                if (indexExists) {
-                    // 不覆盖，抛出异常
-                    if (!override) {
-                        throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("创建索引失败，%s，可以尝试删除后重新建立", index));
-                    }
-                    // 删除旧索引，重新建立新索引
-                    this.deleteIndex(index);
-                }
-
-                // 创建索引的请求
-                CreateIndexRequest request = Requests.createIndexRequest(index);
-                // 用于创建索引的设置, Settings.builder()创建构造器, put()设置键值对
-                request.settings(Settings.builder()
-                        // 分片: 分片数1, 备份数1
-                        .put("index.number_of_shards", 1)
-                        .put("index.number_of_replicas", 1)
-                        // 拼音分词:
-                        // 自定义ik_pinyin_analyzer分析器
-                        .put("index.analysis.analyzer.ik_pinyin_analyzer.type", "custom")
-                        // 定义分词策略ik，ik_smart会将文本做最粗粒度的拆分
-                        .put("index.analysis.analyzer.ik_pinyin_analyzer.tokenizer", "ik_smart")
-                        // 定义过滤器pinyin_filter
-                        .put("index.analysis.analyzer.ik_pinyin_analyzer.filter", "pinyin_filter")
-                        // 过滤器类型pinyin
-                        .put("index.analysis.filter.pinyin_filter.type", "pinyin")
-                        // 不支持首字母分隔
-                        .put("index.analysis.filter.pinyin_filter.keep_separate_first_letter", false)
-                        // 支持全拼
-                        .put("index.analysis.filter.pinyin_filter.keep_full_pinyin", true)
-                        // 保持原样
-                        .put("index.analysis.filter.pinyin_filter.keep_original", true)
-                        // 设置最大长度
-                        .put("index.analysis.filter.pinyin_filter.limit_first_letter_length", 16)
-                        // 小写非中文字母
-                        .put("index.analysis.filter.pinyin_filter.lowercase", true)
-                        // 重复的项将被删除
-                        .put("index.analysis.filter.pinyin_filter.remove_duplicated_term", true)
-                );
-                // 构建XContent（即json）的实用程序
-                XContentBuilder source = XContentFactory.jsonBuilder();
-                // 生成JSON对象 { _doc: {} }
-                source.startObject().startObject(indexType);
-                // 类型映射, 生成JSON对象 { _doc: { properties: {...} } } TODO
-//                this.typeMapping(source, metaDataCollectionVo, index);
-                source.endObject().endObject();
-                // 添加映射
-                request.mapping(indexType, source);
-                // 设置别名
-                if (StrUtil.isNotBlank(indexAlias)) {
-                    request.alias(new Alias(indexAlias));
-                }
-                // 创建索引
-                CreateIndexResponse createIndexResponse = client.indices().create(request, RequestOptions.DEFAULT);
-                if (createIndexResponse.isShardsAcknowledged()) {
-                    log.info(String.format("创建索引成功,%s", index));
-                    return String.format("创建索引成功,%s", index);
-                } else {
-                    log.info(String.format("创建索引失败，%s", index));
-                    throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("创建索引失败，%s", index));
-                }
-
+                // 检查索引（索引）是否存在, client.indices()返回IndicesClient提供了访问Indices API的方法
+                // RequestOptions: Elasticsearch的HTTP请求部分，可以在不改变Elasticsearch行为的情况下进行操作
+                indexExists = client.indices().exists(getIndexRequest, RequestOptions.DEFAULT);
             } catch (IOException e) {
-                log.error(String.format("创建或更新失败 %s", e.getMessage()), e);
-                throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("创建或更新失败，%s", index));
+                log.error(String.format("判断索引是否存在失败 %s", index), e);
+                throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("判断索引是否存在失败 %s", index));
             }
-//        } else {
-//            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("创建索引失败，查询元数据集错误，元数据集 id =  %s", mcId));
-//        }
+            // 存在索引
+            if (indexExists) {
+                // 不覆盖，抛出异常
+                if (!override) {
+                    throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("创建索引失败，%s，可以尝试删除后重新建立", index));
+                }
+                // 删除旧索引，重新建立新索引
+                this.deleteIndex(index);
+            }
 
+            // 创建索引的请求
+            CreateIndexRequest request = Requests.createIndexRequest(index);
+            // 用于创建索引的设置, Settings.builder()创建构造器, put()设置键值对
+            request.settings(Settings.builder()
+                    // 分片: 分片数1, 备份数1
+                    .put("index.number_of_shards", 1)
+                    .put("index.number_of_replicas", 1)
+                    // 拼音分词:
+                    // 自定义ik_pinyin_analyzer分析器
+                    .put("index.analysis.analyzer.ik_pinyin_analyzer.type", "custom")
+                    // 定义分词策略ik，ik_smart会将文本做最粗粒度的拆分
+                    .put("index.analysis.analyzer.ik_pinyin_analyzer.tokenizer", "ik_smart")
+                    // 定义过滤器pinyin_filter
+                    .put("index.analysis.analyzer.ik_pinyin_analyzer.filter", "pinyin_filter")
+                    // 过滤器类型pinyin
+                    .put("index.analysis.filter.pinyin_filter.type", "pinyin")
+                    // 不支持首字母分隔
+                    .put("index.analysis.filter.pinyin_filter.keep_separate_first_letter", false)
+                    // 支持全拼
+                    .put("index.analysis.filter.pinyin_filter.keep_full_pinyin", true)
+                    // 保持原样
+                    .put("index.analysis.filter.pinyin_filter.keep_original", true)
+                    // 设置最大长度
+                    .put("index.analysis.filter.pinyin_filter.limit_first_letter_length", 16)
+                    // 小写非中文字母
+                    .put("index.analysis.filter.pinyin_filter.lowercase", true)
+                    // 重复的项将被删除
+                    .put("index.analysis.filter.pinyin_filter.remove_duplicated_term", true)
+            );
+            // 构建XContent（即json）的实用程序
+            XContentBuilder source = XContentFactory.jsonBuilder();
+            // 生成JSON对象 { _doc: {} }
+            source.startObject().startObject(indexType);
+            // 类型映射, 生成JSON对象 { _doc: { properties: {...} } } TODO
+            this.typeMapping(source, restResult.getData().get(0), index);
+            source.endObject().endObject();
+            // 添加映射
+            request.mapping(indexType, source);
+            // 设置别名
+            if (StrUtil.isNotBlank(indexAlias)) {
+                request.alias(new Alias(indexAlias));
+            }
+            // 创建索引
+            CreateIndexResponse createIndexResponse = client.indices().create(request, RequestOptions.DEFAULT);
+            if (createIndexResponse.isShardsAcknowledged()) {
+                log.info(String.format("创建索引成功,%s", index));
+                return String.format("创建索引成功,%s", index);
+            } else {
+                log.info(String.format("创建索引失败，%s", index));
+                throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("创建索引失败，%s", index));
+            }
+
+        } catch (IOException e) {
+            log.error(String.format("创建或更新失败 %s", e.getMessage()), e);
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("创建或更新失败，%s", index));
+        }
     }
-
-    /**
-     * 根据id获取元数据集
-     * @param mcId 元数据集id
-     */
-/*    private MetaDataCollectionVo getMetaDataCollectionById(String mcId) {
-        return siteCache.getMetaDataCollectionById(mcId);
-    }*/
 
     /**
      * 类型映射
      * @param source
-     * @param metaDataCollectionDto
+     * @param metadataCollectionVo
      * @param indexName
      * @throws IOException
      */
-/*    private void typeMapping(XContentBuilder source, MetaDataCollectionVo metaDataCollectionVo, String indexName) throws
+    private void typeMapping(XContentBuilder source, MetadataCollectionVo metadataCollectionVo, String indexName) throws
             IOException {
-        List<MetaDataCollectionMetaDataDto> metaDataCollectionMetaDataDtoList = metaDataCollectionDto.getMetaDataCollectionMetaDataDtoList();
-        if (metaDataCollectionMetaDataDtoList != null && !metaDataCollectionMetaDataDtoList.isEmpty()) {
+        List<MetadataCollectionMetadataVo> metadataCollectionMetadataVoList = metadataCollectionVo.getMetadataList();
+        if (CollectionUtil.isNotEmpty(metadataCollectionMetadataVoList)) {
             XContentBuilder properties = source.startObject("properties");
-            for (MetaDataCollectionMetaDataDto metaDataCollectionMetaDataDto : metaDataCollectionMetaDataDtoList) {
-                MetaDataDto metaData = metaDataCollectionMetaDataDto.getMetaData();
+            for (MetadataCollectionMetadataVo metadataCollectionMetadataVo : metadataCollectionMetadataVoList) {
+                Metadata metadata = metadataCollectionMetadataVo.getMetadata();
                 //TODO  field 名称 保持与生成的 entity 一致的做法（entity生成时目前使用前缀拼接英文名作为属性名，此处保持一致）
-                String value = this.convertDataType(metaData.getDataType());
-                XContentBuilder field = properties.startObject(metaDataCollectionDto.getMdPrefix() + metaData.getBriefName())
+                String value = this.convertDataType(metadata.getDataType());
+                XContentBuilder field = properties.startObject(metadataCollectionVo.getMdPrefix() + metadata.getBriefName())
                         .field("type", value);
                 //如果是 text并且使用全文检索，则使用 ik 分词
-                if ("text".equalsIgnoreCase(value) && metaDataCollectionMetaDataDto.getUseFullIndex() != null && metaDataCollectionMetaDataDto.getUseFullIndex() == 1) {
+                if ("text".equalsIgnoreCase(value) && metadataCollectionMetadataVo.getUseFullIndex()) {
                     field.field("analyzer", "ik_pinyin_analyzer");
                     field.field("search_analyzer", "ik_pinyin_analyzer");
-                } else if ("date".equalsIgnoreCase(value)) { //如果是日期则，使用标准的日期格式
+                } //如果是日期则，使用标准的日期格式
+                else if ("date".equalsIgnoreCase(value)) {
                     field.field("format", "yyyy-MM-dd HH:mm:ss");
                 }
                 field.endObject();
-
             }
 
-            //通用字段定义: 站点id
-            XContentBuilder siteId = properties.startObject("siteId");
-            siteId.field("type", "keyword");
-            siteId.endObject();
-
-            //通用字段定义：栏目id
-            XContentBuilder cmsCatalogId = properties.startObject("cmsCatalogId");
-            cmsCatalogId.field("type", "keyword");
-            cmsCatalogId.endObject();
-
-            //通用字段定义：内容表记录id
-            XContentBuilder contentId = properties.startObject("contentId");
-            contentId.field("type", "keyword");
-            contentId.endObject();
-
-            XContentBuilder status = properties.startObject("status");
-            status.field("type", "integer");
-            status.endObject();
-
-            //通用字段定义: 标题
-            XContentBuilder title = properties.startObject("title");
-            title.field("type", "text");
-//            title.field("analyzer", "ik_max_word");
-            title.field("analyzer", "ik_pinyin_analyzer");
-            title.field("search_analyzer", "ik_pinyin_analyzer");
-            title.endObject();
-
-            //通用字段定义: 缩略图
-            XContentBuilder thumbnail = properties.startObject("thumbnail");
-            thumbnail.field("type", "keyword");
-            thumbnail.endObject();
-
-            //通用字段定义: 作者
-            XContentBuilder author = properties.startObject("author");
-            author.field("type", "keyword");
-            author.endObject();
-
-            //通用字段定义: 来源
-            XContentBuilder dataSource = properties.startObject("source");
-            dataSource.field("type", "keyword");
-            dataSource.endObject();
-
-            //通用字段定义: 小编
-            XContentBuilder editor = properties.startObject("editor");
-            editor.field("type", "keyword");
-            editor.endObject();
-
-            //通用字段定义: URL
-            XContentBuilder url = properties.startObject("url");
-            url.field("type", "keyword");
-            url.endObject();
-
-            //通用字段定义: 创建时间
-            XContentBuilder createTime = properties.startObject("createTime");
-            createTime.field("type", "date");
-//            createTime.field("format", "yyyy-MM-dd HH:mm:ss");
-            createTime.endObject();
-
-            //通用字段定义: 更新时间
-            XContentBuilder updateTime = properties.startObject("updateTime");
-            updateTime.field("type", "date");
-//            updateTime.field("format", "yyyy-MM-dd HH:mm:ss");
-            updateTime.endObject();
-
-            XContentBuilder content = properties.startObject("content");
-            content.field("type", "object");
-            content.endObject();
+            // 基本属性映射
+            this.commonTypeMapping(properties);
 
             properties.endObject();
 
         } else {
-            logger.error(String.format("创建索引失败，数据集 %s 中没有有效属性", indexName));
+            log.error(String.format("创建索引失败，数据集 %s 中没有有效属性", indexName));
         }
 
-    }*/
+    }
 
     /**
      * 转换 ecp 的元数据类型为 elasticsearch 支持的数据类型
@@ -401,6 +338,81 @@ public class IndexServiceImpl implements IndexService {
             default:
                 return "keyword";
         }
+    }
+
+    /**
+     * 基本属性映射
+     * @param properties
+     */
+    private void commonTypeMapping(XContentBuilder properties) throws IOException {
+        // 通用字段定义: 站点id
+        XContentBuilder siteId = properties.startObject("siteId");
+        siteId.field("type", "keyword");
+        siteId.endObject();
+
+        // 通用字段定义：栏目id
+        XContentBuilder cmsCatalogId = properties.startObject("cmsCatalogId");
+        cmsCatalogId.field("type", "keyword");
+        cmsCatalogId.endObject();
+
+        // 通用字段定义: 内容发布状态
+        XContentBuilder status = properties.startObject("status");
+        status.field("type", "integer");
+        status.endObject();
+
+        // 通用字段定义: 标题
+        XContentBuilder title = properties.startObject("title");
+        title.field("type", "text");
+        title.field("analyzer", "ik_pinyin_analyzer");
+        title.field("search_analyzer", "ik_pinyin_analyzer");
+        title.endObject();
+
+        // 通用字段定义: 缩略图
+        XContentBuilder thumbnail = properties.startObject("thumbnail");
+        thumbnail.field("type", "keyword");
+        thumbnail.endObject();
+
+        // 通用字段定义: 作者
+        XContentBuilder author = properties.startObject("author");
+        author.field("type", "keyword");
+        author.endObject();
+
+        // 通用字段定义: 来源
+        XContentBuilder dataSource = properties.startObject("source");
+        dataSource.field("type", "keyword");
+        dataSource.endObject();
+
+        // 通用字段定义: 小编
+        XContentBuilder editor = properties.startObject("editor");
+        editor.field("type", "keyword");
+        editor.endObject();
+
+        // 通用字段定义: URL
+        XContentBuilder url = properties.startObject("url");
+        url.field("type", "keyword");
+        url.endObject();
+
+        // 通用字段定义: 创建时间
+        XContentBuilder createTime = properties.startObject("createTime");
+        createTime.field("type", "date");
+        createTime.endObject();
+
+        // 通用字段定义: 更新时间
+        XContentBuilder updateTime = properties.startObject("updateTime");
+        updateTime.field("type", "date");
+        updateTime.endObject();
+
+        // 通用字段定义：元数据表记录id
+        XContentBuilder contentId = properties.startObject("contentId");
+        contentId.field("type", "keyword");
+        contentId.endObject();
+
+
+        // 通用字段定义: 元数据
+        XContentBuilder content = properties.startObject("content");
+        content.field("type", "object");
+        content.endObject();
+
     }
 
     /**

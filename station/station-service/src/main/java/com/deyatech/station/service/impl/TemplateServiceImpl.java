@@ -5,8 +5,10 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.PinyinUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.content.entity.ReviewProcess;
@@ -57,6 +59,8 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     private ContentFeign contentFeign;
     @Autowired
     private WorkflowFeign workflowFeign;
+    @Autowired
+    private AdminFeign adminFeign;
 
     /**
      * 单个将对象转换为vo内容模板
@@ -84,6 +88,9 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             for (Object template : templates) {
                 TemplateVo templateVo = new TemplateVo();
                 BeanUtil.copyProperties(template, templateVo);
+                // 查询元数据记录信息
+                Map content = adminFeign.getMetadataById(templateVo.getMetadataCollectionVo().getId(), templateVo.getContentId()).getData();
+                templateVo.setContent(content);
                 templateVos.add(templateVo);
             }
         }
@@ -115,7 +122,17 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         // 设置内容发布状态：1-草稿，2-已发布
         templateVo.setStatus(1);
 
-        // 保存
+        // 保存或更新元数据
+        Map contentMap = JSONUtil.toBean(templateVo.getContentMapStr(), Map.class);
+        String metaDataCollectionId = (String) contentMap.get("metaDataCollectionId");
+        contentMap.remove("metaDataCollectionId");
+        String contentId = adminFeign.saveOrUpdateMetadata(metaDataCollectionId, templateVo.getContentId(), contentMap).getData();
+        // 如果是插入数据， 回填contentId
+        if (!toUpdate) {
+            templateVo.setContentId(contentId);
+        }
+
+        // 保存内容
         super.saveOrUpdate(templateVo);
 
         // 工作流相关
@@ -138,7 +155,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             Map<String, Object> mapParams = CollectionUtil.newHashMap();
             mapParams.put("title", templateVo.getTitle());
             mapParams.put("author", templateVo.getAuthor());
-            mapParams.put("contentId", templateVo.getId());
+            mapParams.put("templateId", templateVo.getId());
             mapParams.put("siteId", templateVo.getSiteId());
             processInstanceVo.setVariables(mapParams);
             workflowFeign.startInstance(processInstanceVo);
@@ -155,6 +172,16 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         }
 
         return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean removeByIds(String ids) {
+        List<Map> mapList = JSONUtil.toList(JSONUtil.parseArray(ids), Map.class);
+        // 删除元数据
+        adminFeign.removeMetadataByIds(mapList);
+        List<String> idList = mapList.stream().map(m -> (String) m.get("id")).collect(Collectors.toList());
+        return super.removeByIds(idList);
     }
 
     /**
