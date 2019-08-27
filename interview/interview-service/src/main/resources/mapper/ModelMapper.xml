@@ -24,6 +24,28 @@
         <result column="status_" property="status" />
     </resultMap>
 
+    <resultMap id="ModelVoResultMap" type="com.deyatech.interview.vo.ModelVo">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="name_" property="name" />
+        <result column="time_" property="time" />
+        <result column="cover_" property="cover" />
+        <result column="description_" property="description" />
+        <result column="live_url" property="liveUrl" />
+        <result column="video_url" property="videoUrl" />
+        <result column="images_" property="images" />
+        <result column="content_" property="content" />
+        <result column="status_" property="status" />
+        <result column="category_id" property="categoryId" />
+        <result column="category_name" property="categoryName" />
+    </resultMap>
+
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         id_,
@@ -37,18 +59,24 @@
         category_id, name_, time_, cover_, description_, live_url, video_url, images_, content_, status_
     </sql>
     <!-- 检索访谈模型根据分类和名称 -->
-    <select id="pageByCategoryAndName" resultType="com.deyatech.interview.vo.ModelVo">
+    <select id="pageByCategoryAndName" resultMap="ModelVoResultMap">
         select
-        id_,
-        enable_,
-        remark_,
-        create_by,
-        create_time,
-        update_by,
-        update_time,
-        version_,
-        category_id, name_, time_, cover_, description_, live_url, video_url, images_, content_, status_
-        from interview_model
+        m.id_,m.enable_,m.remark_,m.create_by,m.create_time,m.update_by,m.update_time,m.version_,
+        m.name_, m.time_, m.cover_, m.description_, m.live_url, m.video_url, m.images_, m.content_, m.status_,
+        m.category_id, c.name_ as category_name
+        from interview_model m
+             left join interview_category c on m.category_id = c.id_ and c.enable_ = 1
+        where m.enable_ = 1
+        <if test="model != null">
+          <if test="model.name != null and model.name != ''">
+              and (
+              m.name_ like concat('%', #{model.name}, '%') or m.time_ like concat('%', #{model.name}, '%') or m.description_ like concat('%', #{model.name}, '%')
+              )
+          </if>
+          <if test="model.categoryId != null and model.categoryId != ''">
+              and m.category_id = #{model.categoryId}
+          </if>
+        </if>
     </select>
 
 </mapper>
