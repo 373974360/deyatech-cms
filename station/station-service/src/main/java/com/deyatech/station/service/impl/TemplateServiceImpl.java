@@ -9,6 +9,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.admin.feign.AdminFeign;
+import com.deyatech.admin.vo.MetadataCollectionVo;
 import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.content.entity.ReviewProcess;
@@ -88,9 +89,15 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             for (Object template : templates) {
                 TemplateVo templateVo = new TemplateVo();
                 BeanUtil.copyProperties(template, templateVo);
+                // 查询元数据结构
+                MetadataCollectionVo metadataCollectionVo = new MetadataCollectionVo();
+                metadataCollectionVo.setId(templateVo.getMetaDataCollectionId());
+                List<MetadataCollectionVo> metadataCollectionVoList = adminFeign.findAllData(metadataCollectionVo).getData();
+                templateVo.setMetadataCollectionVo(metadataCollectionVoList.get(0));
                 // 查询元数据记录信息
-                Map content = adminFeign.getMetadataById(templateVo.getMetadataCollectionVo().getId(), templateVo.getContentId()).getData();
+                Map content = adminFeign.getMetadataById(templateVo.getMetaDataCollectionId(), templateVo.getContentId()).getData();
                 templateVo.setContent(content);
+
                 templateVos.add(templateVo);
             }
         }
@@ -124,9 +131,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
 
         // 保存或更新元数据
         Map contentMap = JSONUtil.toBean(templateVo.getContentMapStr(), Map.class);
-        String metaDataCollectionId = (String) contentMap.get("metaDataCollectionId");
-        contentMap.remove("metaDataCollectionId");
-        String contentId = adminFeign.saveOrUpdateMetadata(metaDataCollectionId, templateVo.getContentId(), contentMap).getData();
+        String contentId = adminFeign.saveOrUpdateMetadata(templateVo.getMetaDataCollectionId(), templateVo.getContentId(), contentMap).getData();
         // 如果是插入数据， 回填contentId
         if (!toUpdate) {
             templateVo.setContentId(contentId);
@@ -189,8 +194,9 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
      * @param template
      */
     private void addStaticPageTask(Template template) {
-
-        rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_NAME_STATIC_PAGE_TASK, template);
+        Template t = new Template();
+        BeanUtil.copyProperties(template, t);
+        rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_NAME_STATIC_PAGE_TASK, t);
     }
 
     /**
