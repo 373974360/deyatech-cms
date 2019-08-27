@@ -131,9 +131,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
 
         // 保存或更新元数据
         Map contentMap = JSONUtil.toBean(templateVo.getContentMapStr(), Map.class);
-        String metaDataCollectionId = (String) contentMap.get("metaDataCollectionId");
-        contentMap.remove("metaDataCollectionId");
-        String contentId = adminFeign.saveOrUpdateMetadata(metaDataCollectionId, templateVo.getContentId(), contentMap).getData();
+        String contentId = adminFeign.saveOrUpdateMetadata(templateVo.getMetaDataCollectionId(), templateVo.getContentId(), contentMap).getData();
         // 如果是插入数据， 回填contentId
         if (!toUpdate) {
             templateVo.setContentId(contentId);
