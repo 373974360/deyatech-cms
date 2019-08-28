@@ -56,6 +56,11 @@ public class TemplateVo extends Template {
     private Map content;
 
     /**
+     * 元数据集id
+     */
+    private String metaDataCollectionId;
+
+    /**
      * 元数据集
      */
     private MetadataCollectionVo metadataCollectionVo;
