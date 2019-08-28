@@ -19,7 +19,7 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-@TableName("station_file")
+@TableName("station_material")
 @ApiModel(value = "上传文件信息对象", description = "上传文件信息", parent = BaseEntity.class)
 public class Material extends BaseEntity {
 
