@@ -187,6 +187,10 @@ public class MaterialController extends BaseController {
             @ApiImplicitParam(name = "path", value = "路径", required = false, dataType = "String", paramType = "query")
     })
     public RestResult uploadFile(@RequestParam("file") MultipartFile file, String path) {
+        if (!path.endsWith("/")) {
+            path += "/";
+        }
+
         FileUploadResult result = new FileUploadResult();
         //判断图片是否为空
         if (file.isEmpty()) {
