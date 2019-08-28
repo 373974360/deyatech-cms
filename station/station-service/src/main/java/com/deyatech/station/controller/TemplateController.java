@@ -9,9 +9,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import java.io.Serializable;
 import java.util.Collection;
-import java.util.List;
 import org.springframework.web.bind.annotation.RestController;
 import com.deyatech.common.base.BaseController;
 import io.swagger.annotations.Api;
@@ -30,6 +28,7 @@ import io.swagger.annotations.ApiOperation;
 @RequestMapping("/station/template")
 @Api(tags = {"内容模板接口"})
 public class TemplateController extends BaseController {
+
     @Autowired
     TemplateService templateService;
 
@@ -203,4 +202,5 @@ public class TemplateController extends BaseController {
         boolean result = templateService.updateById(template);
         return RestResult.ok(result);
     }
+
 }
