@@ -10,6 +10,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.Collection;
+import java.util.Date;
+
 import org.springframework.web.bind.annotation.RestController;
 import com.deyatech.common.base.BaseController;
 import io.swagger.annotations.Api;
@@ -199,6 +201,8 @@ public class TemplateController extends BaseController {
         log.info(String.format("更新内容状态: %s ", JSONUtil.toJsonStr(template)));
         // 内容发布状态：1-草稿，2-已发布
         template.setStatus(2);
+        // 发布日期
+        template.setResourcePublicationDate(new Date());
         boolean result = templateService.updateById(template);
         return RestResult.ok(result);
     }
