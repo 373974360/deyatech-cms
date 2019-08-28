@@ -10,7 +10,7 @@
     <description>interview</description>
 
     <parent>
-        <artifactId>resource</artifactId>
+        <artifactId>interview</artifactId>
         <groupId>com.deyatech</groupId>
         <version>0.0.1</version>
     </parent>
