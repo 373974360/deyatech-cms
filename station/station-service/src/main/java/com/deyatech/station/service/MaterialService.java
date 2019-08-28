@@ -1,7 +1,7 @@
 package com.deyatech.station.service;
 
-import com.deyatech.station.entity.File;
-import com.deyatech.station.vo.FileVo;
+import com.deyatech.station.entity.Material;
+import com.deyatech.station.vo.MaterialVo;
 import com.deyatech.common.base.BaseService;
 import java.util.Collection;
 import java.util.List;
@@ -14,15 +14,15 @@ import java.util.List;
  * @Author lee.
  * @since 2019-08-28
  */
-public interface FileService extends BaseService<File> {
+public interface MaterialService extends BaseService<Material> {
 
     /**
      * 单个将对象转换为vo
      *
-     * @param file
+     * @param material
      * @return
      */
-    FileVo setVoProperties(File file);
+    MaterialVo setVoProperties(Material material);
 
     /**
      * 批量将对象转换为vo
@@ -30,5 +30,5 @@ public interface FileService extends BaseService<File> {
      * @param files
      * @return
      */
-    List<FileVo> setVoProperties(Collection files);
+    List<MaterialVo> setVoProperties(Collection files);
 }

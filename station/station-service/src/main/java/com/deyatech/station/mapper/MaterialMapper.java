@@ -1,6 +1,6 @@
 package com.deyatech.station.mapper;
 
-import com.deyatech.station.entity.File;
+import com.deyatech.station.entity.Material;
 import com.deyatech.common.base.BaseMapper;
 
 /**
@@ -11,6 +11,6 @@ import com.deyatech.common.base.BaseMapper;
  * @Author lee.
  * @since 2019-08-28
  */
-public interface FileMapper extends BaseMapper<File> {
+public interface MaterialMapper extends BaseMapper<Material> {
 
 }

@@ -1,9 +1,9 @@
 package com.deyatech.station.service.impl;
 
-import com.deyatech.station.entity.File;
-import com.deyatech.station.vo.FileVo;
-import com.deyatech.station.mapper.FileMapper;
-import com.deyatech.station.service.FileService;
+import com.deyatech.station.entity.Material;
+import com.deyatech.station.vo.MaterialVo;
+import com.deyatech.station.mapper.MaterialMapper;
+import com.deyatech.station.service.MaterialService;
 import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
@@ -20,18 +20,18 @@ import java.util.Collection;
  * @since 2019-08-28
  */
 @Service
-public class FileServiceImpl extends BaseServiceImpl<FileMapper, File> implements FileService {
+public class MaterialServiceImpl extends BaseServiceImpl<MaterialMapper, Material> implements MaterialService {
 
     /**
      * 单个将对象转换为vo
      *
-     * @param file
+     * @param material
      * @return
      */
     @Override
-    public FileVo setVoProperties(File file){
-        FileVo fileVo = new FileVo();
-        BeanUtil.copyProperties(file, fileVo);
+    public MaterialVo setVoProperties(Material material){
+        MaterialVo fileVo = new MaterialVo();
+        BeanUtil.copyProperties(material, fileVo);
         return fileVo;
     }
 
@@ -42,11 +42,11 @@ public class FileServiceImpl extends BaseServiceImpl<FileMapper, File> implement
      * @return
      */
     @Override
-    public List<FileVo> setVoProperties(Collection files){
-        List<FileVo> fileVos = CollectionUtil.newArrayList();
+    public List<MaterialVo> setVoProperties(Collection files){
+        List<MaterialVo> fileVos = CollectionUtil.newArrayList();
         if (CollectionUtil.isNotEmpty(files)) {
             for (Object file : files) {
-                FileVo fileVo = new FileVo();
+                MaterialVo fileVo = new MaterialVo();
                 BeanUtil.copyProperties(file, fileVo);
                 fileVos.add(fileVo);
             }

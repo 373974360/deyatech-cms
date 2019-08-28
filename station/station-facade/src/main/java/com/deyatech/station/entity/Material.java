@@ -21,7 +21,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @TableName("station_file")
 @ApiModel(value = "上传文件信息对象", description = "上传文件信息", parent = BaseEntity.class)
-public class File extends BaseEntity {
+public class Material extends BaseEntity {
 
     @ApiModelProperty(value = "文件名称", dataType = "String")
     @TableField("name_")

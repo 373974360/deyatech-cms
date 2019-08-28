@@ -1,8 +1,7 @@
 package com.deyatech.station.vo;
 
-import com.deyatech.station.entity.File;
+import com.deyatech.station.entity.Material;
 import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -18,6 +17,6 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-@ApiModel(value = "上传文件信息扩展对象", description = "上传文件信息扩展对象", parent = File.class)
-public class FileVo extends File {
+@ApiModel(value = "上传文件信息扩展对象", description = "上传文件信息扩展对象", parent = Material.class)
+public class MaterialVo extends Material {
 }
