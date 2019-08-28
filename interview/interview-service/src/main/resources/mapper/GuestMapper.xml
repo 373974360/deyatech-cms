@@ -19,6 +19,23 @@
         <result column="type_" property="type" />
     </resultMap>
 
+    <resultMap id="GuestVoResultMap" type="com.deyatech.interview.vo.GuestVo">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="model_id" property="modelId" />
+        <result column="model_name" property="modelName" />
+        <result column="name_" property="name" />
+        <result column="photo_" property="photo" />
+        <result column="job_" property="job" />
+        <result column="type_" property="type" />
+    </resultMap>
+
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         id_,
@@ -31,5 +48,32 @@
         version_,
         model_id, name_, photo_, job_, type_
     </sql>
+    <!--检索嘉宾-->
+    <select id="selectGuestByModelNameJobType" resultMap="GuestVoResultMap">
+        select
+            g.id_,
+            g.enable_,
+            g.remark_,
+            g.create_by,
+            g.create_time,
+            g.update_by,
+            g.update_time,
+            g.version_,
+            g.model_id, m.name_ as model_name, g.name_, g.photo_, g.job_, g.type_
+        from interview_guest g
+             left join interview_model m on m.enable_ = 1 and g.model_id = m.id_
+        where g.enable_ = 1
+        <if test="guest != null">
+            <if test="guest.modelId != null and guest.modelId !=''">
+                and g.model_id = #{guest.modelId}
+            </if>
+            <if test="guest.name != null and guest.name !=''">
+                and ( g.name_ like concat('%',#{guest.name},'%') or g.job_ like concat('%',#{guest.name},'%') )
+            </if>
+            <if test="guest.type != null and guest.type !=''">
+                and g.type_ = #{guest.type}
+            </if>
+        </if>
+    </select>
 
 </mapper>

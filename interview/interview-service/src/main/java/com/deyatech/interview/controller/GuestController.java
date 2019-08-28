@@ -1,5 +1,6 @@
 package com.deyatech.interview.controller;
 
+import com.deyatech.common.context.SpringContextHelper;
 import com.deyatech.interview.entity.Guest;
 import com.deyatech.interview.vo.GuestVo;
 import com.deyatech.interview.service.GuestService;
@@ -23,7 +24,7 @@ import io.swagger.annotations.ApiOperation;
  * 访谈嘉宾 前端控制器
  * </p>
  * @author: lee.
- * @since 2019-08-26
+ * @since 2019-08-28
  */
 @Slf4j
 @RestController
@@ -142,4 +143,19 @@ public class GuestController extends BaseController {
         return RestResult.ok(guests);
     }
 
+    /**
+     * 根据Guest对象属性分页检索访谈嘉宾
+     *
+     * @param guest
+     * @return
+     */
+    @GetMapping("/pageGuestByModelNameJobType")
+    @ApiOperation(value="根据Guest对象属性分页检索访谈嘉宾", notes="根据Guest对象属性分页检索访谈嘉宾信息")
+    @ApiImplicitParam(name = "guest", value = "访谈嘉宾对象", required = false, dataType = "Guest", paramType = "query")
+    public RestResult<IPage<GuestVo>> pageGuestByModelNameJobType(Guest guest) {
+        IPage<GuestVo> guests = guestService.selectGuestByModelNameJobType(guest);
+        guests.setRecords(guestService.setVoProperties(guests.getRecords()));
+        log.info(String.format("根据Guest对象属性分页检索访谈嘉宾: %s ",JSONUtil.toJsonStr(guests)));
+        return RestResult.ok(guests);
+    }
 }

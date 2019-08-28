@@ -14,7 +14,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author lee.
- * @since 2019-08-26
+ * @since 2019-08-28
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -39,8 +39,8 @@ public class Guest extends BaseEntity {
     @TableField("job_")
     private String job;
 
-    @ApiModelProperty(value = "嘉宾类型(1为主持人，2为嘉宾)", dataType = "String")
+    @ApiModelProperty(value = "嘉宾类型(1为主持人，2为嘉宾)", dataType = "Integer", example = "1")
     @TableField("type_")
-    private String type;
+    private Integer type;
 
 }

@@ -13,11 +13,17 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author lee.
- * @since 2019-08-26
+ * @since 2019-08-28
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 @ApiModel(value = "访谈嘉宾扩展对象", description = "访谈嘉宾扩展对象", parent = Guest.class)
 public class GuestVo extends Guest {
+
+    /**
+     * 模型名称
+     */
+    @ApiModelProperty(value = "模型名称", dataType = "String")
+    private String modelName;
 }
