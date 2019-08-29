@@ -18,7 +18,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @SpringBootApplication
 @MapperScan("com.deyatech.**.mapper")
 @ComponentScan("com.deyatech")
-@ServletComponentScan("com.deyatech.common.filter")
+//@ServletComponentScan("com.deyatech.common.filter")
 @EnableSwagger2
 @EnableCaching
 @RestController
