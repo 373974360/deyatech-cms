@@ -3,11 +3,16 @@ package com.deyatech.station.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.deyatech.common.base.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.util.Date;
+
 /**
  * <p>
  * 内容模板
@@ -94,5 +99,29 @@ public class Template extends BaseEntity {
     @ApiModelProperty(value = "是否是外链", dataType = "Boolean")
     @TableField("flag_external")
     private Boolean flagExternal;
+
+    @ApiModelProperty(value = "资源摘要", dataType = "String")
+    @TableField("resource_summary")
+    private String resourceSummary;
+
+    @ApiModelProperty(value = "资源内容", dataType = "String")
+    @TableField("resource_content")
+    private String resourceContent;
+
+    @ApiModelProperty(value = "资源分类", dataType = "String")
+    @TableField("resource_category")
+    private String resourceCategory;
+
+    @TableField("resource_publication_date")
+    @ApiModelProperty(value = "资源发布日期", dataType = "Date")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date resourcePublicationDate;
+
+    @ApiModelProperty(value = "关键字", dataType = "String")
+    @TableField("keyword_")
+    private String keyword;
+
+
 
 }
