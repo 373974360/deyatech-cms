@@ -22,10 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Collection;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * <p>
@@ -84,30 +81,64 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
         return baseMapper.pageByCategoryAndName(getPageByBean(model), model);
     }
 
+    private String generateKey() {
+        return UUID.randomUUID().toString().replaceAll("-", "");
+    }
+
     /**
      * 追加直播消息
      *
+     * @param modelId
      * @param liveMessageVo
      * @return
      */
     @Override
-    public Boolean appendLiveMessage(String modelId, LiveMessageVo liveMessageVo) {
+    public Boolean operateLiveMessage(String modelId, LiveMessageVo liveMessageVo) {
         try {
-            List<LiveMessageVo> list;
+            List<LiveMessageVo> messageList;
             ObjectMapper mapper = new ObjectMapper();
             Model model = super.getById(modelId);
+            // 取出原来的内容
             if (Objects.nonNull(model) && StrUtil.isNotEmpty(model.getContent())) {
-                list = mapper.readValue(model.getContent(), mapper.getTypeFactory().constructParametricType(List.class, LiveMessageVo.class));
-                list.add(liveMessageVo);
+                messageList = mapper.readValue(model.getContent(), mapper.getTypeFactory().constructParametricType(List.class, LiveMessageVo.class));
             } else {
-                list = new ArrayList<>();
-                list.add(liveMessageVo);
+                messageList = new ArrayList<>();
             }
+            String flag;
+            // 添加
+            if (StrUtil.isEmpty(liveMessageVo.getKey())) {
+                flag = ",append";
+                liveMessageVo.setKey(generateKey());
+                messageList.add(liveMessageVo);
+            } else {
+                int index = -1;
+                for (int i = 0; i < messageList.size(); i ++) {
+                    if (liveMessageVo.getKey().equals(messageList.get(i).getKey())) {
+                        index = i;
+                        break;
+                    }
+                }
+                if (index != -1) {
+                    if (StrUtil.isEmpty(liveMessageVo.getMessage())) {
+                        // 删除
+                        flag = ",delete";
+                        messageList.remove(index);
+                    } else {
+                        // 修改
+                        flag = ",modify";
+                        messageList.set(index, liveMessageVo);
+                    }
+                } else {
+                    return false;
+                }
+            }
+            // 更新模型
             Model message = new Model();
             message.setId(model.getId());
             message.setVersion(model.getVersion());
-            message.setContent(mapper.writeValueAsString(list));
+            message.setContent(mapper.writeValueAsString(messageList));
             if (super.updateById(message)) {
+                liveMessageVo.setKey(liveMessageVo.getKey() + flag);
                 rabbitTemplate.convertAndSend(RabbitMQLiveConfig.FANOUT_EXCHANGE_LIVE_MESSAGE, RabbitMQLiveConfig.ROUTING_KEY_LIVE_MESSAGE , liveMessageVo);
                 return true;
             } else {
@@ -121,27 +152,57 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
     /**
      * 追加直播图片
      *
+     * @param modelId
      * @param liveImageVo
      * @return
      */
     @Override
-    public Boolean appendLiveImage(String modelId, LiveImageVo liveImageVo) {
+    public Boolean operateLiveImage(String modelId, LiveImageVo liveImageVo) {
         try {
-            List<LiveImageVo> list;
+            List<LiveImageVo> imageList;
             ObjectMapper mapper = new ObjectMapper();
             Model model = super.getById(modelId);
+            // 取出原来的图片
             if (Objects.nonNull(model) && StrUtil.isNotEmpty(model.getImages())) {
-                list = mapper.readValue(model.getImages(), mapper.getTypeFactory().constructParametricType(List.class, LiveImageVo.class));
-                list.add(liveImageVo);
+                imageList = mapper.readValue(model.getImages(), mapper.getTypeFactory().constructParametricType(List.class, LiveImageVo.class));
             } else {
-                list = new ArrayList<>();
-                list.add(liveImageVo);
+                imageList = new ArrayList<>();
             }
+            String flag;
+            // 添加
+            if (StrUtil.isEmpty(liveImageVo.getKey())) {
+                flag = ",append";
+                liveImageVo.setKey(generateKey());
+                imageList.add(liveImageVo);
+            } else {
+                int index = -1;
+                for (int i = 0; i < imageList.size(); i ++) {
+                    if (liveImageVo.getKey().equals(imageList.get(i).getKey())) {
+                        index = i;
+                        break;
+                    }
+                }
+                if (index != -1) {
+                    if (StrUtil.isEmpty(liveImageVo.getUrl())) {
+                        // 删除
+                        flag = ",delete";
+                        imageList.remove(index);
+                    } else {
+                        // 修改
+                        flag = ",modify";
+                        imageList.set(index, liveImageVo);
+                    }
+                } else {
+                    return false;
+                }
+            }
+            // 更新模型
             Model image = new Model();
             image.setId(model.getId());
             image.setVersion(model.getVersion());
-            image.setImages(mapper.writeValueAsString(list));
+            image.setImages(mapper.writeValueAsString(imageList));
             if (super.updateById(image)) {
+                liveImageVo.setKey(liveImageVo.getKey() + flag);
                 rabbitTemplate.convertAndSend(RabbitMQLiveConfig.FANOUT_EXCHANGE_LIVE_IMAGE, RabbitMQLiveConfig.ROUTING_KEY_LIVE_IMAGE , liveImageVo);
                 return true;
             } else {
