@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQLiveConfig {
     public static final String FANOUT_EXCHANGE_LIVE_MESSAGE = "fanout-exchange-live-message";
-    public static final String FANOUT_EXCHANGE_LIVE_IMAGE = "fanout-exchange-image";
+    public static final String FANOUT_EXCHANGE_LIVE_IMAGE = "fanout-exchange-live-image";
 
     public static final String QUEUE_LIVE_MESSAGE = "queue-live-message";
     public static final String QUEUE_LIVE_IMAGE = "queue-live-image";

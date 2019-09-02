@@ -14,7 +14,7 @@ public class LiveMessageVo {
     /**
      * 类型(主持人、嘉宾)
      */
-    private String type;
+    private int type;
     /**
      * 消息
      */

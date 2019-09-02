@@ -172,10 +172,9 @@ public class ModelController extends BaseController {
     @ApiOperation(value="追加直播消息", notes="追加直播消息")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "modelId", value = "访谈模型编号", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "operate", value = "操作", required = true, dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "liveMessage", value = "消息对象", required = true, dataType = "LiveMessageVo", paramType = "query")
     })
-    public RestResult operateLiveMessage(String modelId, String operate, LiveMessageVo liveMessage) {
+    public RestResult operateLiveMessage(String modelId, LiveMessageVo liveMessage) {
         return RestResult.ok(modelService.operateLiveMessage(modelId, liveMessage));
     }
 
@@ -190,10 +189,9 @@ public class ModelController extends BaseController {
     @ApiOperation(value="追加直播图片", notes="追加直播图片")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "modelId", value = "访谈模型编号", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "operate", value = "操作", required = true, dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "liveImage", value = "消息对象", required = true, dataType = "LiveImageVo", paramType = "query")
     })
-    public RestResult operateLiveImage(String modelId, String operate, LiveImageVo liveImage) {
+    public RestResult operateLiveImage(String modelId, LiveImageVo liveImage) {
         return RestResult.ok(modelService.operateLiveImage(modelId, liveImage));
     }
 }
