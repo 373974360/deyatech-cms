@@ -17,7 +17,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    public static final String END_POINT = "/websocketlive";
+    public static final String END_POINT = "/websocket";
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {

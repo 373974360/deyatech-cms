@@ -74,6 +74,7 @@
                 and g.type_ = #{guest.type}
             </if>
         </if>
+        order by g.update_time desc
     </select>
 
 </mapper>
