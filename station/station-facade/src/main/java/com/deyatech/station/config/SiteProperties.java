@@ -21,64 +21,6 @@ public class SiteProperties {
     private String nginxConfigDir;
     private String nginxProxyPass;
 
-//    private Integer nginxPort;
     private String elasticSearchHostname;
     private Integer elasticSearchPort;
-//    private boolean debug = false;
-
-//    public String getElasticSearchHostname() {
-//        return elasticSearchHostname;
-//    }
-//
-//    public void setElasticSearchHostname(String elasticSearchHostname) {
-//        this.elasticSearchHostname = elasticSearchHostname;
-//    }
-//
-//    public Integer getElasticSearchPort() {
-//        return elasticSearchPort;
-//    }
-//
-//    public void setElasticSearchPort(Integer elasticSearchPort) {
-//        this.elasticSearchPort = elasticSearchPort;
-//    }
-//
-//    public boolean isDebug() {
-//        return debug;
-//    }
-//
-//    public void setDebug(boolean debug) {
-//        this.debug = debug;
-//    }
-//
-//    public String getHostsRoot() {
-//        return hostsRoot;
-//    }
-//
-//    public void setHostsRoot(String hostsRoot) {
-//        this.hostsRoot = hostsRoot;
-//    }
-//
-//    public String getNginxConfigDir() {
-//        return nginxConfigDir;
-//    }
-//
-//    public void setNginxConfigDir(String nginxConfigDir) {
-//        this.nginxConfigDir = nginxConfigDir;
-//    }
-//
-//    public Object getNginxPort() {
-//        return nginxPort;
-//    }
-//
-//    public void setNginxPort(Integer nginxPort) {
-//        this.nginxPort = nginxPort;
-//    }
-//
-//    public String getNginxProxyPass() {
-//        return nginxProxyPass;
-//    }
-//
-//    public void setNginxProxyPass(String nginxProxyPass) {
-//        this.nginxProxyPass = nginxProxyPass;
-//    }
 }
