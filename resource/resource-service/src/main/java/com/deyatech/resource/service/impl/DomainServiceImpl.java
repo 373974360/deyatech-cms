@@ -2,6 +2,7 @@ package com.deyatech.resource.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -349,9 +350,20 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
     private void reloadNginx() {
         BufferedReader br = null;
         try {
-            // TODO 本地测试
-            Process exec = Runtime.getRuntime().exec("C:/env/nginx-1.16.0/nginx_reload.bat");
-//            Process exec = Runtime.getRuntime().exec("nginx -s reload");
+            String osName = System.getProperty("os.name");
+            File file = null;
+            Process exec = null;
+            if(osName.toLowerCase().startsWith("win")){
+                file = ResourceUtils.getFile("classpath:reloadNginx.bat");
+                if(ObjectUtil.isNotNull(file)){
+                    exec = Runtime.getRuntime().exec(file.getPath());
+                }
+            }else{
+                file = ResourceUtils.getFile("classpath:reloadNginx.sh");
+                if(ObjectUtil.isNotNull(file)){
+                    exec = Runtime.getRuntime().exec("sh ".concat(file.getPath()));
+                }
+            }
             br = new BufferedReader(new InputStreamReader(exec.getInputStream()));
             String line = null;
             StringBuilder sb = new StringBuilder();
