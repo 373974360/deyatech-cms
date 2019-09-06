@@ -72,4 +72,43 @@
         order by st.update_time desc
     </select>
 
+
+
+    <select id="queryTemplateById" parameterType="java.lang.String"
+            resultType="com.deyatech.station.vo.TemplateVo">
+        select st.*, sm.name_ as contentModelName, sm.meta_data_collection_id as metaDataCollectionId,
+        smt.url_ as thumbnailUrl
+        from station_template st
+        left join station_model sm on st.content_model_id = sm.id_
+        left join station_material smt on st.thumbnail_ = smt.id_
+        where st.enable_ = 1 and st.id_ = #{id}
+        order by st.update_time desc
+    </select>
+
+
+
+
+    <select id="getTemplateListView" parameterType="map"
+            resultType="com.deyatech.station.vo.TemplateVo">
+        select st.*, sm.name_ as contentModelName, sm.meta_data_collection_id as metaDataCollectionId,
+        smt.url_ as thumbnailUrl
+        from station_template st
+        left join station_model sm on st.content_model_id = sm.id_
+        left join station_material smt on st.thumbnail_ = smt.id_
+        where st.enable_ = 1 and st.status_ = 2
+        <if test="map.title != null">
+            and (st.title_ like concat('%', #{map.title}, '%') or st.keyword_ like concat('%', #{map.title}, '%'))
+        </if>
+        <if test="map.siteId != null">
+            and st.site_id = #{map.siteId}
+        </if>
+        <if test="map.cmsCatalogId != null">
+            and st.cms_catalog_id in
+            <foreach collection="map.cmsCatalogId" index="index" item="id" separator="," close=")" open="(">
+                #{id}
+            </foreach>
+        </if>
+        order by st.resource_publication_date desc
+    </select>
+
 </mapper>

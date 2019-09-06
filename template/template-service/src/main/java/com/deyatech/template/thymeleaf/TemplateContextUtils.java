@@ -3,6 +3,7 @@ package com.deyatech.template.thymeleaf;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.station.feign.StationFeign;
 import com.deyatech.station.vo.TemplateVo;
+import com.deyatech.template.thymeleaf.tools.CatalogExpressionObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,8 @@ public class TemplateContextUtils {
     ThymeleafUtil thymeleafUtil;
     @Autowired
     StationFeign stationFeign;
+    @Autowired
+    CatalogExpressionObject catalogExpressionObject;
 
     /**
      * 内容页模板变量
@@ -31,7 +34,9 @@ public class TemplateContextUtils {
      */
     public Map<String, Object> contentPageVarMap(TemplateVo templateVo) {
         Map<String,Object> map = new HashMap<>();
-        map.put("site",stationFeign.getStationGroupById(templateVo.getSiteId()));
+        map.put("site",stationFeign.getStationGroupById(templateVo.getSiteId()).getData());
+        map.put("catalog",catalogExpressionObject.getCatalog(templateVo.getSiteId(),templateVo.getCmsCatalogId()));
+        map.put("infoData",templateVo);
         return map;
     }
 
@@ -63,7 +68,6 @@ public class TemplateContextUtils {
         }
         return result;
     }
-
     public RestResult getThyToStaticFile(String templateRootPath, String templatePath, Map<String, Object> models) {
         File distFile = null;
         try {

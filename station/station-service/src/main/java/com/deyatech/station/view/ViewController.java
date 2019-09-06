@@ -39,7 +39,7 @@ public class ViewController extends BaseController {
      *
      * @return
      */
-    @GetMapping(value = "/{siteId}", produces = {"text/html;charset=utf-8"})
+    @GetMapping(value = "/s/{siteId}", produces = {"text/html;charset=utf-8"})
     @ResponseBody
     public String index(@PathVariable("siteId")String siteId){
         StationGroup site = siteCache.getStationGroupById(siteId);
@@ -59,16 +59,21 @@ public class ViewController extends BaseController {
      * @param p 页码
      * @return
      */
-    @GetMapping(value = "/list", produces = {"text/html;charset=utf-8"})
+    @GetMapping(value = "/c/{siteId}")
     @ResponseBody
-    public String list(String c,String p){
-        Catalog catalog = catalogService.getById(c);
-        String siteId = catalog.getSiteId();
+    public String list(@PathVariable("siteId") String siteId,@RequestParam("namePath") String namePath,Integer p){
+        Catalog catalog = new Catalog();
+        catalog.setSiteId(siteId);
+        catalog.setPathName(namePath);
+        catalog = catalogService.getByBean(catalog);
+        if (catalog == null) {
+            return "栏目不存在";
+        }
         String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(siteId);
         Map<String,Object> varMap = new HashMap<>();
         varMap.put("site",siteCache.getStationGroupById(siteId));
         varMap.put("catalog",catalog);
-        varMap.put("p",p);
+        varMap.put("p",p==null||p<=0?1:p);
         return templateFeign.thyToString(siteTemplateRoot,catalog.getListTemplate(),varMap).getData();
     }
 }

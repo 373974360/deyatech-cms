@@ -8,17 +8,22 @@ import cn.hutool.http.HttpStatus;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.admin.vo.MetadataCollectionVo;
 import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.content.entity.ReviewProcess;
 import com.deyatech.content.feign.ContentFeign;
+import com.deyatech.station.cache.SiteCache;
+import com.deyatech.station.entity.ModelTemplate;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.entity.Template;
 import com.deyatech.station.service.CatalogService;
 import com.deyatech.station.service.ModelService;
+import com.deyatech.station.vo.CatalogVo;
+import com.deyatech.station.vo.ModelTemplateVo;
 import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.station.mapper.TemplateMapper;
 import com.deyatech.station.service.TemplateService;
@@ -62,6 +67,10 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     private WorkflowFeign workflowFeign;
     @Autowired
     private AdminFeign adminFeign;
+    @Autowired
+    private ModelTemplateServiceImpl modelTemplateService;
+    @Autowired
+    private SiteCache siteCache;
 
     /**
      * 单个将对象转换为vo内容模板
@@ -71,8 +80,25 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
      */
     @Override
     public TemplateVo setVoProperties(Template template){
-        TemplateVo templateVo = new TemplateVo();
+        TemplateVo templateVo = templateMapper.queryTemplateById(template.getId());
         BeanUtil.copyProperties(template, templateVo);
+
+        // 查询元数据结构
+        MetadataCollectionVo metadataCollectionVo = new MetadataCollectionVo();
+        metadataCollectionVo.setId(templateVo.getMetaDataCollectionId());
+        List<MetadataCollectionVo> metadataCollectionVoList = adminFeign.findAllData(metadataCollectionVo).getData();
+        templateVo.setMetadataCollectionVo(metadataCollectionVoList.get(0));
+        // 查询元数据记录信息
+        Map content = adminFeign.getMetadataById(templateVo.getMetaDataCollectionId(), templateVo.getContentId()).getData();
+        templateVo.setContent(content);
+
+        //  查询模板配置
+        ModelTemplate mt = new ModelTemplate();
+        mt.setCmsCatalogId(templateVo.getCmsCatalogId());
+        mt.setContentModelId(templateVo.getContentModelId());
+        mt.setSiteId(templateVo.getSiteId());
+        ModelTemplate modelTemplate = modelTemplateService.getByBean(mt);
+        templateVo.setTemplatePath(modelTemplate.getTemplatePath());
         return templateVo;
     }
 
@@ -295,7 +321,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         }
         return true;
     }
-
     /**
      * 分页查询
      * @param entity
@@ -304,5 +329,79 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     @Override
     public IPage<TemplateVo> pageByTemplate(Template entity) {
         return templateMapper.pageByTemplate(getPageByBean(entity), entity);
+    }
+
+
+
+
+    /************************************************************************************************
+     *
+     *                                      以下为网站前台调用接口
+     *
+     * **********************************************************************************************/
+    /**
+     * 分页查询
+     * @param maps
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @Override
+    public IPage<TemplateVo> getTemplateListView(Map<String, Object> maps, Integer page, Integer pageSize) {
+        Page<Template> pages = getPageByBean(new Template());
+        pages.setCurrent(page);
+        pages.setSize(pageSize);
+        if(maps.containsKey("catId")){
+            List<String> cmsCatalogId = new ArrayList<>();
+            String catIds = maps.get("catId").toString();
+            String[] temp = catIds.split(",");
+            for(String catId:temp){
+                Collection<CatalogVo> catalogVos = getCatalogChildrenTree(maps.get("siteId").toString(),catId);
+                cmsCatalogId.add(catId);
+                cmsCatalogId = getCatalogChildrenIds(catalogVos,cmsCatalogId);
+            }
+            System.out.println(cmsCatalogId);
+            maps.put("cmsCatalogId",cmsCatalogId);
+        }
+        return templateMapper.getTemplateListView(pages,maps);
+    }
+
+
+
+    /**
+     * 根据条件获取站点栏目
+     * @param siteId 站点ID
+     * @param parentId 父节点ID
+     * @return
+     */
+    public Collection<CatalogVo> getCatalogChildrenTree(String siteId,String parentId) {
+        Collection<CatalogVo> catalogVoCollection = siteCache.getCatalogTreeBySiteId(siteId);
+        Collection<CatalogVo> reslut = CollectionUtil.newArrayList();
+        return getCatalogChildrenTree(catalogVoCollection,reslut,parentId);
+    }
+    public Collection<CatalogVo> getCatalogChildrenTree(Collection<CatalogVo> catalogVoCollection,Collection<CatalogVo> reslut,String parentId){
+        if(parentId.equals("0")){
+            return catalogVoCollection;
+        }
+        for(CatalogVo catalogVo:catalogVoCollection){
+            if(catalogVo.getId().equals(parentId)){
+                reslut = catalogVo.getChildren();
+                break;
+            }else if(CollectionUtil.isNotEmpty(catalogVo.getChildren())){
+                reslut = getCatalogChildrenTree(catalogVo.getChildren(),reslut,parentId);
+            }
+        }
+        return reslut;
+    }
+    public List<String> getCatalogChildrenIds(Collection<CatalogVo> catalogVos,List<String> ids){
+        if(!catalogVos.isEmpty()){
+            for(CatalogVo catalogVo:catalogVos){
+                ids.add(catalogVo.getId());
+                if(CollectionUtil.isNotEmpty(catalogVo.getChildren())){
+                    ids = getCatalogChildrenIds(catalogVo.getChildren(),ids);
+                }
+            }
+        }
+        return ids;
     }
 }
