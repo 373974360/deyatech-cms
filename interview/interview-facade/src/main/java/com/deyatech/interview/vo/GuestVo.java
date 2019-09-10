@@ -26,4 +26,9 @@ public class GuestVo extends Guest {
      */
     @ApiModelProperty(value = "模型名称", dataType = "String")
     private String modelName;
+
+    /**
+     * 部门树结构索引位置
+     */
+    private String departmentTreePosition;
 }
