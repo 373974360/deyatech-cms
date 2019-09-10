@@ -4,8 +4,10 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
@@ -32,15 +34,12 @@ public class ZipUtil {
 	 */
 	private static List<File> getAllFiles(File srcFile) {
 		List<File> fileList = new ArrayList<File>();
-		File[]     tmp      = srcFile.listFiles();
-
+		File[] tmp = srcFile.listFiles();
 		for (int i = 0; i < tmp.length; i++) {
-
 			if (tmp[i].isFile()) {
 				fileList.add(tmp[i]);
 				System.out.println("add file: "+tmp[i].getName());
 			}
-
 			if (tmp[i].isDirectory()) {
 				if (tmp[i].listFiles().length!=0) {//若不是空目录，则递归添加其下的目录和文件
 					fileList.addAll(getAllFiles(tmp[i]));
@@ -50,7 +49,6 @@ public class ZipUtil {
 				}
 			}
 		}    // end for
-
 		return fileList;
 	}
 
@@ -64,23 +62,19 @@ public class ZipUtil {
 	 * @return 相对路径
 	 */
 	private static String getRelativePath(String dirPath, File file) {
-		File   dir          = new File(dirPath);
+		File dir = new File(dirPath);
 		String relativePath = file.getName();
-
 		while (true) {
 			file = file.getParentFile();
-
 			if (file == null) {
 				break;
 			}
-
 			if (file.equals(dir)) {
 				break;
 			} else {
 				relativePath = file.getName() + "/" + relativePath;
 			}
 		}    // end while
-
 		return relativePath;
 	}
 
@@ -97,29 +91,23 @@ public class ZipUtil {
 	 */
 	private static File createFile(String dstPath, String fileName) throws IOException {
 		String[] dirs = fileName.split("/");//将文件名的各级目录分解
-		File     file = new File(dstPath);
-
+		File file = new File(dstPath);
 		if (dirs.length > 1) {//文件有上级目录
 			for (int i = 0; i < dirs.length - 1; i++) {
 				file = new File(file, dirs[i]);//依次创建文件对象知道文件的上一级目录
 			}
-
 			if (!file.exists()) {
 				file.mkdirs();//文件对应目录若不存在，则创建
 				System.out.println("mkdirs: " + file.getCanonicalPath());
 			}
-
 			file = new File(file, dirs[dirs.length - 1]);//创建文件
-
 			return file;
 		} else {
 			if (!file.exists()) {
 				file.mkdirs();//若目标路径的目录不存在，则创建
 				System.out.println("mkdirs: " + file.getCanonicalPath());
 			}
-
 			file = new File(file, dirs[0]);//创建文件
-
 			return file;
 		}
 	}
@@ -135,35 +123,26 @@ public class ZipUtil {
 	 */
 	public static boolean unzip(String zipFileName, String dstPath) {
 		System.out.println("zip uncompressing...");
-
 		try {
 			ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zipFileName));
-			ZipEntry zipEntry       = null;
-			byte[]         buffer         = new byte[BUFFER];//缓冲器
-			int            readLength     = 0;//每次读出来的长度
-
+			ZipEntry zipEntry = null;
+			byte[] buffer = new byte[BUFFER];//缓冲器
+			int readLength = 0;//每次读出来的长度
 			while ((zipEntry = zipInputStream.getNextEntry()) != null) {
 				if (zipEntry.isDirectory()) {//若是zip条目目录，则需创建这个目录
 					File dir = new File(dstPath + "/" + zipEntry.getName());
-
 					if (!dir.exists()) {
 						dir.mkdirs();
 						System.out.println("mkdirs: " + dir.getCanonicalPath());
-
-						continue;//跳出
 					}
+					continue;//跳出
 				}
-
 				File file = createFile(dstPath, zipEntry.getName());//若是文件，则需创建该文件
-
 				System.out.println("file created: " + file.getCanonicalPath());
-
-				OutputStream outputStream = new FileOutputStream(file);
-
+				OutputStream outputStream = new FileOutputStream(file,true);
 				while ((readLength = zipInputStream.read(buffer, 0, BUFFER)) != -1) {
 					outputStream.write(buffer, 0, readLength);
 				}
-
 				outputStream.close();
 				System.out.println("file uncompressed: " + file.getCanonicalPath());
 			}    // end while
@@ -171,19 +150,34 @@ public class ZipUtil {
 			System.out.println(e.getMessage());
 			e.printStackTrace();
 			System.out.println("unzip fail!");
-
 			return false;
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
 			e.printStackTrace();
 			System.out.println("unzip fail!");
-
 			return false;
 		}
-
 		System.out.println("unzip success!");
-
 		return true;
+	}
+
+	public static void readContentFromZipFile(String zipFilePath,String dstPath) {
+		try {
+			ZipFile zipFile = new ZipFile(zipFilePath);
+			Enumeration<? extends ZipEntry> entries = zipFile.entries();
+			while (entries.hasMoreElements()) {
+				ZipEntry entry = entries.nextElement();
+				String name = entry.getName();
+				long compressedSize = entry.getCompressedSize();
+				long normalSize = entry.getSize();
+				String type = entry.isDirectory() ? "DIR" : "FILE";
+				System.out.println(dstPath + "/" + name);
+				System.out.format("\t %s - %d - %d\n", type, compressedSize, normalSize);
+			}
+			zipFile.close();
+		} catch (IOException ex){
+			ex.printStackTrace();
+		}
 	}
 
 	/**
@@ -196,29 +190,23 @@ public class ZipUtil {
 	 */
 	public static boolean zip(String srcPath, String zipFileName) {
 		System.out.println("zip compressing...");
-
-		File       srcFile    = new File(srcPath);
-		List<File> fileList   = getAllFiles(srcFile);//所有要压缩的文件
-		byte[]     buffer     = new byte[BUFFER];//缓冲器
-		ZipEntry   zipEntry   = null;
-		int        readLength = 0;//每次读出来的长度
-
+		File  srcFile  = new File(srcPath);
+		List<File> fileList = getAllFiles(srcFile);//所有要压缩的文件
+		byte[] buffer = new byte[BUFFER];//缓冲器
+		ZipEntry zipEntry = null;
+		int readLength = 0;//每次读出来的长度
 		try {
 			ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(zipFileName));
-
 			for (File file : fileList) {
 				if (file.isFile()){//若是文件，则压缩这个文件
 					zipEntry = new ZipEntry(getRelativePath(srcPath, file));
 					zipEntry.setSize(file.length());
 					zipEntry.setTime(file.lastModified());
 					zipOutputStream.putNextEntry(zipEntry);
-
 					InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
-
 					while ((readLength = inputStream.read(buffer, 0, BUFFER)) != -1) {
 						zipOutputStream.write(buffer, 0, readLength);
 					}
-
 					inputStream.close();
 					System.out.println("file compressed: " + file.getCanonicalPath());
 				}else {//若是目录（即空目录）则将这个目录写入zip条目
@@ -226,26 +214,20 @@ public class ZipUtil {
 					zipOutputStream.putNextEntry(zipEntry);
 					System.out.println("dir compressed: " + file.getCanonicalPath()+"/");
 				}
-
 			}    // end for
-
 			zipOutputStream.close();
 		} catch (FileNotFoundException e) {
 			System.out.println(e.getMessage());
 			e.printStackTrace();
 			System.out.println("zip fail!");
-
 			return false;
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
 			e.printStackTrace();
 			System.out.println("zip fail!");
-
 			return false;
 		}
-
 		System.out.println("zip success!");
-
 		return true;
 	}
 
@@ -257,7 +239,6 @@ public class ZipUtil {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 		unzip("D:/temp.rar", "E:/uploadFiles");
 	}
 
