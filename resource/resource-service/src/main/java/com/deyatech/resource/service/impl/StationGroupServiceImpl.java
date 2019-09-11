@@ -1,12 +1,17 @@
 package com.deyatech.resource.service.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.deyatech.common.Constants;
 import com.deyatech.common.enums.EnableEnum;
 import com.deyatech.resource.entity.StationGroup;
+import com.deyatech.resource.entity.StationGroupClassification;
 import com.deyatech.resource.service.DomainService;
 import com.deyatech.resource.service.SettingService;
+import com.deyatech.resource.service.StationGroupClassificationService;
+import com.deyatech.resource.vo.StationGroupClassificationVo;
 import com.deyatech.resource.vo.StationGroupVo;
 import com.deyatech.resource.mapper.StationGroupMapper;
 import com.deyatech.resource.service.StationGroupService;
@@ -18,10 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * <p>
@@ -39,6 +41,100 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
 
     @Autowired
     SettingService settingService;
+
+    @Autowired
+    StationGroupClassificationService classificationService;
+
+
+
+    /**
+     * 根据StationGroupClassification对象属性检索的tree对象
+     *
+     * @param classification
+     * @return
+     */
+    @Override
+    public Collection<StationGroupClassificationVo> getClassificationStationTree(StationGroupClassification classification) {
+        classification.setSortSql("sortNo asc");
+        List<StationGroupClassificationVo> classificationList = classificationService.setVoProperties(classificationService.listByBean(classification));
+        List<StationGroupClassificationVo> rootClassificationList = CollectionUtil.newArrayList();
+        if (CollectionUtil.isNotEmpty(classificationList)) {
+            // 构建树
+            for (StationGroupClassificationVo stationGroupClassificationVo : classificationList) {
+                stationGroupClassificationVo.setLabel(stationGroupClassificationVo.getName());
+                if(StrUtil.isNotBlank(stationGroupClassificationVo.getTreePosition())){
+                    String[] split = stationGroupClassificationVo.getTreePosition().split(Constants.DEFAULT_TREE_POSITION_SPLIT);
+                    stationGroupClassificationVo.setLevel(split.length);
+                }else{
+                    stationGroupClassificationVo.setLevel(Constants.DEFAULT_ROOT_LEVEL);
+                }
+                if (ObjectUtil.equal(stationGroupClassificationVo.getParentId(), Constants.ZERO)) {
+                    rootClassificationList.add(stationGroupClassificationVo);
+                }
+                for (StationGroupClassificationVo childVo : classificationList) {
+                    if (ObjectUtil.equal(childVo.getParentId(), stationGroupClassificationVo.getId())) {
+                        if (ObjectUtil.isNull(stationGroupClassificationVo.getChildren())) {
+                            List<StationGroupClassificationVo> children = CollectionUtil.newArrayList();
+                            children.add(childVo);
+                            stationGroupClassificationVo.setChildren(children);
+                        } else {
+                            stationGroupClassificationVo.getChildren().add(childVo);
+                        }
+                    }
+                }
+            }
+
+            // 添加站群
+            List<StationGroupClassificationVo> childrenList = CollectionUtil.newArrayList();
+            for (StationGroupClassificationVo node : rootClassificationList) {
+                addNode(childrenList, node);
+            }
+            rootClassificationList = childrenList;
+        }
+        return rootClassificationList;
+    }
+
+    private void addNode(List<StationGroupClassificationVo> childrenList, StationGroupClassificationVo childrenNode) {
+        if (CollectionUtil.isNotEmpty(childrenNode.getChildren())) {
+            List<StationGroupClassificationVo> subList = CollectionUtil.newArrayList();
+            for (StationGroupClassificationVo subNode : childrenNode.getChildren()) {
+                addNode(subList, subNode);
+            }
+            if (subList.size() > 0) {
+                childrenNode.setChildren(subList);
+                childrenList.add(childrenNode);
+            }
+        // 叶子结点
+        } else {
+            List<StationGroupClassificationVo> stationGroupList = getStationGroupList(childrenNode);
+            // 有站群则添加该结点
+            if (CollectionUtil.isNotEmpty(stationGroupList)) {
+                childrenNode.setChildren(stationGroupList);
+                childrenList.add(childrenNode);
+            }
+        }
+
+    }
+
+    private List<StationGroupClassificationVo> getStationGroupList(StationGroupClassificationVo node) {
+        StationGroupVo stationGroupVo = new StationGroupVo();
+        stationGroupVo.setStationGroupClassificationId(node.getId());
+        Collection<StationGroupVo> stationGroupVos = listSelectByStationGroupVo(stationGroupVo);
+        if (CollectionUtil.isNotEmpty(stationGroupVos)) {
+            List<StationGroupClassificationVo> children = CollectionUtil.newArrayList();
+            for (StationGroupVo station : stationGroupVos) {
+                StationGroupClassificationVo c = new StationGroupClassificationVo();
+                c.setId(station.getId());
+                c.setName(station.getName());
+                c.setLabel(station.getName());
+                c.setLevel(node.getLevel() + 1);
+                c.setTreePosition(node.getTreePosition() + '&' + station.getId());
+                children.add(c);
+            }
+            return children;
+        }
+        return null;
+    }
 
     /**
      * 单个将对象转换为vo站群
