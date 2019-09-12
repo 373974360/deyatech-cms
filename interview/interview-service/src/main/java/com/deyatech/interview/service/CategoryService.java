@@ -40,4 +40,12 @@ public interface CategoryService extends BaseService<Category> {
      * @return
      */
     IPage<CategoryVo> pageByNameAndSiteId(Category category);
+
+    /**
+     * 检索访谈分类根据名称和站点
+     *
+     * @param category
+     * @return
+     */
+    List<CategoryVo> listByNameAndSiteId(Category category);
 }

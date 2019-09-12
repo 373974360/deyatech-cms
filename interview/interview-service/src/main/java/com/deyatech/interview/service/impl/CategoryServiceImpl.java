@@ -65,4 +65,15 @@ public class CategoryServiceImpl extends BaseServiceImpl<CategoryMapper, Categor
     public IPage<CategoryVo> pageByNameAndSiteId(Category category) {
         return baseMapper.pageByNameAndSiteId(getPageByBean(category), category);
     }
+
+    /**
+     * 检索访谈分类根据名称和站点
+     *
+     * @param category
+     * @return
+     */
+    @Override
+    public List<CategoryVo> listByNameAndSiteId(Category category) {
+        return baseMapper.listByNameAndSiteId(category);
+    }
 }

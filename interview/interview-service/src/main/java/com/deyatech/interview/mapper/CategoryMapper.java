@@ -6,6 +6,8 @@ import com.deyatech.common.base.BaseMapper;
 import com.deyatech.interview.vo.CategoryVo;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 /**
  * <p>
  * 访谈分类 Mapper 接口
@@ -24,4 +26,12 @@ public interface CategoryMapper extends BaseMapper<Category> {
      * @return
      */
     IPage<CategoryVo> pageByNameAndSiteId(@Param("page") IPage<Category> page, @Param("category") Category category);
+
+    /**
+     * 检索访谈分类根据名称和站点
+     *
+     * @param category
+     * @return
+     */
+    List<CategoryVo> listByNameAndSiteId(@Param("category") Category category);
 }
