@@ -63,4 +63,18 @@ public interface CatalogService extends BaseService<Catalog> {
      * @return
      */
     boolean existsEname(Catalog catalog);
+
+    /**
+     * 保存或更新
+     * @param entity
+     * @return
+     */
+    boolean saveOrUpdate(CatalogVo entity);
+
+    /**
+     * 根据id批量删除
+     * @param idList
+     * @return
+     */
+    boolean removeByIds(List<String> idList);
 }
