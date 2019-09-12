@@ -18,6 +18,7 @@
         <result column="description_" property="description" />
         <result column="sort_no" property="sortNo" />
         <result column="station_group_classification_id" property="stationGroupClassificationId" />
+        <result column="department_id" property="departmentId" />
     </resultMap>
 
     <resultMap id="StationGroupVoResultMap" type="com.deyatech.resource.vo.StationGroupVo">
@@ -37,6 +38,9 @@
         <result column="station_group_classification_id" property="stationGroupClassificationId" />
         <result column="station_group_classification_name" property="stationGroupClassificationName" />
         <result column="station_group_classification_tree_position" property="stationGroupClassificationTreePosition" />
+        <result column="department_id" property="departmentId" />
+        <result column="department_name" property="departmentName" />
+        <result column="department_tree_position" property="departmentTreePosition" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
@@ -49,7 +53,7 @@
         update_by,
         update_time,
         version_,
-        name_, english_name, abbreviation_, description_, sort_no, station_group_classification_id
+        name_, english_name, abbreviation_, description_, sort_no, station_group_classification_id, department_id
     </sql>
 
     <!--根据分类编号统计站群个数-->
@@ -82,13 +86,20 @@
         s.sort_no,
         s.station_group_classification_id,
         c.name_ as station_group_classification_name,
-        c.tree_position as station_group_classification_tree_position
+        c.tree_position as station_group_classification_tree_position,
+        s.department_id,
+        d.name_ as department_name,
+        d.tree_position as department_tree_position
         from resource_station_group s
              join resource_station_group_classification c on c.enable_ = 1 and s.station_group_classification_id = c.id_
+             join admin_department d on d.enable_ = 1 and s.department_id = d.id_
         where s.enable_ != -1
         <if test="stationGroupVo != null">
             <if test="stationGroupVo.stationGroupClassificationId != null and stationGroupVo.stationGroupClassificationId !=''">
             and s.station_group_classification_id = #{stationGroupVo.stationGroupClassificationId}
+            </if>
+            <if test="stationGroupVo.departmentId != null and stationGroupVo.departmentId !=''">
+                and s.department_id = #{stationGroupVo.departmentId}
             </if>
             <if test="stationGroupVo.name != null and stationGroupVo.name !=''">
             and ( s.name_ like concat('%',#{stationGroupVo.name},'%') or s.english_name like concat('%',#{stationGroupVo.name},'%') or s.abbreviation_ like concat('%',#{stationGroupVo.name},'%') )
@@ -115,13 +126,20 @@
         s.sort_no,
         s.station_group_classification_id,
         c.name_ as station_group_classification_name,
-        c.tree_position as station_group_classification_tree_position
+        c.tree_position as station_group_classification_tree_position,
+        s.department_id,
+        d.name_ as department_name,
+        d.tree_position as department_tree_position
         from resource_station_group s
-        join resource_station_group_classification c on c.enable_ = 1 and s.station_group_classification_id = c.id_
+             join resource_station_group_classification c on c.enable_ = 1 and s.station_group_classification_id = c.id_
+             join admin_department d on d.enable_ = 1 and s.department_id = d.id_
         where s.enable_ != -1
         <if test="stationGroupVo != null">
             <if test="stationGroupVo.stationGroupClassificationId != null and stationGroupVo.stationGroupClassificationId !=''">
                 and s.station_group_classification_id = #{stationGroupVo.stationGroupClassificationId}
+            </if>
+            <if test="stationGroupVo.departmentId != null and stationGroupVo.departmentId !=''">
+                and s.department_id = #{stationGroupVo.departmentId}
             </if>
             <if test="stationGroupVo.name != null and stationGroupVo.name !=''">
                 and ( s.name_ like concat('%',#{stationGroupVo.name},'%') or s.english_name like concat('%',#{stationGroupVo.name},'%') or s.abbreviation_ like concat('%',#{stationGroupVo.name},'%') )
