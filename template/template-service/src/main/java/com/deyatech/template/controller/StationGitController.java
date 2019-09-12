@@ -262,13 +262,21 @@ public class StationGitController extends BaseController {
             @ApiImplicitParam(name = "fileName", value = "文件名称", required = true, dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "siteId", value = "站点ID", required = true, dataType = "String", paramType = "query")
     })
-    public RestResult unzip(String filePath,String siteId) {
+    public RestResult unzip(String filePath,String dirPath,String fileName,String siteId) {
         String dir = stationFeign.getStationGroupTemplatePathBySiteId(siteId).getData();
-        File local = new File(dir);
+        //File local = new File(dir);
         File file = new File(filePath);
+        String extName = filePath.substring(filePath.lastIndexOf(".")+1);
         try {
-            FileUtils.deleteDirectory(local);
-            ZipUtil.unzip(filePath,dir);
+            if(extName.equals("zip")){
+                //FileUtils.deleteDirectory(local);
+                ZipUtil.unzip(filePath,dir);
+            }else{
+                if(StringUtils.isEmpty(dirPath)){
+                    dirPath = dir;
+                }
+                FileUtils.copyFile(file,new File(dirPath + "/" + fileName));
+            }
             FileUtils.deleteQuietly(file);
         }catch (Exception e){
             e.printStackTrace();

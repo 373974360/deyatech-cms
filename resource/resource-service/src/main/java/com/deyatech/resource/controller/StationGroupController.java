@@ -3,10 +3,14 @@ package com.deyatech.resource.controller;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseController;
+import com.deyatech.common.entity.CascaderResult;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.enums.EnableEnum;
+import com.deyatech.common.utils.CascaderUtil;
 import com.deyatech.resource.entity.StationGroup;
+import com.deyatech.resource.entity.StationGroupClassification;
 import com.deyatech.resource.service.StationGroupService;
+import com.deyatech.resource.vo.StationGroupClassificationVo;
 import com.deyatech.resource.vo.StationGroupVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -32,6 +36,22 @@ import java.util.*;
 public class StationGroupController extends BaseController {
     @Autowired
     StationGroupService stationGroupService;
+
+    /**
+     * 获取的级联对象
+     *
+     * @param stationGroupClassification
+     * @return
+     */
+    @GetMapping("/getClassificationStationCascader")
+    @ApiOperation(value="获取的级联对象", notes="获取的级联对象")
+    @ApiImplicitParam(name = "stationGroupClassification", value = "stationGroupClassification", required = false, dataType = "StationGroupClassification", paramType = "query")
+    public RestResult<List<CascaderResult>> getCascader(StationGroupClassification stationGroupClassification) {
+        Collection<StationGroupClassificationVo> stationGroupClassificationVos = stationGroupService.getClassificationStationTree(stationGroupClassification);
+        List<CascaderResult> cascaderResults = CascaderUtil.getResult("Id", "Name","TreePosition", stationGroupClassification.getId(), stationGroupClassificationVos);
+        log.info(String.format("获取的级联对象: %s ",JSONUtil.toJsonStr(cascaderResults)));
+        return RestResult.ok(cascaderResults);
+    }
 
     /**
      * 单个保存或者更新站群

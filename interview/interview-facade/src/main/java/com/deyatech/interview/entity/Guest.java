@@ -1,5 +1,6 @@
 package com.deyatech.interview.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.deyatech.common.base.BaseEntity;
@@ -43,4 +44,11 @@ public class Guest extends BaseEntity {
     @TableField("type_")
     private Integer type;
 
+    @ApiModelProperty(value = "部门编号", dataType = "String")
+    @TableField(value = "department_id", strategy= FieldStrategy.IGNORED)
+    private String departmentId;
+
+    @ApiModelProperty(value = "部门名称", dataType = "String")
+    @TableField(value = "department_name", strategy= FieldStrategy.IGNORED)
+    private String departmentName;
 }
