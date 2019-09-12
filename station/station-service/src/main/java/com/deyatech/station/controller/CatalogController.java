@@ -39,15 +39,15 @@ public class CatalogController extends BaseController {
     /**
      * 单个保存或者更新栏目
      *
-     * @param catalog
+     * @param catalogVo
      * @return
      */
     @PostMapping("/saveOrUpdate")
     @ApiOperation(value="单个保存或者更新栏目", notes="根据栏目对象保存或者更新栏目信息")
-    @ApiImplicitParam(name = "catalog", value = "栏目对象", required = true, dataType = "Catalog", paramType = "query")
-    public RestResult<Boolean> saveOrUpdate(Catalog catalog) {
-        log.info(String.format("保存或者更新栏目: %s ", JSONUtil.toJsonStr(catalog)));
-        boolean result = catalogService.saveOrUpdate(catalog);
+    @ApiImplicitParam(name = "catalogVo", value = "栏目扩展对象", required = true, dataType = "CatalogVo", paramType = "query")
+    public RestResult<Boolean> saveOrUpdate(CatalogVo catalogVo) {
+        log.info(String.format("保存或者更新栏目: %s ", JSONUtil.toJsonStr(catalogVo)));
+        boolean result = catalogService.saveOrUpdate(catalogVo);
         return RestResult.ok(result);
     }
 

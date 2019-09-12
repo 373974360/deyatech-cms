@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.station.mapper.CatalogAggregationMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.deyatech.station.entity.CatalogAggregation">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="cms_catalog_id" property="cmsCatalogId" />
+        <result column="keyword_" property="keyword" />
+        <result column="publish_organization" property="publishOrganization" />
+        <result column="publish_time" property="publishTime" />
+        <result column="publisher" property="publisher" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id_,
+        enable_,
+        remark_,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        version_,
+        cms_catalog_id, keyword_, publish_organization, publish_time, publisher
+    </sql>
+
+</mapper>
