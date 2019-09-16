@@ -15,4 +15,36 @@
         station_group_id, user_id
     </sql>
 
+    <!--所有用户信息-->
+    <select id="pageByStationGroupUserVo" resultType="com.deyatech.resource.vo.StationGroupUserVo">
+        SELECT
+        au.id_ AS id,
+        au.id_ AS userId,
+        au.name_ AS name,
+        au.gender_ AS gender,
+        au.account_ AS account,
+        ad.id_ AS departmentId,
+        ad.name_ AS departmentName
+        FROM admin_user au
+        <if test="stationGroupUserVo != null">
+            <if test="stationGroupUserVo.stationGroupId != null and stationGroupUserVo.stationGroupId != ''">
+                JOIN resource_station_group_user asgu ON au.id_ = asgu.user_id
+            </if>
+        </if>
+        LEFT JOIN admin_department ad ON au.department_id = ad.id_
+        WHERE au.enable_ = 1
+        <if test="stationGroupUserVo != null">
+            <if test="stationGroupUserVo.name != null and stationGroupUserVo.name != ''">
+                and (au.name_ like concat('%', #{stationGroupUserVo.name}, '%') or au.account_ like concat('%', #{stationGroupUserVo.name}, '%'))
+            </if>
+            <if test="stationGroupUserVo.departmentId != null and stationGroupUserVo.departmentId != ''">
+                and au.department_id = #{stationGroupUserVo.departmentId}
+            </if>
+            <if test="stationGroupUserVo.stationGroupId != null and stationGroupUserVo.stationGroupId != ''">
+                and asgu.station_group_id = #{stationGroupUserVo.stationGroupId}
+            </if>
+        </if>
+        order by au.update_time desc
+    </select>
+
 </mapper>

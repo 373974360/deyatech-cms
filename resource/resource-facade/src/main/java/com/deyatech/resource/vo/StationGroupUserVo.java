@@ -20,4 +20,33 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @ApiModel(value = "站群用户关联扩展对象", description = "站群用户关联扩展对象", parent = StationGroupUser.class)
 public class StationGroupUserVo extends StationGroupUser {
+    /**
+     * 用户姓名
+     */
+    private String name;
+
+    /**
+     * 部门id
+     */
+    private String departmentId;
+
+    /**
+     * 部门名称
+     */
+    private String departmentName;
+
+    /**
+     * 用户性别
+     */
+    private Integer gender;
+
+    /**
+     * 用户工号
+     */
+    private String empNo;
+
+    /**
+     * 用户登录账号
+     */
+    private String account;
 }
