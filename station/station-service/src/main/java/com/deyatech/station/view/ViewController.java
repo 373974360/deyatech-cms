@@ -5,7 +5,10 @@ import com.deyatech.common.base.BaseController;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.entity.Catalog;
+import com.deyatech.station.entity.Template;
 import com.deyatech.station.service.CatalogService;
+import com.deyatech.station.service.TemplateService;
+import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.template.feign.TemplateFeign;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -29,10 +32,37 @@ public class ViewController extends BaseController {
     SiteCache siteCache;
     @Autowired
     CatalogService catalogService;
+    @Autowired
+    TemplateService templateService;
     /**
      * 静态页面后缀
      */
     public static final String TEMPLATE_DEFAULT_INDEX = "/index.html";
+
+
+    /**
+     * 动态内容页
+     *
+     * @param siteId
+     * @param id
+     * @return
+     */
+    @GetMapping(value = "/m/{siteId}/{id}", produces = {"text/html;charset=utf-8"})
+    @ResponseBody
+    public String contentPage(@PathVariable("siteId") String siteId, @PathVariable("id") String id) {
+        Template template = templateService.getById(id);
+        if (template == null) {
+            return "查询不到 ContentTemplate";
+        }
+        String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(siteId);
+        Catalog catalog = catalogService.getById(template.getCmsCatalogId());
+        Map<String,Object> varMap = new HashMap<>();
+        TemplateVo templateVo = templateService.setVoProperties(template);
+        varMap.put("site",siteCache.getStationGroupById(siteId));
+        varMap.put("infoData",templateVo);
+        varMap.put("catalog",catalog);
+        return templateFeign.thyToString(siteTemplateRoot,templateVo.getTemplatePath(),varMap).getData();
+    }
 
     /**
      * 动态首页
@@ -55,7 +85,6 @@ public class ViewController extends BaseController {
 
     /**
      * 动态栏目页
-     * @param c 栏目ID
      * @param p 页码
      * @return
      */
