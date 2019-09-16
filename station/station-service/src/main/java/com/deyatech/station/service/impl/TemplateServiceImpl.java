@@ -115,14 +115,19 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             for (Object template : templates) {
                 TemplateVo templateVo = new TemplateVo();
                 BeanUtil.copyProperties(template, templateVo);
-                // 查询元数据结构
-                MetadataCollectionVo metadataCollectionVo = new MetadataCollectionVo();
-                metadataCollectionVo.setId(templateVo.getMetaDataCollectionId());
-                List<MetadataCollectionVo> metadataCollectionVoList = adminFeign.findAllData(metadataCollectionVo).getData();
-                templateVo.setMetadataCollectionVo(metadataCollectionVoList.get(0));
-                // 查询元数据记录信息
-                Map content = adminFeign.getMetadataById(templateVo.getMetaDataCollectionId(), templateVo.getContentId()).getData();
-                templateVo.setContent(content);
+                if (StrUtil.isNotEmpty(templateVo.getMetaDataCollectionId())){
+                    // 查询元数据结构
+                    MetadataCollectionVo metadataCollectionVo = new MetadataCollectionVo();
+                    metadataCollectionVo.setId(templateVo.getMetaDataCollectionId());
+                    List<MetadataCollectionVo> metadataCollectionVoList = adminFeign.findAllData(metadataCollectionVo).getData();
+                    templateVo.setMetadataCollectionVo(metadataCollectionVoList.get(0));
+                }
+                if (StrUtil.isNotEmpty(templateVo.getMetaDataCollectionId())
+                        && StrUtil.isNotEmpty(templateVo.getContentId())) {
+                    // 查询元数据记录信息
+                    Map content = adminFeign.getMetadataById(templateVo.getMetaDataCollectionId(), templateVo.getContentId()).getData();
+                    templateVo.setContent(content);
+                }
 
                 templateVos.add(templateVo);
             }
@@ -156,11 +161,13 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         templateVo.setStatus(1);
 
         // 保存或更新元数据
-        Map contentMap = JSONUtil.toBean(templateVo.getContentMapStr(), Map.class);
-        String contentId = adminFeign.saveOrUpdateMetadata(templateVo.getMetaDataCollectionId(), templateVo.getContentId(), contentMap).getData();
-        // 如果是插入数据， 回填contentId
-        if (!toUpdate) {
-            templateVo.setContentId(contentId);
+        if (BooleanUtil.isFalse(templateVo.getFlagExternal()) && StrUtil.isNotEmpty(templateVo.getContentMapStr())) {
+            Map contentMap = JSONUtil.toBean(templateVo.getContentMapStr(), Map.class);
+            String contentId = adminFeign.saveOrUpdateMetadata(templateVo.getMetaDataCollectionId(), templateVo.getContentId(), contentMap).getData();
+            // 如果是插入数据， 回填contentId
+            if (StrUtil.isEmpty(templateVo.getContentId())) {
+                templateVo.setContentId(contentId);
+            }
         }
 
         // 保存内容
@@ -195,12 +202,8 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         // 生成静态页面任务 TODO
         this.addStaticPageTask(templateVo);
 
-        // 索引任务 TODO
-        if (BooleanUtil.isTrue(templateVo.getFlagSearch())) {
-            this.addIndexTask(templateVo, toUpdate ? RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE : RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
-        } else {
-            this.addIndexTask(templateVo, RabbitMQConstants.MQ_CMS_INDEX_COMMAND_DELETE);
-        }
+        // 默认都创建索引, 索引任务 TODO
+        this.addIndexTask(templateVo, toUpdate ? RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE : RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
 
         return true;
     }
@@ -211,6 +214,15 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         List<Map> mapList = JSONUtil.toList(JSONUtil.parseArray(ids), Map.class);
         // 删除元数据
         adminFeign.removeMetadataByIds(mapList);
+
+        // 删除索引
+        for (Map map : mapList) {
+            Template template = new Template();
+            template.setId((String) map.get("id"));
+            template.setContentModelId((String) map.get("contentModelId"));
+            this.addIndexTask(template, RabbitMQConstants.MQ_CMS_INDEX_COMMAND_DELETE);
+        }
+
         List<String> idList = mapList.stream().map(m -> (String) m.get("id")).collect(Collectors.toList());
         return super.removeByIds(idList);
     }
