@@ -394,7 +394,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         return reslut;
     }
     public List<String> getCatalogChildrenIds(Collection<CatalogVo> catalogVos,List<String> ids){
-        if(!catalogVos.isEmpty()){
+        if(CollectionUtil.isNotEmpty(catalogVos)){
             for(CatalogVo catalogVo:catalogVos){
                 ids.add(catalogVo.getId());
                 if(CollectionUtil.isNotEmpty(catalogVo.getChildren())){
