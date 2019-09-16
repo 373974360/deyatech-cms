@@ -1,5 +1,6 @@
 package com.deyatech.resource.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.resource.entity.StationGroupUser;
 import com.deyatech.resource.vo.StationGroupUserVo;
 import com.deyatech.resource.mapper.StationGroupUserMapper;
@@ -8,6 +9,9 @@ import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Collection;
 
@@ -52,5 +56,40 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
             }
         }
         return stationGroupUserVos;
+    }
+
+    /**
+     * 设置站群用户
+     *
+     * @param stationGroupId
+     * @param userIds
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void setStationGroupUsers(String stationGroupId, List<String> userIds) {
+        StationGroupUser stationGroupUser = new StationGroupUser();
+        stationGroupUser.setStationGroupId(stationGroupId);
+        this.removeByBean(stationGroupUser);
+        if (CollectionUtil.isNotEmpty(userIds)) {
+            List<StationGroupUser> list = new ArrayList<>();
+            for (String userId : userIds) {
+                StationGroupUser ur = new StationGroupUser();
+                ur.setStationGroupId(stationGroupId);
+                ur.setUserId(userId);
+                list.add(ur);
+            }
+            this.saveOrUpdateBatch(list);
+        }
+    }
+
+    /**
+     * 所有用户信息
+     *
+     * @param stationGroupUserVo
+     * @return
+     */
+    @Override
+    public IPage<StationGroupUserVo> pageByStationGroupUserVo(StationGroupUserVo stationGroupUserVo) {
+        return baseMapper.pageByStationGroupUserVo(getPageByBean(stationGroupUserVo), stationGroupUserVo);
     }
 }

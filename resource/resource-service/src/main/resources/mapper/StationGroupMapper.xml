@@ -89,7 +89,8 @@
         c.tree_position as station_group_classification_tree_position,
         s.department_id,
         d.name_ as department_name,
-        d.tree_position as department_tree_position
+        d.tree_position as department_tree_position,
+        (select count(*) from resource_station_group_user rsgu where rsgu.station_group_id = s.id_) as userNumber
         from resource_station_group s
              join resource_station_group_classification c on c.enable_ = 1 and s.station_group_classification_id = c.id_
              join admin_department d on d.enable_ = 1 and s.department_id = d.id_

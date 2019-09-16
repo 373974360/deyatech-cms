@@ -4,6 +4,7 @@ import com.deyatech.resource.entity.StationGroupUser;
 import com.deyatech.resource.vo.StationGroupUserVo;
 import com.deyatech.resource.service.StationGroupUserService;
 import com.deyatech.common.entity.RestResult;
+import io.swagger.annotations.ApiImplicitParams;
 import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -140,6 +141,40 @@ public class StationGroupUserController extends BaseController {
         stationGroupUsers.setRecords(stationGroupUserService.setVoProperties(stationGroupUsers.getRecords()));
         log.info(String.format("根据StationGroupUser对象属性分页检索站群用户关联: %s ",JSONUtil.toJsonStr(stationGroupUsers)));
         return RestResult.ok(stationGroupUsers);
+    }
+
+    /**
+     * 检索所有用户信息
+     *
+     * @param stationGroupUserVo
+     * @return
+     */
+    @GetMapping("/pageAllUserByStationGroupUserVo")
+    @ApiOperation(value = "检索所有用户信息", notes = "检索所有用户信息")
+    @ApiImplicitParam(name = "stationGroupUserVo", value = "系统数据字典索引信息对象", required = false, dataType = "StationGroupUserVo", paramType = "query")
+    public RestResult<IPage<StationGroupUserVo>> pageAllUserByStationGroupUserVo(StationGroupUserVo stationGroupUserVo) {
+        IPage<StationGroupUserVo> stationGroupUsers = stationGroupUserService.pageByStationGroupUserVo(stationGroupUserVo);
+        stationGroupUsers.setRecords(stationGroupUserService.setVoProperties(stationGroupUsers.getRecords()));
+        log.info(String.format("检索所有用户信息: %s ", JSONUtil.toJsonStr(stationGroupUsers)));
+        return RestResult.ok(stationGroupUsers);
+    }
+
+    /**
+     * 设置站群用户
+     *
+     * @param stationGroupId
+     * @param userIds
+     * @return
+     */
+    @PostMapping("/setStationGroupUsers")
+    @ApiOperation(value = "设置站群用户", notes = "设置站群用户")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "stationGroupId", value = "站群id", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "userIds", value = "用户id", required = true, dataType = "String", paramType = "query")
+    })
+    public RestResult setStationGroupUsers(String stationGroupId, @RequestParam(value = "userIds[]", required = false) List<String> userIds) {
+        stationGroupUserService.setStationGroupUsers(stationGroupId, userIds);
+        return RestResult.ok();
     }
 
 }
