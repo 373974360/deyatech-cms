@@ -1,10 +1,12 @@
 package com.deyatech.station.feign;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.config.SiteProperties;
 import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.vo.CatalogVo;
+import com.deyatech.station.vo.TemplateVo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * 描述：
@@ -63,4 +66,16 @@ public interface StationFeign {
      */
     @RequestMapping(value = "/feign/station/getCatalogTreeBySiteId", method = RequestMethod.GET)
     RestResult<Collection<CatalogVo>> getCatalogTreeBySiteId(@RequestParam("siteId") String siteId);
+
+
+    /**
+     * 网站前台根据条件获取信息列表
+     *
+     * @param maps
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @RequestMapping(value = "/feign/station/getTemplateListView")
+    RestResult<Map<String,Object>> getTemplateListView(@RequestBody Map<String, Object> maps,@RequestParam("page") Integer page, @RequestParam("pageSize") Integer pageSize);
 }

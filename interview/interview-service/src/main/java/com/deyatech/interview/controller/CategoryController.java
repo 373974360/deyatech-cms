@@ -157,4 +157,19 @@ public class CategoryController extends BaseController {
         log.info(String.format("根据Category对象属性分页检索访谈分类: %s ",JSONUtil.toJsonStr(categorys)));
         return RestResult.ok(categorys);
     }
+
+    /**
+     * 根据Category对象属性分页检索访谈分类
+     *
+     * @param category
+     * @return
+     */
+    @GetMapping("/listByNameAndSiteId")
+    @ApiOperation(value="根据Category对象属性分页检索访谈分类", notes="根据Category对象属性分页检索访谈分类信息")
+    @ApiImplicitParam(name = "category", value = "访谈分类对象", required = false, dataType = "Category", paramType = "query")
+    public RestResult<IPage<CategoryVo>> listByNameAndSiteId(Category category) {
+        List<CategoryVo> categorys = categoryService.listByNameAndSiteId(category);
+        log.info(String.format("根据Category对象属性分页检索访谈分类: %s ",JSONUtil.toJsonStr(categorys)));
+        return RestResult.ok(categorys);
+    }
 }

@@ -1,6 +1,7 @@
 package com.deyatech.station.vo;
 
 import com.deyatech.station.entity.Catalog;
+import com.deyatech.station.entity.CatalogAggregation;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -29,4 +30,19 @@ public class CatalogVo extends Catalog {
 
     @ApiModelProperty(value = "树结构中的层级", dataType = "String")
     private Integer level;
+
+    /**
+     * 父栏目信息是否覆盖子栏目信息
+     */
+    private Boolean coverage;
+
+    /**
+     * 聚合栏目信息
+     */
+    private String catalogAggregationInfo;
+
+    /**
+     * 聚合栏目对象
+     */
+    private CatalogAggregation catalogAggregation;
 }

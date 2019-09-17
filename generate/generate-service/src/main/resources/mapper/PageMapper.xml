@@ -17,6 +17,7 @@
         <result column="page_path" property="pagePath" />
         <result column="template_path" property="templatePath" />
         <result column="site_id" property="siteId" />
+        <result column="page_interval" property="pageInterval" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
@@ -29,7 +30,7 @@
         update_by,
         update_time,
         version_,
-        page_name, page_english_name, page_path, template_path, site_id
+        page_name, page_english_name, page_path, template_path, site_id, page_interval
     </sql>
 
 </mapper>

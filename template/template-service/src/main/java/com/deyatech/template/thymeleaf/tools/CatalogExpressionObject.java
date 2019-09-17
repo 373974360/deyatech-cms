@@ -47,13 +47,22 @@ public class CatalogExpressionObject {
      */
     public Collection<CatalogVo> getCatalogChildrenTree(String siteId,String parentId) {
         Collection<CatalogVo> catalogVoCollection = stationFeign.getCatalogTreeBySiteId(siteId).getData();
-        List<CatalogVo> rootCatalogs = CollectionUtil.newArrayList();
+        Collection<CatalogVo> reslut = CollectionUtil.newArrayList();
+        return getCatalogChildrenTree(catalogVoCollection,reslut,parentId);
+    }
+    public Collection<CatalogVo> getCatalogChildrenTree(Collection<CatalogVo> catalogVoCollection,Collection<CatalogVo> reslut,String parentId){
+        if(parentId.equals("0")){
+            return catalogVoCollection;
+        }
         for(CatalogVo catalogVo:catalogVoCollection){
             if(catalogVo.getId().equals(parentId)){
-                rootCatalogs = catalogVo.getChildren();
+                reslut = catalogVo.getChildren();
+                break;
+            }else if(CollectionUtil.isNotEmpty(catalogVo.getChildren())){
+                reslut = getCatalogChildrenTree(catalogVo.getChildren(),reslut,parentId);
             }
         }
-        return rootCatalogs;
+        return reslut;
     }
 
     /**
@@ -69,7 +78,7 @@ public class CatalogExpressionObject {
         if(ObjectUtil.isNotNull(catalogVo)){
             if(StrUtil.isNotBlank(catalogVo.getTreePosition())){
                 String temp[] = catalogVo.getTreePosition().substring(1).split("&");
-                for(int i=0;i<temp.length-1;i++){
+                for(int i=0;i<temp.length;i++){
                     catalogPosition.add(getCatalog(catalogVoCollection,temp[i]));
                 }
             }
@@ -106,6 +115,8 @@ public class CatalogExpressionObject {
             if(StrUtil.isNotBlank(catalogVo.getTreePosition())){
                 String temp[] = catalogVo.getTreePosition().substring(1).split("&");
                 resultCatalogVo = getCatalog(catalogVoCollection,temp[0]);
+            }else{
+                resultCatalogVo = catalogVo;
             }
         }
         return resultCatalogVo;

@@ -64,4 +64,9 @@ public class TemplateVo extends Template {
      * 元数据集
      */
     private MetadataCollectionVo metadataCollectionVo;
+
+    /**
+     * 缩略图上传路径
+     */
+    private String thumbnailUrl;
 }

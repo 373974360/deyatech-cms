@@ -43,4 +43,8 @@ public class Page extends BaseEntity {
     @TableField("site_id")
     private String siteId;
 
+    @ApiModelProperty(value = "更新频率", dataType = "Integer")
+    @TableField("page_interval")
+    private Integer pageInterval;
+
 }

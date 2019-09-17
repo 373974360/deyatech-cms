@@ -6,6 +6,7 @@ import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.common.base.BaseService;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -77,5 +78,20 @@ public interface TemplateService extends BaseService<Template> {
      * @return
      */
     boolean reindex(TemplateVo templateVo);
+
+
+    /************************************************************************************************
+     *
+     *                                      以下为网站前台调用接口
+     *
+     * **********************************************************************************************/
+    /**
+     * 分页查询
+     * @param maps
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    IPage<TemplateVo> getTemplateListView(Map<String, Object> maps, Integer page, Integer pageSize);
 
 }

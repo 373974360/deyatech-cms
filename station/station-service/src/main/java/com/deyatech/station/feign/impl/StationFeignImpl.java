@@ -1,5 +1,6 @@
 package com.deyatech.station.feign.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.cache.SiteCache;
@@ -7,11 +8,15 @@ import com.deyatech.station.config.SiteProperties;
 import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.feign.StationFeign;
 import com.deyatech.station.service.CatalogService;
+import com.deyatech.station.service.TemplateService;
 import com.deyatech.station.vo.CatalogVo;
+import com.deyatech.station.vo.TemplateVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 描述：
@@ -27,6 +32,8 @@ public class StationFeignImpl implements StationFeign {
     SiteCache siteCache;
     @Autowired
     CatalogService catalogService;
+    @Autowired
+    TemplateService templateService;
 
     @Override
     public RestResult<String> getStationGroupTemplatePathBySiteId(String siteId) {
@@ -51,5 +58,12 @@ public class StationFeignImpl implements StationFeign {
     @Override
     public RestResult<Collection<CatalogVo>> getCatalogTreeBySiteId(String siteId) {
         return RestResult.ok(siteCache.getCatalogTreeBySiteId(siteId));
+    }
+
+    @Override
+    public RestResult<Map<String,Object>> getTemplateListView(Map<String, Object> maps, Integer page, Integer pageSize) {
+        IPage<TemplateVo> templates = templateService.getTemplateListView(maps,page,pageSize);
+        templates.setRecords(templateService.setVoProperties(templates.getRecords()));
+        return RestResult.ok(templates);
     }
 }

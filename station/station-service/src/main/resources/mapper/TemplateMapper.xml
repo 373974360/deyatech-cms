@@ -30,6 +30,11 @@
         <result column="flag_top" property="flagTop" />
         <result column="views_" property="views" />
         <result column="flag_external" property="flagExternal" />
+        <result column="resource_summary" property="resourceSummary" />
+        <result column="resource_content" property="resourceContent" />
+        <result column="resource_category" property="resourceCategory" />
+        <result column="resource_publication_date" property="resourcePublicationDate" />
+        <result column="keyword_" property="keyword" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
@@ -42,14 +47,18 @@
         update_by,
         update_time,
         version_,
-        site_id, template_path, cms_catalog_id, content_model_id, content_id, status_, content_model_template_id, url_, author_, editor_, source_, thumbnail_, title_, flag_search, sort_no, flag_top, views_, flag_external
+        site_id, template_path, cms_catalog_id, content_model_id, content_id, status_, content_model_template_id, url_, author_,
+        editor_, source_, thumbnail_, title_, flag_search, sort_no, flag_top, views_, flag_external, resource_summary, resource_content,
+        resource_category, resource_publication_date, keyword_
     </sql>
 
     <select id="pageByTemplate" parameterType="com.deyatech.station.entity.Template"
             resultType="com.deyatech.station.vo.TemplateVo">
-        select st.*, sm.name_ as contentModelName, sm.meta_data_collection_id as metaDataCollectionId
+        select st.*, sm.name_ as contentModelName, sm.meta_data_collection_id as metaDataCollectionId,
+            smt.url_ as thumbnailUrl
         from station_template st
         left join station_model sm on st.content_model_id = sm.id_
+        left join station_material smt on st.thumbnail_ = smt.id_
         where st.enable_ = 1
         <if test="template.title != null">
             and (st.title_ like concat('%', #{template.title}, '%') or st.author_ like concat('%', #{template.title}, '%'))
@@ -61,6 +70,45 @@
             and st.cms_catalog_id = #{template.cmsCatalogId}
         </if>
         order by st.update_time desc
+    </select>
+
+
+
+    <select id="queryTemplateById" parameterType="java.lang.String"
+            resultType="com.deyatech.station.vo.TemplateVo">
+        select st.*, sm.name_ as contentModelName, sm.meta_data_collection_id as metaDataCollectionId,
+        smt.url_ as thumbnailUrl
+        from station_template st
+        left join station_model sm on st.content_model_id = sm.id_
+        left join station_material smt on st.thumbnail_ = smt.id_
+        where st.enable_ = 1 and st.id_ = #{id}
+        order by st.update_time desc
+    </select>
+
+
+
+
+    <select id="getTemplateListView" parameterType="map"
+            resultType="com.deyatech.station.vo.TemplateVo">
+        select st.*, sm.name_ as contentModelName, sm.meta_data_collection_id as metaDataCollectionId,
+        smt.url_ as thumbnailUrl
+        from station_template st
+        left join station_model sm on st.content_model_id = sm.id_
+        left join station_material smt on st.thumbnail_ = smt.id_
+        where st.enable_ = 1 and st.status_ = 2
+        <if test="map.title != null">
+            and (st.title_ like concat('%', #{map.title}, '%') or st.keyword_ like concat('%', #{map.title}, '%'))
+        </if>
+        <if test="map.siteId != null">
+            and st.site_id = #{map.siteId}
+        </if>
+        <if test="map.cmsCatalogId != null">
+            and st.cms_catalog_id in
+            <foreach collection="map.cmsCatalogId" index="index" item="id" separator="," close=")" open="(">
+                #{id}
+            </foreach>
+        </if>
+        order by st.resource_publication_date desc
     </select>
 
 </mapper>

@@ -56,6 +56,22 @@
                 and c.site_id = #{category.siteId}
             </if>
         </if>
+        order by c.update_time desc
     </select>
-
+    <!-- 检索访谈分类根据名称和站点 -->
+    <select id="listByNameAndSiteId" resultMap="CategoryVoResultMap">
+        SELECT c.site_id,s.name_ as site_name, c.id_,c.name_,c.enable_,c.remark_,c.create_by,c.create_time,c.update_by,c.update_time,c.version_
+        FROM interview_category c
+        left join resource_station_group s on c.site_id = s.id_ and s.enable_ != -1
+        WHERE c.enable_ = 1
+        <if test="category != null">
+            <if test="category.name != null and category.name != ''">
+                and c.name_ like concat('%', #{category.name}, '%')
+            </if>
+            <if test="category.siteId != null and category.siteId != ''">
+                and c.site_id = #{category.siteId}
+            </if>
+        </if>
+        order by c.update_time desc
+    </select>
 </mapper>

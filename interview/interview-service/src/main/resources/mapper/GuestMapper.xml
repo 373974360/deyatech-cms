@@ -17,6 +17,28 @@
         <result column="photo_" property="photo" />
         <result column="job_" property="job" />
         <result column="type_" property="type" />
+        <result column="department_id" property="departmentId" />
+        <result column="department_name" property="departmentName" />
+    </resultMap>
+
+    <resultMap id="GuestVoResultMap" type="com.deyatech.interview.vo.GuestVo">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="model_id" property="modelId" />
+        <result column="model_name" property="modelName" />
+        <result column="name_" property="name" />
+        <result column="photo_" property="photo" />
+        <result column="job_" property="job" />
+        <result column="type_" property="type" />
+        <result column="department_id" property="departmentId" />
+        <result column="department_name" property="departmentName" />
+        <result column="department_tree_position" property="departmentTreePosition" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
@@ -29,7 +51,44 @@
         update_by,
         update_time,
         version_,
-        model_id, name_, photo_, job_, type_
+        model_id, name_, photo_, job_, type_, department_id, department_name
     </sql>
+    <!--检索嘉宾-->
+    <select id="selectGuestByModelNameJobType" resultMap="GuestVoResultMap">
+        select
+            g.id_,
+            g.enable_,
+            g.remark_,
+            g.create_by,
+            g.create_time,
+            g.update_by,
+            g.update_time,
+            g.version_,
+            g.name_,
+            g.photo_,
+            g.job_,
+            g.type_,
+            g.model_id,
+            m.name_ as model_name,
+            g.department_id,
+            if(g.department_id is not null, d.name_, g.department_name) as department_name,
+            if(g.department_id is not null, d.tree_position, '') as department_tree_position
+        from interview_guest g
+             left join interview_model m on m.enable_ = 1 and g.model_id = m.id_
+             left join admin_department d on d.enable_ = 1 and g.department_id = d.id_
+        where g.enable_ = 1
+        <if test="guest != null">
+            <if test="guest.modelId != null and guest.modelId !=''">
+                and g.model_id = #{guest.modelId}
+            </if>
+            <if test="guest.name != null and guest.name !=''">
+                and ( g.name_ like concat('%',#{guest.name},'%') or g.job_ like concat('%',#{guest.name},'%') )
+            </if>
+            <if test="guest.type != null and guest.type !=''">
+                and g.type_ = #{guest.type}
+            </if>
+        </if>
+        order by g.update_time desc
+    </select>
 
 </mapper>

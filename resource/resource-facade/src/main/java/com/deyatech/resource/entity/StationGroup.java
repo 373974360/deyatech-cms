@@ -47,4 +47,7 @@ public class StationGroup extends BaseEntity {
     @TableField("station_group_classification_id")
     private String stationGroupClassificationId;
 
+    @ApiModelProperty(value = "部门编号", dataType = "String")
+    @TableField("department_id")
+    private String departmentId;
 }

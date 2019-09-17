@@ -1,5 +1,6 @@
 package com.deyatech.interview.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.interview.entity.Guest;
 import com.deyatech.interview.vo.GuestVo;
 import com.deyatech.interview.mapper.GuestMapper;
@@ -17,7 +18,7 @@ import java.util.Collection;
  * </p>
  *
  * @Author lee.
- * @since 2019-08-26
+ * @since 2019-08-28
  */
 @Service
 public class GuestServiceImpl extends BaseServiceImpl<GuestMapper, Guest> implements GuestService {
@@ -52,5 +53,16 @@ public class GuestServiceImpl extends BaseServiceImpl<GuestMapper, Guest> implem
             }
         }
         return guestVos;
+    }
+
+    /**
+     * 检索嘉宾
+     *
+     * @param guest
+     * @return
+     */
+    @Override
+    public IPage<GuestVo> selectGuestByModelNameJobType(Guest guest) {
+        return baseMapper.selectGuestByModelNameJobType(getPageByBean(guest), guest);
     }
 }

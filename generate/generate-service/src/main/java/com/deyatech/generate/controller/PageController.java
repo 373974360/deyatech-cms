@@ -1,7 +1,10 @@
 package com.deyatech.generate.controller;
 
+import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import com.deyatech.generate.entity.Page;
+import com.deyatech.generate.entity.PageCatalog;
+import com.deyatech.generate.service.PageCatalogService;
 import com.deyatech.generate.vo.PageVo;
 import com.deyatech.generate.service.PageService;
 import com.deyatech.common.entity.RestResult;
@@ -41,6 +44,8 @@ public class PageController extends BaseController {
     StationFeign stationFeign;
     @Autowired
     TemplateFeign templateFeign;
+    @Autowired
+    PageCatalogService pageCatalogService;
 
     /**
      * 单个保存或者更新页面管理
@@ -51,11 +56,14 @@ public class PageController extends BaseController {
     @PostMapping("/saveOrUpdate")
     @ApiOperation(value="单个保存或者更新页面管理", notes="根据页面管理对象保存或者更新页面管理信息")
     @ApiImplicitParam(name = "page", value = "页面管理对象", required = true, dataType = "Page", paramType = "query")
-    public RestResult<Boolean> saveOrUpdate(Page page) {
+    public RestResult<Boolean> saveOrUpdate(Page page,@RequestParam(value="ids[]",required=false) List<String> ids) {
         log.info(String.format("保存或者更新页面管理: %s ", JSONUtil.toJsonStr(page)));
         boolean result = pageService.saveOrUpdate(page);
         if(result){
             replay(page);
+        }
+        if(!ids.isEmpty()){
+            pageCatalogService.updatePageCatalogById(page.getId(),ids);
         }
         return RestResult.ok(result);
     }

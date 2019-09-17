@@ -131,4 +131,23 @@ public class Catalog extends BaseEntity {
     @TableField("path_name")
     private String pathName;
 
+    @ApiModelProperty(value = "内容模型id", dataType = "String")
+    @TableField("content_model_id")
+    private String contentModelId;
+
+    @ApiModelProperty(value = "是否归档: 0.否 1.是", dataType = "Integer", example = "1")
+    @TableField("place_on_file")
+    private Integer placeOnFile;
+
+    @ApiModelProperty(value = "是否外链: 0.否 1.是", dataType = "Integer", example = "1")
+    @TableField("flag_external")
+    private Integer flagExternal;
+
+    @ApiModelProperty(value = "是否是聚合栏目: 0.否 1.是", dataType = "Integer", example = "1")
+    @TableField("flag_aggregation")
+    private Integer flagAggregation;
+
+    @ApiModelProperty(value = "聚合栏目id", dataType = "String")
+    @TableField("aggregation_id")
+    private String aggregationId;
 }

@@ -2,6 +2,8 @@ package com.deyatech.interview.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.interview.entity.Model;
+import com.deyatech.interview.vo.LiveImageVo;
+import com.deyatech.interview.vo.LiveMessageVo;
 import com.deyatech.interview.vo.ModelVo;
 import com.deyatech.common.base.BaseService;
 import java.util.Collection;
@@ -40,4 +42,23 @@ public interface ModelService extends BaseService<Model> {
      * @return
      */
     IPage<ModelVo> pageByCategoryAndName(Model model);
+
+
+    /**
+     * 追加直播消息
+     *
+     * @param modelId
+     * @param liveMessageVo
+     * @return
+     */
+    Boolean operateLiveMessage(String modelId, LiveMessageVo liveMessageVo);
+
+    /**
+     * 追加直播图片
+     *
+     * @param modelId
+     * @param liveImageVo
+     * @return
+     */
+    Boolean operateLiveImage(String modelId, LiveImageVo liveImageVo);
 }

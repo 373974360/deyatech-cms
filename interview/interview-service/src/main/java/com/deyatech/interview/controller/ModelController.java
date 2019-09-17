@@ -1,22 +1,24 @@
 package com.deyatech.interview.controller;
 
-import com.deyatech.interview.entity.Model;
-import com.deyatech.interview.vo.ModelVo;
-import com.deyatech.interview.service.ModelService;
-import com.deyatech.common.entity.RestResult;
-import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import org.springframework.web.bind.annotation.RestController;
 import com.deyatech.common.base.BaseController;
+import com.deyatech.common.entity.RestResult;
+import com.deyatech.interview.entity.Model;
+import com.deyatech.interview.service.ModelService;
+import com.deyatech.interview.vo.LiveImageVo;
+import com.deyatech.interview.vo.LiveMessageVo;
+import com.deyatech.interview.vo.ModelVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * <p>
@@ -156,5 +158,39 @@ public class ModelController extends BaseController {
         models.setRecords(modelService.setVoProperties(models.getRecords()));
         log.info(String.format("根据Model对象属性分页检索访谈模型: %s ",JSONUtil.toJsonStr(models)));
         return RestResult.ok(models);
+    }
+
+    /**
+     * 追加直播消息
+     *
+     * @param modelId
+     * @param liveMessage
+     * @return
+     */
+    @RequestMapping("/operateLiveMessage")
+    @ApiOperation(value="追加直播消息", notes="追加直播消息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "modelId", value = "访谈模型编号", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "liveMessage", value = "消息对象", required = true, dataType = "LiveMessageVo", paramType = "query")
+    })
+    public RestResult operateLiveMessage(String modelId, LiveMessageVo liveMessage) {
+        return RestResult.ok(modelService.operateLiveMessage(modelId, liveMessage));
+    }
+
+    /**
+     * 追加直播图片
+     *
+     * @param modelId
+     * @param liveImage
+     * @return
+     */
+    @RequestMapping("/operateLiveImage")
+    @ApiOperation(value="追加直播图片", notes="追加直播图片")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "modelId", value = "访谈模型编号", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "liveImage", value = "消息对象", required = true, dataType = "LiveImageVo", paramType = "query")
+    })
+    public RestResult operateLiveImage(String modelId, LiveImageVo liveImage) {
+        return RestResult.ok(modelService.operateLiveImage(modelId, liveImage));
     }
 }
