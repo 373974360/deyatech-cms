@@ -39,4 +39,7 @@ public class Material extends BaseEntity {
     @TableField("path_")
     private String path;
 
+    @ApiModelProperty(value = "站点id", dataType = "String")
+    @TableField("site_id")
+    private String siteId;
 }

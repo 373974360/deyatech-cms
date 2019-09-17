@@ -76,7 +76,7 @@
                 and d.station_group_id = #{domainVo.stationGroupId}
             </if>
             <if test="domainVo.name != null and domainVo.name !=''">
-                and d.name_ like concat('%',#{domainVo.name},'%')
+                and (d.name_ like concat('%',#{domainVo.name},'%') or d.english_name like concat('%',#{domainVo.name},'%'))
             </if>
         </if>
     </select>
@@ -107,7 +107,7 @@
                 and d.station_group_id = #{domainVo.stationGroupId}
             </if>
             <if test="domainVo.name != null and domainVo.name !=''">
-                and d.name_ like concat('%',#{domainVo.name},'%')
+                and (d.name_ like concat('%',#{domainVo.name},'%') or d.english_name like concat('%',#{domainVo.name},'%'))
             </if>
         </if>
     </select>

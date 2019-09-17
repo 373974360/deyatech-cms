@@ -184,11 +184,13 @@ public class MaterialController extends BaseController {
     @ApiOperation(value = "上传文件", notes = "上传文件")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "file", value = "文件", required = true, dataType = "MultipartFile", paramType = "query"),
-            @ApiImplicitParam(name = "path", value = "路径", required = false, dataType = "String", paramType = "query")
+            @ApiImplicitParam(name = "path", value = "路径", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "siteId", value = "站点id", required = false, dataType = "String", paramType = "query")
     })
-    public RestResult uploadFile(@RequestParam("file") MultipartFile file, String path) {
-        if (!path.endsWith("/")) {
-            path += "/";
+    public RestResult uploadFile(@RequestParam("file") MultipartFile file, String path, String siteId) {
+        String fileSeparator = System.getProperty("file.separator");
+        if (!path.endsWith(fileSeparator)) {
+            path += fileSeparator;
         }
 
         FileUploadResult result = new FileUploadResult();
@@ -225,6 +227,7 @@ public class MaterialController extends BaseController {
                 material.setType(extName);
                 material.setUrl(url);
                 material.setPath(result.getFilePath());
+                material.setSiteId(siteId);
                 materialService.saveOrUpdate(material);
 
                 result.setCustomData(material);
