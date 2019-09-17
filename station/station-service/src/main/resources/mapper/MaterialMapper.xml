@@ -16,6 +16,7 @@
         <result column="type_" property="type" />
         <result column="url_" property="url" />
         <result column="path_" property="path" />
+        <result column="site_id" property="siteId" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
@@ -28,7 +29,7 @@
         update_by,
         update_time,
         version_,
-        name_, type_, url_, path_
+        name_, type_, url_, path_, site_id
     </sql>
 
 </mapper>

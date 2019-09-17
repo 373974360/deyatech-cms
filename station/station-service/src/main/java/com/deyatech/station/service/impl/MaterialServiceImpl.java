@@ -8,6 +8,9 @@ import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import org.springframework.stereotype.Service;
+
+import java.io.File;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Collection;
 
@@ -52,5 +55,17 @@ public class MaterialServiceImpl extends BaseServiceImpl<MaterialMapper, Materia
             }
         }
         return fileVos;
+    }
+
+    @Override
+    public boolean removeByIds(Collection<? extends Serializable> idList) {
+        for (Serializable id : idList) {
+            Material material = getById(id);
+            File file = new File(material.getPath());
+            if (!file.exists() || file.delete()) {
+                removeById(id);
+            }
+        }
+        return true;
     }
 }
