@@ -50,4 +50,16 @@ public class StationGroup extends BaseEntity {
     @ApiModelProperty(value = "部门编号", dataType = "String")
     @TableField("department_id")
     private String departmentId;
+
+    @ApiModelProperty(value = "网站标识", dataType = "String")
+    @TableField("site_code")
+    private String siteCode;
+
+    @ApiModelProperty(value = "ICP备案", dataType = "String")
+    @TableField("icp_code")
+    private String icpCode;
+
+    @ApiModelProperty(value = "公安备案", dataType = "String")
+    @TableField("police_code")
+    private String policeCode;
 }
