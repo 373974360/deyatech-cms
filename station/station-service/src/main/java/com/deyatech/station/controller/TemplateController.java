@@ -207,4 +207,19 @@ public class TemplateController extends BaseController {
         return RestResult.ok(result);
     }
 
+    /**
+     * 删除索引数据
+     *
+     * @param template
+     * @return
+     */
+    @GetMapping("/removeIndexData")
+    @ApiOperation(value="删除索引数据", notes="删除索引数据")
+    @ApiImplicitParam(name = "template", value = "内容模板扩展对象", required = false, dataType = "Template", paramType = "query")
+    public RestResult<Boolean> removeIndexData(Template template) {
+        log.info(String.format("删除索引数据: %s ", template));
+        boolean result = templateService.removeIndexData(template);
+        return RestResult.ok(result);
+    }
+
 }

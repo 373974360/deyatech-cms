@@ -523,10 +523,10 @@ public class IndexServiceImpl implements IndexService {
     @Override
     public String deleteData(String index, String id) {
 
-        DeleteRequest deleteResponse = new DeleteRequest(index, indexType, id);
+        DeleteRequest deleteRequest = new DeleteRequest(index, indexType, id);
         //同步调用
         try {
-            DeleteResponse response = client.delete(deleteResponse, RequestOptions.DEFAULT);
+            DeleteResponse response = client.delete(deleteRequest, RequestOptions.DEFAULT);
             if (response.getResult() == DocWriteResponse.Result.DELETED) {
                 log.info(String.format("删除索引数据成功,%s下的%s", index, id));
                 return String.format("删除索引数据成功,%s下的%s", index, id);

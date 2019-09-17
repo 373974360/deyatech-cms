@@ -150,4 +150,20 @@ public class Catalog extends BaseEntity {
     @ApiModelProperty(value = "聚合栏目id", dataType = "String")
     @TableField("aggregation_id")
     private String aggregationId;
+
+    @ApiModelProperty(value = "字段名", dataType = "String")
+    @TableField("column_name")
+    private String columnName;
+
+    @ApiModelProperty(value = "字段描述", dataType = "String")
+    @TableField("column_description")
+    private String columnDescription;
+
+    @ApiModelProperty(value = "字段关键字", dataType = "String")
+    @TableField("column_keywords")
+    private String columnKeywords;
+
+    @ApiModelProperty(value = "字段类型", dataType = "String")
+    @TableField("column_type")
+    private String columnType;
 }

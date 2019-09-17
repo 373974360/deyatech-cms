@@ -207,7 +207,7 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
             CatalogAggregation catalogAggregation = JSONUtil.toBean(entity.getCatalogAggregationInfo(), CatalogAggregation.class);
             aggregation = catalogAggregationService.saveOrUpdate(catalogAggregation);
             // 如果是插入数据， 回填aggregationId
-            if (StrUtil.isEmpty(entity.getId())) {
+            if (StrUtil.isEmpty(entity.getAggregationId())) {
                 entity.setAggregationId(catalogAggregation.getId());
             }
         }

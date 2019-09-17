@@ -44,6 +44,10 @@
         <result column="flag_external" property="flagExternal" />
         <result column="flag_aggregation" property="flagAggregation" />
         <result column="aggregation_id" property="aggregationId" />
+        <result column="column_name" property="columnName" />
+        <result column="column_description" property="columnDescription" />
+        <result column="column_keywords" property="columnKeywords" />
+        <result column="column_type" property="columnType" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
@@ -58,7 +62,8 @@
         version_,
         site_id, parent_id, name, alias_name, ename, showable, link_url, workflow_id, workflow_key, index_template, list_template, sort_no, tree_position,
         status, allow_comment, allow_share, application_id, attribute_id, auto_release, contect_object_id, display_number, generate_home, navigation_show_able,
-        participant, tree_show_able, workflow_enable, path_name, content_model_id, place_on_file, flag_external, flag_aggregation, aggregation_id
+        participant, tree_show_able, workflow_enable, path_name, content_model_id, place_on_file, flag_external, flag_aggregation, aggregation_id,
+        column_name, column_description, column_keywords, column_type
     </sql>
 
     <select id="selectMaxSortNo" resultType="int">

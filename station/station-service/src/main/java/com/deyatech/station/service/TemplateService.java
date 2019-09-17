@@ -79,6 +79,14 @@ public interface TemplateService extends BaseService<Template> {
      */
     boolean reindex(TemplateVo templateVo);
 
+    /**
+     * 删除索引数据
+     *
+     * @param template
+     * @return
+     */
+    boolean removeIndexData(Template template);
+
 
     /************************************************************************************************
      *

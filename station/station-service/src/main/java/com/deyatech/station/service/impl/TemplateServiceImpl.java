@@ -82,22 +82,20 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     public TemplateVo setVoProperties(Template template){
         TemplateVo templateVo = templateMapper.queryTemplateById(template.getId());
         BeanUtil.copyProperties(template, templateVo);
-
-        // 查询元数据结构
-        MetadataCollectionVo metadataCollectionVo = new MetadataCollectionVo();
-        metadataCollectionVo.setId(templateVo.getMetaDataCollectionId());
-        List<MetadataCollectionVo> metadataCollectionVoList = adminFeign.findAllData(metadataCollectionVo).getData();
-        templateVo.setMetadataCollectionVo(metadataCollectionVoList.get(0));
-        // 查询元数据记录信息
-        Map content = adminFeign.getMetadataById(templateVo.getMetaDataCollectionId(), templateVo.getContentId()).getData();
-        templateVo.setContent(content);
-
+        // 查询元数据结构及数据
+        this.queryMetadata(templateVo);
         //  查询模板配置
         ModelTemplate mt = new ModelTemplate();
         mt.setCmsCatalogId(templateVo.getCmsCatalogId());
         mt.setContentModelId(templateVo.getContentModelId());
         mt.setSiteId(templateVo.getSiteId());
         ModelTemplate modelTemplate = modelTemplateService.getByBean(mt);
+        // 如果为空，查询站点默认模板
+        if (ObjectUtil.isNull(modelTemplate)) {
+            mt.setCmsCatalogId(null);
+            modelTemplate = modelTemplateService.getByBean(mt);
+        }
+
         templateVo.setTemplatePath(modelTemplate.getTemplatePath());
         return templateVo;
     }
@@ -115,24 +113,32 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             for (Object template : templates) {
                 TemplateVo templateVo = new TemplateVo();
                 BeanUtil.copyProperties(template, templateVo);
-                if (StrUtil.isNotEmpty(templateVo.getMetaDataCollectionId())){
-                    // 查询元数据结构
-                    MetadataCollectionVo metadataCollectionVo = new MetadataCollectionVo();
-                    metadataCollectionVo.setId(templateVo.getMetaDataCollectionId());
-                    List<MetadataCollectionVo> metadataCollectionVoList = adminFeign.findAllData(metadataCollectionVo).getData();
-                    templateVo.setMetadataCollectionVo(metadataCollectionVoList.get(0));
-                }
-                if (StrUtil.isNotEmpty(templateVo.getMetaDataCollectionId())
-                        && StrUtil.isNotEmpty(templateVo.getContentId())) {
-                    // 查询元数据记录信息
-                    Map content = adminFeign.getMetadataById(templateVo.getMetaDataCollectionId(), templateVo.getContentId()).getData();
-                    templateVo.setContent(content);
-                }
-
+                // 查询元数据结构及数据
+                this.queryMetadata(templateVo);
                 templateVos.add(templateVo);
             }
         }
         return templateVos;
+    }
+
+    /**
+     * 查询元数据结构及数据
+     * @param templateVo
+     */
+    private void queryMetadata(TemplateVo templateVo) {
+        if (StrUtil.isNotEmpty(templateVo.getMetaDataCollectionId())){
+            // 查询元数据结构
+            MetadataCollectionVo metadataCollectionVo = new MetadataCollectionVo();
+            metadataCollectionVo.setId(templateVo.getMetaDataCollectionId());
+            List<MetadataCollectionVo> metadataCollectionVoList = adminFeign.findAllData(metadataCollectionVo).getData();
+            templateVo.setMetadataCollectionVo(metadataCollectionVoList.get(0));
+        }
+        if (StrUtil.isNotEmpty(templateVo.getMetaDataCollectionId())
+                && StrUtil.isNotEmpty(templateVo.getContentId())) {
+            // 查询元数据记录信息
+            Map content = adminFeign.getMetadataById(templateVo.getMetaDataCollectionId(), templateVo.getContentId()).getData();
+            templateVo.setContent(content);
+        }
     }
 
     @Override
@@ -293,7 +299,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
 
     private Collection<Template> getTemplateList(TemplateVo templateVo) {
         QueryWrapper<Template> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("status_", 2);
+//        queryWrapper.eq("status_", 2);
         if (StrUtil.isNotEmpty(templateVo.getSiteId())) {
             queryWrapper.eq("site_id", templateVo.getSiteId());
         }
@@ -333,6 +339,29 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         }
         return true;
     }
+
+    /**
+     * 删除索引数据
+     *
+     * @param template
+     * @return
+     */
+    @Override
+    public boolean removeIndexData(Template template) {
+        Collection<Template> templateList = this.listByBean(template);
+        if (CollectionUtil.isNotEmpty(templateList)) {
+            for (Template t : templateList) {
+                // 添加任务，发送MQ消息
+                try {
+                    this.addIndexTask(t, RabbitMQConstants.MQ_CMS_INDEX_COMMAND_DELETE);
+                } catch (Exception e) {
+                    log.error("删除索引数据出错", e);
+                }
+            }
+        }
+        return true;
+    }
+
     /**
      * 分页查询
      * @param entity
