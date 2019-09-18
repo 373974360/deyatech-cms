@@ -163,9 +163,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             }
         }
 
-        // 设置内容发布状态：1-草稿，2-已发布
-        templateVo.setStatus(1);
-
         // 保存或更新元数据
         if (BooleanUtil.isFalse(templateVo.getFlagExternal()) && StrUtil.isNotEmpty(templateVo.getContentMapStr())) {
             Map contentMap = JSONUtil.toBean(templateVo.getContentMapStr(), Map.class);
@@ -175,9 +172,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 templateVo.setContentId(contentId);
             }
         }
-
-        // 保存内容
-        super.saveOrUpdate(templateVo);
 
         // 工作流相关
         String workflowKey = templateVo.getWorkflowKey();
@@ -203,7 +197,17 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             mapParams.put("siteId", templateVo.getSiteId());
             processInstanceVo.setVariables(mapParams);
             workflowFeign.startInstance(processInstanceVo);
+
+            // 设置内容发布状态：1-草稿，2-已发布，没有工作流时默认发布
+            templateVo.setStatus(1);
+        } else {
+            templateVo.setStatus(2);
+            // 发布日期
+            templateVo.setResourcePublicationDate(new Date());
         }
+
+        // 保存内容
+        super.saveOrUpdate(templateVo);
 
         // 生成静态页面任务 TODO
         this.addStaticPageTask(templateVo);
@@ -219,7 +223,10 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     public boolean removeByIds(String ids) {
         List<Map> mapList = JSONUtil.toList(JSONUtil.parseArray(ids), Map.class);
         // 删除元数据
-        adminFeign.removeMetadataByIds(mapList);
+        List<Map> metaDataMapList = mapList.stream().filter(m -> ObjectUtil.isNotNull(m.get("contentId"))).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(metaDataMapList)) {
+            adminFeign.removeMetadataByIds(metaDataMapList);
+        }
 
         // 删除索引
         for (Map map : mapList) {
@@ -299,6 +306,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
 
     private Collection<Template> getTemplateList(TemplateVo templateVo) {
         QueryWrapper<Template> queryWrapper = new QueryWrapper<>();
+        // 内容为已发布状态
 //        queryWrapper.eq("status_", 2);
         if (StrUtil.isNotEmpty(templateVo.getSiteId())) {
             queryWrapper.eq("site_id", templateVo.getSiteId());
