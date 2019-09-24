@@ -1,9 +1,7 @@
 package com.deyatech.generate.controller;
 
-import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import com.deyatech.generate.entity.Page;
-import com.deyatech.generate.entity.PageCatalog;
 import com.deyatech.generate.service.PageCatalogService;
 import com.deyatech.generate.vo.PageVo;
 import com.deyatech.generate.service.PageService;

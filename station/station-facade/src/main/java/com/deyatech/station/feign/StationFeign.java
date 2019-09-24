@@ -1,6 +1,7 @@
 package com.deyatech.station.feign;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.config.SiteProperties;
@@ -77,5 +78,5 @@ public interface StationFeign {
      * @return
      */
     @RequestMapping(value = "/feign/station/getTemplateListView")
-    RestResult<Map<String,Object>> getTemplateListView(@RequestBody Map<String, Object> maps,@RequestParam("page") Integer page, @RequestParam("pageSize") Integer pageSize);
+    RestResult<Page<TemplateVo>> getTemplateListView(@RequestBody Map<String, Object> maps, @RequestParam("page") Integer page, @RequestParam("pageSize") Integer pageSize);
 }

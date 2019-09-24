@@ -7,7 +7,9 @@ package com.deyatech.template.thymeleaf.tools;
  * @Date: 2019/8/26 11:42
  */
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.station.feign.StationFeign;
+import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.template.thymeleaf.utils.TemplateConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -23,14 +25,14 @@ public class InfoDataExpressionObject {
     @Autowired
     StationFeign stationFeign;
 
-    public Map<String,Object> getInfoList(Map<String,Object> maps, Integer page, Integer pageSize){
+    public IPage<TemplateVo> getInfoList(Map<String,Object> maps, Integer page, Integer pageSize){
         if (page == null || page < 0) {
             page = 1;
         }
         if (pageSize == null || pageSize < 0) {
             pageSize = 10;
         }
-        Map<String,Object> result = stationFeign.getTemplateListView(maps,page,pageSize).getData();
+        IPage<TemplateVo> result = stationFeign.getTemplateListView(maps,page,pageSize).getData();
         return result;
     }
 

@@ -13,7 +13,6 @@ import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.admin.vo.MetadataCollectionVo;
 import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.exception.BusinessException;
-import com.deyatech.content.entity.ReviewProcess;
 import com.deyatech.content.feign.ContentFeign;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.entity.ModelTemplate;
@@ -23,7 +22,6 @@ import com.deyatech.station.entity.Template;
 import com.deyatech.station.service.CatalogService;
 import com.deyatech.station.service.ModelService;
 import com.deyatech.station.vo.CatalogVo;
-import com.deyatech.station.vo.ModelTemplateVo;
 import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.station.mapper.TemplateMapper;
 import com.deyatech.station.service.TemplateService;
@@ -115,6 +113,19 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 BeanUtil.copyProperties(template, templateVo);
                 // 查询元数据结构及数据
                 this.queryMetadata(templateVo);
+
+                //  查询模板配置
+                ModelTemplate mt = new ModelTemplate();
+                mt.setCmsCatalogId(templateVo.getCmsCatalogId());
+                mt.setContentModelId(templateVo.getContentModelId());
+                mt.setSiteId(templateVo.getSiteId());
+                ModelTemplate modelTemplate = modelTemplateService.getByBean(mt);
+                // 如果为空，查询站点默认模板
+                if (ObjectUtil.isNull(modelTemplate)) {
+                    mt.setCmsCatalogId(null);
+                    modelTemplate = modelTemplateService.getByBean(mt);
+                }
+                templateVo.setTemplatePath(modelTemplate.getTemplatePath());
                 templateVos.add(templateVo);
             }
         }
