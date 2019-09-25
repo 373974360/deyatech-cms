@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.appeal.mapper.RecordMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.deyatech.appeal.entity.Record">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="model_id" property="modelId" />
+        <result column="pur_id" property="purId" />
+        <result column="title" property="title" />
+        <result column="user_name" property="userName" />
+        <result column="card_id" property="cardId" />
+        <result column="phone" property="phone" />
+        <result column="email" property="email" />
+        <result column="ip" property="ip" />
+        <result column="address" property="address" />
+        <result column="sq_code" property="sqCode" />
+        <result column="query_code" property="queryCode" />
+        <result column="dept_id" property="deptId" />
+        <result column="pro_dept_id" property="proDeptId" />
+        <result column="is_open" property="isOpen" />
+        <result column="content" property="content" />
+        <result column="is_publish" property="isPublish" />
+        <result column="reply_content" property="replyContent" />
+        <result column="reply_time" property="replyTime" />
+        <result column="reply_dept_id" property="replyDeptId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id_,
+        enable_,
+        remark_,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        version_,
+        model_id, pur_id, title, user_name, card_id, phone, email, ip, address, sq_code, query_code, dept_id, pro_dept_id, is_open, content, is_publish, reply_content, reply_time, reply_dept_id
+    </sql>
+
+</mapper>
