@@ -102,7 +102,7 @@ public class Record extends BaseEntity {
     @TableField("reply_dept_id")
     private String replyDeptId;
 
-    @ApiModelProperty(value = "信件状态 0:未处理，1:办理中，2:已办结，3:无效，4:判重", dataType = "Integer")
+    @ApiModelProperty(value = "信件状态 1:未处理，2:已受理，3:办理中，4:已办结，5:无效件，6:重复件", dataType = "Integer")
     @TableField("flag")
     private Integer flag;
 

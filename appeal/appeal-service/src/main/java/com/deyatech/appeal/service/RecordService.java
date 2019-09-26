@@ -35,4 +35,20 @@ public interface RecordService extends BaseService<Record> {
 
 
     IPage<RecordVo> pageRecordByBean(Record record,String[] timeFrame);
+
+    /**
+     * 根据业务ID得到随机查询码，用于前台页面添加诉求时产生查询码
+     *
+     * @param modelId
+     * @return String
+     */
+    String getQueryCode(String modelId);
+
+    /**
+     * 根据业务ID得到信件编码
+     *
+     * @param modelId
+     * @return String
+     */
+    String getAppealCode(String modelId);
 }

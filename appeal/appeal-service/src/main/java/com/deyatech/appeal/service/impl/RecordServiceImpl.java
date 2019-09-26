@@ -1,5 +1,6 @@
 package com.deyatech.appeal.service.impl;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -18,8 +19,11 @@ import com.deyatech.appeal.service.RecordService;
 import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import com.deyatech.common.utils.RandomStrg;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Date;
 import java.util.List;
 import java.util.Collection;
 
@@ -40,6 +44,8 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
     ModelService modelService;
     @Autowired
     PurposeService purposeService;
+
+    private static final String DEFAULT_RANDON_STR = "A-Z0-9";
 
     /**
      * 单个将对象转换为vo
@@ -164,5 +170,18 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
         recordVoIPage.setPages(pages.getPages());
         recordVoIPage.setTotal(pages.getTotal());
         return recordVoIPage;
+    }
+
+    @Override
+    public String getQueryCode(String modelId) {
+        Model model = modelService.getById(modelId);
+        return RandomStrg.getRandomStr(DEFAULT_RANDON_STR, model.getQuerycodeCount() + "");
+    }
+
+    @Override
+    public String getAppealCode(String modelId) {
+        Model model = modelService.getById(modelId);
+        //编码头＋日期＋随机码
+        return model.getBusCode() + DateUtil.format(new Date(),model.getDayCode()) + RandomStrg.getRandomStr(DEFAULT_RANDON_STR, model.getRandomcodeCount() + "");
     }
 }
