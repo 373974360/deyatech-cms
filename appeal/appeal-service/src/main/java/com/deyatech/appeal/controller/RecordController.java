@@ -1,5 +1,6 @@
 package com.deyatech.appeal.controller;
 
+import cn.hutool.core.util.StrUtil;
 import com.deyatech.appeal.entity.Record;
 import com.deyatech.appeal.vo.RecordVo;
 import com.deyatech.appeal.service.RecordService;
@@ -44,6 +45,10 @@ public class RecordController extends BaseController {
     @ApiImplicitParam(name = "record", value = "对象", required = true, dataType = "Record", paramType = "query")
     public RestResult<Boolean> saveOrUpdate(Record record) {
         log.info(String.format("保存或者更新: %s ", JSONUtil.toJsonStr(record)));
+        if(StrUtil.isBlank(record.getId())){
+            record.setQueryCode(recordService.getQueryCode(record.getModelId()));
+            record.setSqCode(recordService.getAppealCode(record.getModelId()));
+        }
         boolean result = recordService.saveOrUpdate(record);
         return RestResult.ok(result);
     }
