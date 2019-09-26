@@ -1,5 +1,6 @@
 package com.deyatech.resource.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.deyatech.common.base.BaseEntity;
@@ -36,7 +37,7 @@ public class StationGroupClassification extends BaseEntity {
     private String parentId;
 
     @ApiModelProperty(value = "树结构中的索引位置", dataType = "String")
-    @TableField("tree_position")
+    @TableField(value = "tree_position", strategy = FieldStrategy.IGNORED)
     private String treePosition;
 
     @ApiModelProperty(value = "排序号", dataType = "Integer", example = "1")
