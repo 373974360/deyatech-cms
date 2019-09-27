@@ -165,7 +165,12 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
             queryWrapper.eq("pur_id",record.getPurId());
         }
         if(StrUtil.isNotBlank(record.getTitle())){
-            queryWrapper.like("title",record.getTitle());
+            queryWrapper.and(i -> i
+                    .like("title", record.getTitle())
+                    .or().like("user_name",record.getTitle())
+                    .or().like("query_code",record.getTitle())
+                    .or().like("card_id",record.getTitle())
+            );
         }
         if(record.getFlag() != null && record.getFlag() > 0){
             queryWrapper.eq("flag",record.getFlag());
