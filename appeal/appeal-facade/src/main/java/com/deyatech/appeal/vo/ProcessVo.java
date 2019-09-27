@@ -20,4 +20,17 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @ApiModel(value = "扩展对象", description = "扩展对象", parent = Process.class)
 public class ProcessVo extends Process {
+
+    /**
+     * 受理部门名称
+     * */
+    private String proDeptName;
+    /**
+     * 移交部门名称
+     * */
+    private String toDeptName;
+    /**
+     * 处理人名称
+     * */
+    private String createUserName;
 }
