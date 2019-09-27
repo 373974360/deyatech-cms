@@ -30,6 +30,6 @@ public class StationGroupClassificationVo extends StationGroupClassification {
     @ApiModelProperty(value = "树结构中的层级", dataType = "String")
     private Integer level;
 
-    @ApiModelProperty(value = "站群件数", dataType = "String")
+    @ApiModelProperty(value = "站群件数", dataType = "Long")
     private Long stationCount;
 }
