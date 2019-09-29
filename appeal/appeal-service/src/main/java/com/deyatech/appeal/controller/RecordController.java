@@ -49,6 +49,7 @@ public class RecordController extends BaseController {
             record.setQueryCode(recordService.getQueryCode(record.getModelId()));
             record.setSqCode(recordService.getAppealCode(record.getModelId()));
         }
+        record.setProDeptId(record.getDeptId());
         boolean result = recordService.saveOrUpdate(record);
         return RestResult.ok(result);
     }

@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.admin.entity.Department;
 import com.deyatech.admin.feign.AdminFeign;
+import com.deyatech.admin.vo.UserVo;
 import com.deyatech.appeal.entity.Model;
 import com.deyatech.appeal.entity.Purpose;
 import com.deyatech.appeal.entity.Record;
@@ -19,6 +20,7 @@ import com.deyatech.appeal.service.RecordService;
 import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.utils.RandomStrg;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -151,6 +153,7 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
 
     @Override
     public IPage<RecordVo> pageRecordByBean(Record record,String[] timeFrame) {
+        UserVo userVo = adminFeign.getUserByUserId(UserContextHelper.getUserId()).getData();
         QueryWrapper<Record> queryWrapper = new QueryWrapper<>();
         if(ObjectUtil.isNotNull(timeFrame)){
             queryWrapper.between("create_time",timeFrame[0],timeFrame[1]);
@@ -162,7 +165,21 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
             queryWrapper.eq("pur_id",record.getPurId());
         }
         if(StrUtil.isNotBlank(record.getTitle())){
-            queryWrapper.like("title",record.getTitle());
+            queryWrapper.and(i -> i
+                    .like("title", record.getTitle())
+                    .or().like("user_name",record.getTitle())
+                    .or().like("query_code",record.getTitle())
+                    .or().like("card_id",record.getTitle())
+            );
+        }
+        if(record.getFlag() != null && record.getFlag() > 0){
+            queryWrapper.eq("flag",record.getFlag());
+        }
+        if(record.getIsPublish() != null && record.getIsPublish() > 0){
+            queryWrapper.eq("is_publish",record.getIsPublish());
+        }
+        if(ObjectUtil.isNotNull(userVo)){
+            queryWrapper.eq("pro_dept_id",userVo.getDepartmentId());
         }
         IPage<RecordVo> recordVoIPage = new Page<>(record.getPage(),record.getSize());
         IPage<Record> pages = super.page(getPageByBean(record), queryWrapper);
