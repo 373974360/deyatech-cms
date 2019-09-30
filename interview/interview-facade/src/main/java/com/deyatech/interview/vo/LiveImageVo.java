@@ -19,4 +19,8 @@ public class LiveImageVo {
      * 消息
      */
     private String url;
+    /**
+     * 模型
+     */
+    private String modelId;
 }

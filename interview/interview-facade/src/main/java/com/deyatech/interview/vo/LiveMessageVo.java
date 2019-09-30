@@ -19,4 +19,8 @@ public class LiveMessageVo {
      * 消息
      */
     private String message;
+    /**
+     * 模型
+     */
+    private String modelId;
 }

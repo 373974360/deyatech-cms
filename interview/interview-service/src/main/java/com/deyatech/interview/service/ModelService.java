@@ -47,18 +47,16 @@ public interface ModelService extends BaseService<Model> {
     /**
      * 追加直播消息
      *
-     * @param modelId
      * @param liveMessageVo
      * @return
      */
-    Boolean operateLiveMessage(String modelId, LiveMessageVo liveMessageVo);
+    Boolean operateLiveMessage(LiveMessageVo liveMessageVo);
 
     /**
      * 追加直播图片
      *
-     * @param modelId
      * @param liveImageVo
      * @return
      */
-    Boolean operateLiveImage(String modelId, LiveImageVo liveImageVo);
+    Boolean operateLiveImage(LiveImageVo liveImageVo);
 }

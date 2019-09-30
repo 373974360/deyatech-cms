@@ -20,13 +20,13 @@ public class RabbitMQLiveHandler {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
-    @RabbitListener(queues = RabbitMQLiveConfig.QUEUE_LIVE_MESSAGE)
+    @RabbitListener(queues = "#{queueLiveMessage.name}")
     public void handlerLiveMessage(LiveMessageVo liveMessageVo) {
-        messagingTemplate.convertAndSend(TOPIC_LIVE_MESSAGE, liveMessageVo);
+        messagingTemplate.convertAndSend(TOPIC_LIVE_MESSAGE + liveMessageVo.getModelId() + "/", liveMessageVo);
     }
 
-    @RabbitListener(queues = RabbitMQLiveConfig.QUEUE_LIVE_IMAGE)
+    @RabbitListener(queues = "#{queueLiveImage.name}")
     public void handlerLiveImage(LiveImageVo liveImageVo) {
-        messagingTemplate.convertAndSend(TOPIC_LIVE_IMAGE, liveImageVo);
+        messagingTemplate.convertAndSend(TOPIC_LIVE_IMAGE + liveImageVo.getModelId() + "/", liveImageVo);
     }
 }

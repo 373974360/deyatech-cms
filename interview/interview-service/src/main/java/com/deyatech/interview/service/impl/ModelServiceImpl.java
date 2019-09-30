@@ -88,16 +88,15 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
     /**
      * 追加直播消息
      *
-     * @param modelId
      * @param liveMessageVo
      * @return
      */
     @Override
-    public Boolean operateLiveMessage(String modelId, LiveMessageVo liveMessageVo) {
+    public Boolean operateLiveMessage(LiveMessageVo liveMessageVo) {
         try {
             List<LiveMessageVo> messageList;
             ObjectMapper mapper = new ObjectMapper();
-            Model model = super.getById(modelId);
+            Model model = super.getById(liveMessageVo.getModelId());
             // 取出原来的内容
             if (Objects.nonNull(model) && StrUtil.isNotEmpty(model.getContent())) {
                 messageList = mapper.readValue(model.getContent(), mapper.getTypeFactory().constructParametricType(List.class, LiveMessageVo.class));
@@ -139,7 +138,7 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
             message.setContent(mapper.writeValueAsString(messageList));
             if (super.updateById(message)) {
                 liveMessageVo.setKey(liveMessageVo.getKey() + flag);
-                rabbitTemplate.convertAndSend(RabbitMQLiveConfig.FANOUT_EXCHANGE_LIVE_MESSAGE, RabbitMQLiveConfig.ROUTING_KEY_LIVE_MESSAGE , liveMessageVo);
+                rabbitTemplate.convertAndSend(RabbitMQLiveConfig.FANOUT_EXCHANGE_LIVE_MESSAGE, "", liveMessageVo);
                 return true;
             } else {
                 return false;
@@ -152,16 +151,15 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
     /**
      * 追加直播图片
      *
-     * @param modelId
      * @param liveImageVo
      * @return
      */
     @Override
-    public Boolean operateLiveImage(String modelId, LiveImageVo liveImageVo) {
+    public Boolean operateLiveImage(LiveImageVo liveImageVo) {
         try {
             List<LiveImageVo> imageList;
             ObjectMapper mapper = new ObjectMapper();
-            Model model = super.getById(modelId);
+            Model model = super.getById(liveImageVo.getModelId());
             // 取出原来的图片
             if (Objects.nonNull(model) && StrUtil.isNotEmpty(model.getImages())) {
                 imageList = mapper.readValue(model.getImages(), mapper.getTypeFactory().constructParametricType(List.class, LiveImageVo.class));
@@ -203,7 +201,7 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
             image.setImages(mapper.writeValueAsString(imageList));
             if (super.updateById(image)) {
                 liveImageVo.setKey(liveImageVo.getKey() + flag);
-                rabbitTemplate.convertAndSend(RabbitMQLiveConfig.FANOUT_EXCHANGE_LIVE_IMAGE, RabbitMQLiveConfig.ROUTING_KEY_LIVE_IMAGE , liveImageVo);
+                rabbitTemplate.convertAndSend(RabbitMQLiveConfig.FANOUT_EXCHANGE_LIVE_IMAGE, "", liveImageVo);
                 return true;
             } else {
                 return false;
