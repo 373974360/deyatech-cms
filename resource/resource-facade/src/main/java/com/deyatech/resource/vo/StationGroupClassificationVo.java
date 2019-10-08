@@ -32,4 +32,7 @@ public class StationGroupClassificationVo extends StationGroupClassification {
 
     @ApiModelProperty(value = "站群件数", dataType = "Long")
     private Long stationCount;
+
+    @ApiModelProperty(value = "子分类件数", dataType = "Long")
+    private Long classificationCount;
 }

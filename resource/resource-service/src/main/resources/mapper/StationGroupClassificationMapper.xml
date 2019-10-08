@@ -57,4 +57,8 @@
         </foreach>
     </select>
 
+    <!--根据父分类编号统计分类件数-->
+    <select id="countClassificationByParentId" resultType="java.lang.Long">
+        select count(*) from resource_station_group_classification where enable_ = 1 and parent_id = #{parentId}
+    </select>
 </mapper>

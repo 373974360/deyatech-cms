@@ -43,4 +43,12 @@ public interface StationGroupClassificationMapper extends BaseMapper<StationGrou
      * @return
      */
     long countClassificationByParentIdList(List<String> list);
+
+    /**
+     * 根据父分类编号统计分类件数
+     *
+     * @param parentId
+     * @return
+     */
+    long countClassificationByParentId(@Param("parentId") String parentId);
 }

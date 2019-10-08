@@ -47,6 +47,8 @@ public class StationGroupClassificationServiceImpl extends BaseServiceImpl<Stati
             for (StationGroupClassificationVo stationGroupClassificationVo : stationGroupClassificationVos) {
                 // 分类下站群的件数
                 stationGroupClassificationVo.setStationCount(stationGroupService.countStationGroupByClassificationId(stationGroupClassificationVo.getId()));
+                // 分类下子分类的件数
+                stationGroupClassificationVo.setClassificationCount(baseMapper.countClassificationByParentId(stationGroupClassificationVo.getId()));
                 stationGroupClassificationVo.setLabel(stationGroupClassificationVo.getName());
                 if(StrUtil.isNotBlank(stationGroupClassificationVo.getTreePosition())){
                     String[] split = stationGroupClassificationVo.getTreePosition().split(Constants.DEFAULT_TREE_POSITION_SPLIT);
