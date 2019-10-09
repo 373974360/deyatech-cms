@@ -17,10 +17,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -30,6 +34,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
@@ -242,6 +248,36 @@ public class MaterialController extends BaseController {
             e.printStackTrace();
             log.error("上传失败");
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "上传失败");
+        }
+    }
+
+    /**
+     * 查看图片
+     *
+     * @param filePath
+     * @param response
+     */
+    @GetMapping("/showPicImg")
+    @ApiOperation(value = "查看图片", notes = "查看图片")
+    @ApiImplicitParam(name = "filePath", value = "图片路径", required = true, dataType = "String", paramType = "query")
+    public void showPicImg(String basePath, String filePath, HttpServletResponse response) {
+        String fileSeparator = System.getProperty("file.separator");
+        if (!basePath.endsWith(fileSeparator)) {
+            basePath += fileSeparator;
+        }
+        FileInputStream in = null;
+        OutputStream out = null;
+        try {
+            response.setContentType("image/jpeg");
+            in = new FileInputStream(basePath + filePath.replaceAll(Constants.UPLOAD_DEFAULT_PREFIX_URL,""));
+            out = response.getOutputStream();
+            IOUtils.copy(in, out);
+        } catch (IOException e) {
+            log.error("读取文件失败", e);
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "读取文件失败");
+        } finally {
+            close(in);
+            close(out);
         }
     }
 }
