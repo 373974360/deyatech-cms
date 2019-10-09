@@ -142,7 +142,9 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             MetadataCollectionVo metadataCollectionVo = new MetadataCollectionVo();
             metadataCollectionVo.setId(templateVo.getMetaDataCollectionId());
             List<MetadataCollectionVo> metadataCollectionVoList = adminFeign.findAllData(metadataCollectionVo).getData();
-            templateVo.setMetadataCollectionVo(metadataCollectionVoList.get(0));
+            if (CollectionUtil.isNotEmpty(metadataCollectionVoList)) {
+                templateVo.setMetadataCollectionVo(metadataCollectionVoList.get(0));
+            }
         }
         if (StrUtil.isNotEmpty(templateVo.getMetaDataCollectionId())
                 && StrUtil.isNotEmpty(templateVo.getContentId())) {
