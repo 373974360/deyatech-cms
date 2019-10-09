@@ -38,7 +38,6 @@
         <module>monitor</module>
         <module>generate</module>
         <module>interview</module>
-        <module>survey</module>
     </modules>
 
     <build>
