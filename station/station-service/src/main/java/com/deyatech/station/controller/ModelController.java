@@ -187,4 +187,20 @@ public class ModelController extends BaseController {
         log.info(String.format("根据站点id属性检索所有内容模型: %s ",JSONUtil.toJsonStr(modelVos)));
         return RestResult.ok(modelVos);
     }
+
+    /**
+     * 根据栏目id属性检索所有内容模型
+     *
+     * @param catalogId
+     * @return
+     */
+    @GetMapping("/getModelByCatalogId")
+    @ApiOperation(value="根据站点id属性检索所有内容模型", notes="根据站点id属性检索所有内容模型")
+    @ApiImplicitParam(name = "catalogId", value = "内容模型对象", required = false, dataType = "String", paramType = "query")
+    public RestResult<Collection<ModelVo>> getModelByCatalogId(String catalogId) {
+        Collection<Model> models = modelService.getModelByCatalogId(catalogId);
+        Collection<ModelVo> modelVos = modelService.setVoProperties(models);
+        log.info(String.format("根据站点id属性检索所有内容模型: %s ",JSONUtil.toJsonStr(modelVos)));
+        return RestResult.ok(modelVos);
+    }
 }
