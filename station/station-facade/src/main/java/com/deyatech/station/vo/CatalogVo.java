@@ -2,6 +2,7 @@ package com.deyatech.station.vo;
 
 import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.entity.CatalogAggregation;
+import com.deyatech.station.entity.Model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -45,4 +46,9 @@ public class CatalogVo extends Catalog {
      * 聚合栏目对象
      */
     private CatalogAggregation catalogAggregation;
+
+    /**
+     * 栏目关联的内容数量
+     */
+    int templateCount;
 }

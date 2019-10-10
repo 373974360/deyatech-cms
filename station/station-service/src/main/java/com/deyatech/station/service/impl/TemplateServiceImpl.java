@@ -466,4 +466,18 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         }
         return ids;
     }
+
+
+    /**
+     * 统计栏目下的内容
+     *
+     * @param catalogId
+     * @return
+     */
+    @Override
+    public int countTemplateByCatalogId(String catalogId) {
+        QueryWrapper<Template> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("cms_catalog_id", catalogId);
+        return super.count(queryWrapper);
+    }
 }
