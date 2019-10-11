@@ -77,4 +77,12 @@ public interface CatalogService extends BaseService<Catalog> {
      * @return
      */
     boolean removeByIds(List<String> idList);
+
+    /**
+     * 根据Catalog对象属性检索栏目的tree对象
+     *
+     * @param catalog
+     * @return
+     */
+    Collection<CatalogVo> getUserCatalogTree(Catalog catalog);
 }
