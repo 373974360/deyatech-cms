@@ -169,4 +169,25 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
         Model model = super.getById(modelId);
         return "cms_" + model.getEnglishName();
     }
+
+    /**
+     * 根据栏目id属性检索所有内容模型
+     *
+     * @param catalogId
+     * @return
+     */
+    @Override
+    public Collection<Model> getModelByCatalogId(String catalogId) {
+        Collection<Model> modelList = null;
+        // 通过查询ModelTemplate获取model id
+        QueryWrapper<ModelTemplate> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("content_model_id").eq("cms_catalog_id", catalogId);
+        List<ModelTemplate> modelTemplateList = modelTemplateService.list(queryWrapper);
+        List<String> modelIds = modelTemplateList.stream().map(m -> m.getContentModelId()).distinct().collect(Collectors.toList());
+        // 通过model id获取Model集合
+        if (CollectionUtil.isNotEmpty(modelIds)) {
+            modelList = super.listByIds(modelIds);
+        }
+        return modelList;
+    }
 }

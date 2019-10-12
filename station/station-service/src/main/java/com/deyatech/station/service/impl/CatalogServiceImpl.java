@@ -4,11 +4,16 @@ import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.http.HttpStatus;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.entity.CatalogAggregation;
+import com.deyatech.station.entity.CatalogUser;
+import com.deyatech.station.entity.Template;
 import com.deyatech.station.service.CatalogAggregationService;
+import com.deyatech.station.service.CatalogUserService;
+import com.deyatech.station.service.TemplateService;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.mapper.CatalogMapper;
 import com.deyatech.station.service.CatalogService;
@@ -27,6 +32,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -40,12 +46,11 @@ import java.util.Collection;
 public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> implements CatalogService {
 
     @Autowired
-    private CatalogMapper catalogMapper;
-    @Autowired
-    private AmqpTemplate rabbitmqTemplate;
-    @Autowired
     private CatalogAggregationService catalogAggregationService;
-
+    @Autowired
+    TemplateService templateService;
+    @Autowired
+    CatalogUserService catalogUserService;
 
     /**
      * 根据Catalog对象属性检索栏目的tree对象
@@ -60,6 +65,9 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
         List<CatalogVo> rootCatalogs = CollectionUtil.newArrayList();
         if (CollectionUtil.isNotEmpty(catalogVos)) {
             for (CatalogVo catalogVo : catalogVos) {
+                QueryWrapper<Template> queryWrapper = new QueryWrapper<>();
+                queryWrapper.eq("cms_catalog_id", catalogVo.getId());
+                catalogVo.setTemplateCount(templateService.count(queryWrapper));
                 catalogVo.setLabel(catalogVo.getName());
                 if(StrUtil.isNotBlank(catalogVo.getTreePosition())){
                     String[] split = catalogVo.getTreePosition().split(Constants.DEFAULT_TREE_POSITION_SPLIT);
@@ -195,7 +203,7 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
 
         // 设置排序号
         if (ObjectUtil.isNull(entity.getSortNo())) {
-            int maxSortNo = catalogMapper.selectMaxSortNo();
+            int maxSortNo = baseMapper.selectMaxSortNo();
             entity.setSortNo(maxSortNo + 1);
         }
         // 设置路径名
@@ -339,4 +347,52 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
         }
     }
 
+    /**
+     * 根据Catalog对象属性检索栏目的tree对象
+     *
+     * @param catalog
+     * @return
+     */
+    @Override
+    public Collection<CatalogVo> getUserCatalogTree(Catalog catalog) {
+        List<CatalogVo> rootCatalogs = CollectionUtil.newArrayList();
+
+        CatalogUser catalogUser = new CatalogUser();
+        catalogUser.setUserId(UserContextHelper.getUserId());
+        Collection<CatalogUser> userCatalogs = catalogUserService.listByBean(catalogUser);
+        if (CollectionUtil.isNotEmpty(userCatalogs)) {
+            List<String> catalogIds = userCatalogs.stream().map(CatalogUser::getCatalogId).collect(Collectors.toList());
+
+            catalog.setSortSql("sortNo asc");
+            List<CatalogVo> catalogVos = setVoProperties(super.listByBean(catalog));
+            if (CollectionUtil.isNotEmpty(catalogVos)) {
+                List<CatalogVo> okCatalogVos = catalogVos.stream().filter(c -> catalogIds.contains(c.getId())).collect(Collectors.toList());
+
+                for (CatalogVo catalogVo : okCatalogVos) {
+                    catalogVo.setLabel(catalogVo.getName());
+                    if(StrUtil.isNotBlank(catalogVo.getTreePosition())){
+                        String[] split = catalogVo.getTreePosition().split(Constants.DEFAULT_TREE_POSITION_SPLIT);
+                        catalogVo.setLevel(split.length);
+                    }else{
+                        catalogVo.setLevel(Constants.DEFAULT_ROOT_LEVEL);
+                    }
+                    if (ObjectUtil.equal(catalogVo.getParentId(), Constants.ZERO)) {
+                        rootCatalogs.add(catalogVo);
+                    }
+                    for (CatalogVo childVo : okCatalogVos) {
+                        if (ObjectUtil.equal(childVo.getParentId(), catalogVo.getId())) {
+                            if (ObjectUtil.isNull(catalogVo.getChildren())) {
+                                List<CatalogVo> children = CollectionUtil.newArrayList();
+                                children.add(childVo);
+                                catalogVo.setChildren(children);
+                            } else {
+                                catalogVo.getChildren().add(childVo);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return rootCatalogs;
+    }
 }

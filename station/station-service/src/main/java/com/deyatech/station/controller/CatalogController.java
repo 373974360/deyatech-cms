@@ -1,7 +1,9 @@
 package com.deyatech.station.controller;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.deyatech.station.entity.Catalog;
+import com.deyatech.station.service.TemplateService;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.service.CatalogService;
 import com.deyatech.common.entity.RestResult;
@@ -35,7 +37,8 @@ import io.swagger.annotations.ApiOperation;
 public class CatalogController extends BaseController {
     @Autowired
     CatalogService catalogService;
-
+    @Autowired
+    TemplateService templateService;
     /**
      * 单个保存或者更新栏目
      *
@@ -45,8 +48,12 @@ public class CatalogController extends BaseController {
     @PostMapping("/saveOrUpdate")
     @ApiOperation(value="单个保存或者更新栏目", notes="根据栏目对象保存或者更新栏目信息")
     @ApiImplicitParam(name = "catalogVo", value = "栏目扩展对象", required = true, dataType = "CatalogVo", paramType = "query")
-    public RestResult<Boolean> saveOrUpdate(CatalogVo catalogVo) {
+    public RestResult saveOrUpdate(CatalogVo catalogVo) {
         log.info(String.format("保存或者更新栏目: %s ", JSONUtil.toJsonStr(catalogVo)));
+        int count = templateService.countTemplateByCatalogId(catalogVo.getParentId());
+        if (count > 0) {
+            return RestResult.error("当前栏目下已存在内容，不能添加栏目");
+        }
         boolean result = catalogService.saveOrUpdate(catalogVo);
         return RestResult.ok(result);
     }
@@ -93,6 +100,15 @@ public class CatalogController extends BaseController {
     @ApiImplicitParam(name = "ids", value = "栏目对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
     public RestResult<Boolean> removeByIds(@RequestParam("ids[]") List<String> ids) {
         log.info(String.format("根据id批量删除栏目: %s ", JSONUtil.toJsonStr(ids)));
+        int count = 0;
+        if (CollectionUtil.isNotEmpty(ids)) {
+            for (String id : ids) {
+                count += templateService.countTemplateByCatalogId(id);
+            }
+        }
+        if (count > 0) {
+            return RestResult.error("当前栏目下已存在内容，不能删除栏目");
+        }
         boolean result = catalogService.removeByIds(ids);
         return RestResult.ok(result);
     }
@@ -154,7 +170,6 @@ public class CatalogController extends BaseController {
     @GetMapping("/getTree")
     @ApiOperation(value="获取栏目的tree对象", notes="获取栏目的tree对象")
     public RestResult<Collection<CatalogVo>> getCatalogTree(Catalog catalog) {
-
         Collection<CatalogVo> catalogTree = catalogService.getCatalogTree(catalog);
         log.info(String.format("获取栏目的tree对象: %s ",JSONUtil.toJsonStr(catalogTree)));
         return RestResult.ok(catalogTree);
@@ -219,5 +234,34 @@ public class CatalogController extends BaseController {
         log.info(String.format("验证当前输入栏目英文名称是否已经存在: %s ", JSONUtil.toJsonStr(catalog)));
         boolean result = catalogService.existsEname(catalog);
         return RestResult.ok(result);
+    }
+
+    /**
+     * 检查栏目下有无内容
+     *
+     * @param id
+     * @return
+     */
+    @RequestMapping("/hasTemplate")
+    @ApiOperation(value="检查栏目下有无内容", notes="检查栏目下有无内容")
+    @ApiImplicitParam(name = "id", value = "栏目编号", required = true, dataType = "String", paramType = "query")
+    public RestResult<Boolean> hasTemplate(String id) {
+        log.info(String.format("检查栏目下有无内容: id = %s",id));
+        int count = templateService.countTemplateByCatalogId(id);
+        return RestResult.ok(count > 0 ? true : false);
+    }
+
+    /**
+     * 获取用户栏目的tree对象
+     *
+     * @param catalog
+     * @return
+     */
+    @GetMapping("/getUserCatalogTree")
+    @ApiOperation(value="获取用户栏目的tree对象", notes="获取用户栏目的tree对象")
+    public RestResult<Collection<CatalogVo>> getUserCatalogTree(Catalog catalog) {
+        Collection<CatalogVo> catalogTree = catalogService.getUserCatalogTree(catalog);
+        log.info(String.format("获取栏目的tree对象: %s ",JSONUtil.toJsonStr(catalogTree)));
+        return RestResult.ok(catalogTree);
     }
 }

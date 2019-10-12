@@ -62,4 +62,12 @@ public interface ModelService extends BaseService<Model> {
      * @return
      */
     String getIndexByModelId(String modelId);
+
+    /**
+     * 根据栏目id属性检索所有内容模型
+     *
+     * @param catalogId
+     * @return
+     */
+    Collection<Model> getModelByCatalogId(String catalogId);
 }
