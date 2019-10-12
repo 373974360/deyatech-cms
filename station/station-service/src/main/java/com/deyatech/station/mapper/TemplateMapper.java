@@ -7,6 +7,7 @@ import com.deyatech.common.base.BaseMapper;
 import com.deyatech.station.vo.TemplateVo;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,7 +26,11 @@ public interface TemplateMapper extends BaseMapper<Template> {
      * @param template
      * @return
      */
-    IPage<TemplateVo> pageByTemplate(@Param("page") Page<Template> page, @Param("template") Template template);
+    IPage<TemplateVo> pageByTemplate(
+            @Param("page") Page<Template> page,
+            @Param("template") Template template,
+            @Param("catalogIdList") List<String> catalogIdList,
+            @Param("userIdList") List<String> userIdList);
 
 
     /**
