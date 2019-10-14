@@ -69,21 +69,47 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
     public void setStationGroupUsers(String stationGroupId, List<String> userIds) {
         StationGroupUser stationGroupUser = new StationGroupUser();
         stationGroupUser.setStationGroupId(stationGroupId);
+        // 根据站群ID删除
         this.removeByBean(stationGroupUser);
         if (CollectionUtil.isNotEmpty(userIds)) {
             List<StationGroupUser> list = new ArrayList<>();
             for (String userId : userIds) {
-                StationGroupUser ur = new StationGroupUser();
-                ur.setStationGroupId(stationGroupId);
-                ur.setUserId(userId);
-                list.add(ur);
+                StationGroupUser sgu = new StationGroupUser();
+                sgu.setStationGroupId(stationGroupId);
+                sgu.setUserId(userId);
+                list.add(sgu);
             }
             this.saveOrUpdateBatch(list);
         }
     }
 
     /**
-     * 所有用户信息
+     * 设置用户站群
+     *
+     * @param userId
+     * @param stationGroupIds
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void setUserStationGroups(String userId, List<String> stationGroupIds) {
+        StationGroupUser stationGroupUser = new StationGroupUser();
+        stationGroupUser.setUserId(userId);
+        // 根据用户ID删除
+        this.removeByBean(stationGroupUser);
+        if (CollectionUtil.isNotEmpty(stationGroupIds)) {
+            List<StationGroupUser> list = new ArrayList<>();
+            for (String stationGroupId : stationGroupIds) {
+                StationGroupUser sgu = new StationGroupUser();
+                sgu.setUserId(userId);
+                sgu.setStationGroupId(stationGroupId);
+                list.add(sgu);
+            }
+            this.saveOrUpdateBatch(list);
+        }
+    }
+
+    /**
+     * 站群关联的所有用户信息
      *
      * @param stationGroupUserVo
      * @return
@@ -91,5 +117,16 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
     @Override
     public IPage<StationGroupUserVo> pageByStationGroupUserVo(StationGroupUserVo stationGroupUserVo) {
         return baseMapper.pageByStationGroupUserVo(getPageByBean(stationGroupUserVo), stationGroupUserVo);
+    }
+
+    /**
+     * 删除站群用户关联根据站群编号
+     *
+     * @param stationGroupIds
+     * @return
+     */
+    @Override
+    public int removeByStationGroupId(List<String> stationGroupIds) {
+        return baseMapper.removeByStationGroupId(stationGroupIds);
     }
 }

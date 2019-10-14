@@ -62,6 +62,22 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
     public Collection<CatalogVo> getCatalogTree(Catalog catalog) {
         catalog.setSortSql("sortNo asc");
         List<CatalogVo> catalogVos = setVoProperties(super.listByBean(catalog));
+        return getTree(catalogVos);
+    }
+
+    /**
+     * 根据Catalog对象属性检索栏目的tree对象
+     *
+     * @param siteIds
+     * @return
+     */
+    @Override
+    public Collection<CatalogVo> getCatalogTreeBySiteIds(List<String> siteIds) {
+        List<CatalogVo> catalogVos = baseMapper.getCatalogBySiteIds(siteIds);
+        return getTree(catalogVos);
+    }
+
+    private List<CatalogVo> getTree(List<CatalogVo> catalogVos) {
         List<CatalogVo> rootCatalogs = CollectionUtil.newArrayList();
         if (CollectionUtil.isNotEmpty(catalogVos)) {
             for (CatalogVo catalogVo : catalogVos) {
@@ -93,7 +109,6 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
         }
         return rootCatalogs;
     }
-
     /**
      * 单个将对象转换为vo栏目
      *

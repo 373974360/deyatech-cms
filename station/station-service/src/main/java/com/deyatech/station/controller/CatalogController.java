@@ -176,6 +176,20 @@ public class CatalogController extends BaseController {
     }
 
     /**
+     * 获取栏目的tree对象
+     *
+     * @param siteIds
+     * @return
+     */
+    @RequestMapping("/getCatalogTreeBySiteIds")
+    @ApiOperation(value="获取栏目的tree对象", notes="获取栏目的tree对象")
+    public RestResult<Collection<CatalogVo>> getCatalogTreeBySiteIds(@RequestParam("siteIds[]") List<String> siteIds) {
+        Collection<CatalogVo> catalogTree = catalogService.getCatalogTreeBySiteIds(siteIds);
+        log.info(String.format("获取栏目的tree对象: %s ",JSONUtil.toJsonStr(catalogTree)));
+        return RestResult.ok(catalogTree);
+    }
+
+    /**
      * 获取栏目的级联对象
      *
      * @param catalog

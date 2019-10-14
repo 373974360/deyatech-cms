@@ -49,7 +49,52 @@
         <result column="column_keywords" property="columnKeywords" />
         <result column="column_type" property="columnType" />
     </resultMap>
-
+    <resultMap id="BaseResultVoMap" type="com.deyatech.station.vo.CatalogVo">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="site_id" property="siteId" />
+        <result column="parent_id" property="parentId" />
+        <result column="name" property="name" />
+        <result column="alias_name" property="aliasName" />
+        <result column="ename" property="ename" />
+        <result column="showable" property="showable" />
+        <result column="link_url" property="linkUrl" />
+        <result column="workflow_id" property="workflowId" />
+        <result column="workflow_key" property="workflowKey" />
+        <result column="index_template" property="indexTemplate" />
+        <result column="list_template" property="listTemplate" />
+        <result column="sort_no" property="sortNo" />
+        <result column="tree_position" property="treePosition" />
+        <result column="status" property="status" />
+        <result column="allow_comment" property="allowComment" />
+        <result column="allow_share" property="allowShare" />
+        <result column="application_id" property="applicationId" />
+        <result column="attribute_id" property="attributeId" />
+        <result column="auto_release" property="autoRelease" />
+        <result column="contect_object_id" property="contectObjectId" />
+        <result column="display_number" property="displayNumber" />
+        <result column="generate_home" property="generateHome" />
+        <result column="navigation_show_able" property="navigationShowAble" />
+        <result column="participant" property="participant" />
+        <result column="tree_show_able" property="treeShowAble" />
+        <result column="workflow_enable" property="workflowEnable" />
+        <result column="path_name" property="pathName" />
+        <result column="content_model_id" property="contentModelId" />
+        <result column="place_on_file" property="placeOnFile" />
+        <result column="flag_external" property="flagExternal" />
+        <result column="flag_aggregation" property="flagAggregation" />
+        <result column="aggregation_id" property="aggregationId" />
+        <result column="column_name" property="columnName" />
+        <result column="column_description" property="columnDescription" />
+        <result column="column_keywords" property="columnKeywords" />
+        <result column="column_type" property="columnType" />
+    </resultMap>
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         id_,
@@ -68,5 +113,15 @@
 
     <select id="selectMaxSortNo" resultType="int">
         select ifnull(max(sort_no), 0) from  station_catalog
+    </select>
+    <!--根据站点ID检索栏目-->
+    <select id="getCatalogBySiteIds" resultMap="BaseResultVoMap">
+        select <include refid="Base_Column_List"></include> from  station_catalog where enable_ != -1 and site_id in
+        <if test="list != null and list.size > 0">
+            <foreach index="index" item="item" collection="list" open="(" separator="," close=")">
+             #{item}
+            </foreach>
+        </if>
+        order by sort_no asc
     </select>
 </mapper>
