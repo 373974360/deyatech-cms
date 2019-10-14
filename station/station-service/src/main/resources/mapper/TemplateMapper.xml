@@ -52,8 +52,7 @@
         resource_category, resource_publication_date, keyword_
     </sql>
 
-    <select id="pageByTemplate" parameterType="com.deyatech.station.entity.Template"
-            resultType="com.deyatech.station.vo.TemplateVo">
+    <select id="pageByTemplate" parameterType="com.deyatech.station.entity.Template" resultType="com.deyatech.station.vo.TemplateVo">
         select st.*, sm.name_ as contentModelName, sm.meta_data_collection_id as metaDataCollectionId,
             smt.url_ as thumbnailUrl
         from station_template st
@@ -66,8 +65,17 @@
         <if test="template.siteId != null">
             and st.site_id = #{template.siteId}
         </if>
-        <if test="template.cmsCatalogId != null">
-            and st.cms_catalog_id = #{template.cmsCatalogId}
+        <if test="catalogIdList != null and catalogIdList.size > 0">
+            and st.cms_catalog_id in
+            <foreach item="item" index="index" collection="catalogIdList" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="userIdList != null and userIdList.size > 0">
+            and st.create_by in
+            <foreach item="item" index="index" collection="userIdList" open="(" separator="," close=")">
+                #{item}
+            </foreach>
         </if>
         order by st.update_time desc
     </select>

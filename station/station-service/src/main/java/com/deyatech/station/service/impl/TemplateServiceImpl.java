@@ -9,22 +9,21 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.deyatech.admin.entity.User;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.admin.vo.MetadataCollectionVo;
 import com.deyatech.common.context.UserContextHelper;
+import com.deyatech.common.entity.RestResult;
+import com.deyatech.common.enums.TemplateAuthorityEnum;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.content.feign.ContentFeign;
 import com.deyatech.station.cache.SiteCache;
-import com.deyatech.station.entity.ModelTemplate;
+import com.deyatech.station.entity.*;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
-import com.deyatech.station.entity.Catalog;
-import com.deyatech.station.entity.Template;
-import com.deyatech.station.service.CatalogService;
-import com.deyatech.station.service.ModelService;
+import com.deyatech.station.service.*;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.station.mapper.TemplateMapper;
-import com.deyatech.station.service.TemplateService;
 import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
@@ -69,6 +68,10 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     private ModelTemplateServiceImpl modelTemplateService;
     @Autowired
     private SiteCache siteCache;
+    @Autowired
+    CatalogUserService catalogUserService;
+    @Autowired
+    TemplateUserAuthorityService templateUserAuthorityService;
 
     /**
      * 单个将对象转换为vo内容模板
@@ -390,8 +393,65 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
      */
     @Override
     public IPage<TemplateVo> pageByTemplate(Template entity) {
-        return templateMapper.pageByTemplate(getPageByBean(entity), entity);
+        // 检索栏目ID
+        List<String> catalogIdList = new ArrayList<>();
+        // 检索用户ID
+        List<String> userIdList = new ArrayList<>();
+        String userId = UserContextHelper.getUserId();
+        QueryWrapper<Catalog> countQueryWrapper = new QueryWrapper<>();
+        countQueryWrapper.eq("parent_id", entity.getCmsCatalogId());
+        int count = catalogService.count(countQueryWrapper);
+        // 有子栏目
+        if (count > 0) {
+            // 用户分配的栏目
+            CatalogUser catalogUser = new CatalogUser();
+            catalogUser.setUserId(userId);
+            Collection<CatalogUser> userCatalogs = catalogUserService.listByBean(catalogUser);
+            if (CollectionUtil.isNotEmpty(userCatalogs)) {
+                // 用户分配的栏目ID
+                List<String> userCatalogIds = userCatalogs.stream().map(CatalogUser::getCatalogId).collect(Collectors.toList());
+                // 检索当前栏目的所有子栏目
+                Collection<Catalog> allCatalogList = catalogService.list();
+                List<String> childrenCatalogIds = new ArrayList<>();
+                getChildrenCatalogId(entity.getCmsCatalogId(), allCatalogList, childrenCatalogIds);
+                // 有权限的子栏目ID
+                catalogIdList = childrenCatalogIds.stream().filter(c -> userCatalogIds.contains(c)).collect(Collectors.toList());
+            }
+        }
+        catalogIdList.add(entity.getCmsCatalogId());
+        // 栏目内容权限
+        TemplateUserAuthority templateUserAuthority = new TemplateUserAuthority();
+        templateUserAuthority.setUserId(userId);
+        Collection<TemplateUserAuthority> templateUserAuthoritys = templateUserAuthorityService.listByBean(templateUserAuthority);
+        String authority = "";
+        if (CollectionUtil.isNotEmpty(templateUserAuthoritys)) {
+            Iterator<TemplateUserAuthority> iterator = templateUserAuthoritys.iterator();
+            authority = iterator.next().getAuthority();
+        }
+        if (TemplateAuthorityEnum.ALL.getCode().equals(authority)) {
+
+        } else if (TemplateAuthorityEnum.DEPARTMENT.getCode().equals(authority)) {
+            RestResult<List<User>> result = adminFeign.getAllUserIdInUserDepartment(userId);
+            List<User> users = result.getData();
+            if (CollectionUtil.isNotEmpty(users)) {
+                userIdList = users.stream().map(User::getId).collect(Collectors.toList());
+            }
+        } else if (TemplateAuthorityEnum.USER.getCode().equals(authority)) {
+            userIdList.add(userId);
+        }
+        return templateMapper.pageByTemplate(getPageByBean(entity), entity, catalogIdList, userIdList);
     }
+
+    private void getChildrenCatalogId(String catalogId, Collection<Catalog> allCatalogList, List<String> childrenCatalogIds) {
+        if (StrUtil.isEmpty(catalogId) || CollectionUtil.isEmpty(allCatalogList) || childrenCatalogIds == null) return;
+        for (Catalog c : allCatalogList) {
+            if (catalogId.equals(c.getParentId())) {
+                childrenCatalogIds.add(c.getId());
+                getChildrenCatalogId(c.getId(), allCatalogList, childrenCatalogIds);
+            }
+        }
+    }
+
 
 
 
