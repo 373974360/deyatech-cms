@@ -25,6 +25,14 @@ public interface CatalogService extends BaseService<Catalog> {
     Collection<CatalogVo> getCatalogTree(Catalog catalog);
 
     /**
+     * 根据Catalog对象属性检索栏目的tree对象
+     *
+     * @param siteIds
+     * @return
+     */
+    Collection<CatalogVo> getCatalogTreeBySiteIds(List<String> siteIds);
+
+    /**
      * 单个将对象转换为vo栏目
      *
      * @param catalog

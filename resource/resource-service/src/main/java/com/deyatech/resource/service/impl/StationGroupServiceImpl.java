@@ -1,29 +1,29 @@
 package com.deyatech.resource.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.common.Constants;
+import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.enums.EnableEnum;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.entity.StationGroupClassification;
-import com.deyatech.resource.service.DomainService;
-import com.deyatech.resource.service.SettingService;
-import com.deyatech.resource.service.StationGroupClassificationService;
+import com.deyatech.resource.entity.StationGroupUser;
+import com.deyatech.resource.mapper.StationGroupMapper;
+import com.deyatech.resource.service.*;
 import com.deyatech.resource.vo.StationGroupClassificationVo;
 import com.deyatech.resource.vo.StationGroupVo;
-import com.deyatech.resource.mapper.StationGroupMapper;
-import com.deyatech.resource.service.StationGroupService;
-import com.deyatech.common.base.BaseServiceImpl;
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollectionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -38,12 +38,12 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
 
     @Autowired
     DomainService domainService;
-
     @Autowired
     SettingService settingService;
-
     @Autowired
     StationGroupClassificationService classificationService;
+    @Autowired
+    StationGroupUserService stationGroupUserService;
 
 
 
@@ -54,7 +54,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
      * @return
      */
     @Override
-    public Collection<StationGroupClassificationVo> getClassificationStationTree(StationGroupClassification classification) {
+    public Collection<StationGroupClassificationVo> getClassificationStationTree(String userId, StationGroupClassification classification) {
         classification.setSortSql("sortNo asc");
         List<StationGroupClassificationVo> classificationList = classificationService.setVoProperties(classificationService.listByBean(classification));
         List<StationGroupClassificationVo> rootClassificationList = CollectionUtil.newArrayList();
@@ -87,18 +87,18 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
             // 添加站群
             List<StationGroupClassificationVo> childrenList = CollectionUtil.newArrayList();
             for (StationGroupClassificationVo node : rootClassificationList) {
-                addNode(childrenList, node);
+                addNode(userId, childrenList, node);
             }
             rootClassificationList = childrenList;
         }
         return rootClassificationList;
     }
 
-    private void addNode(List<StationGroupClassificationVo> childrenList, StationGroupClassificationVo childrenNode) {
+    private void addNode(String userId, List<StationGroupClassificationVo> childrenList, StationGroupClassificationVo childrenNode) {
         if (CollectionUtil.isNotEmpty(childrenNode.getChildren())) {
             List<StationGroupClassificationVo> subList = CollectionUtil.newArrayList();
             for (StationGroupClassificationVo subNode : childrenNode.getChildren()) {
-                addNode(subList, subNode);
+                addNode(userId, subList, subNode);
             }
             if (subList.size() > 0) {
                 childrenNode.setChildren(subList);
@@ -106,7 +106,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
             }
         // 叶子结点
         } else {
-            List<StationGroupClassificationVo> stationGroupList = getStationGroupList(childrenNode);
+            List<StationGroupClassificationVo> stationGroupList = getStationGroupList(userId, childrenNode);
             // 有站群则添加该结点
             if (CollectionUtil.isNotEmpty(stationGroupList)) {
                 childrenNode.setChildren(stationGroupList);
@@ -116,10 +116,23 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
 
     }
 
-    private List<StationGroupClassificationVo> getStationGroupList(StationGroupClassificationVo node) {
+    private List<StationGroupClassificationVo> getStationGroupList(String userId, StationGroupClassificationVo node) {
         StationGroupVo stationGroupVo = new StationGroupVo();
         stationGroupVo.setStationGroupClassificationId(node.getId());
         Collection<StationGroupVo> stationGroupVos = listSelectByStationGroupVo(stationGroupVo);
+        if (StrUtil.isNotEmpty(userId)) {
+            // 用户关联的站群
+            StationGroupUser stationGroupUser = new StationGroupUser();
+            stationGroupUser.setUserId(userId);
+            Collection<StationGroupUser> stationGroupUserList = stationGroupUserService.listByBean(stationGroupUser);
+            if (CollectionUtil.isNotEmpty(stationGroupUserList)) {
+                List<String> stationGroupIds = stationGroupUserList.stream().map(StationGroupUser::getStationGroupId).collect(Collectors.toList());
+                stationGroupVos = stationGroupVos.stream().filter(c -> stationGroupIds.contains(c.getId())).collect(Collectors.toList());
+            } else {
+                stationGroupVos = null;
+            }
+        }
+
         if (CollectionUtil.isNotEmpty(stationGroupVos)) {
             List<StationGroupClassificationVo> children = CollectionUtil.newArrayList();
             for (StationGroupVo station : stationGroupVos) {
@@ -128,7 +141,12 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
                 c.setName(station.getName());
                 c.setLabel(station.getName());
                 c.setLevel(node.getLevel() + 1);
-                c.setTreePosition(node.getTreePosition() + '&' + station.getId());
+                if (StrUtil.isNotEmpty(node.getTreePosition())) {
+                    c.setTreePosition(node.getTreePosition() + '&' + node.getId());
+                } else {
+                    c.setTreePosition('&' + node.getId() );
+                }
+
                 children.add(c);
             }
             return children;
@@ -292,6 +310,8 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
         // 删除站群
         long count = baseMapper.updateEnableByIds(ids, EnableEnum.DELETED.getCode());
         if (count > 0) {
+            // 删除站群用户关联
+            stationGroupUserService.removeByStationGroupId(ids);
             // 删除站群配置
             settingService.removeByStationGroupId(ids);
             // 删除 站群下所有域名 nginx 配置

@@ -29,7 +29,7 @@ public interface StationGroupService extends BaseService<StationGroup> {
      * @param classification
      * @return
      */
-    Collection<StationGroupClassificationVo> getClassificationStationTree(StationGroupClassification classification);
+    Collection<StationGroupClassificationVo> getClassificationStationTree(String userId, StationGroupClassification classification);
 
     /**
      * 单个将对象转换为vo站群

@@ -144,14 +144,14 @@ public class StationGroupUserController extends BaseController {
     }
 
     /**
-     * 检索所有用户信息
+     * 检索站群关联的所有用户信息
      *
      * @param stationGroupUserVo
      * @return
      */
     @GetMapping("/pageAllUserByStationGroupUserVo")
-    @ApiOperation(value = "检索所有用户信息", notes = "检索所有用户信息")
-    @ApiImplicitParam(name = "stationGroupUserVo", value = "系统数据字典索引信息对象", required = false, dataType = "StationGroupUserVo", paramType = "query")
+    @ApiOperation(value = "检索站群关联的所有用户信息", notes = "检索站群关联的所有用户信息")
+    @ApiImplicitParam(name = "stationGroupUserVo", value = "站群用户", required = false, dataType = "StationGroupUserVo", paramType = "query")
     public RestResult<IPage<StationGroupUserVo>> pageAllUserByStationGroupUserVo(StationGroupUserVo stationGroupUserVo) {
         IPage<StationGroupUserVo> stationGroupUsers = stationGroupUserService.pageByStationGroupUserVo(stationGroupUserVo);
         stationGroupUsers.setRecords(stationGroupUserService.setVoProperties(stationGroupUsers.getRecords()));
@@ -174,6 +174,24 @@ public class StationGroupUserController extends BaseController {
     })
     public RestResult setStationGroupUsers(String stationGroupId, @RequestParam(value = "userIds[]", required = false) List<String> userIds) {
         stationGroupUserService.setStationGroupUsers(stationGroupId, userIds);
+        return RestResult.ok();
+    }
+
+    /**
+     * 设置用户站群
+     *
+     * @param userId
+     * @param stationGroupIds
+     * @return
+     */
+    @PostMapping("/setUserStationGroups")
+    @ApiOperation(value = "设置用户站群", notes = "设置用户站群")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "userId", value = "用户id", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "stationGroupIds", value = "站群id", required = true, dataType = "String", paramType = "query")
+    })
+    public RestResult setUserStationGroups(String userId, @RequestParam(value = "stationGroupIds[]", required = false) List<String> stationGroupIds) {
+        stationGroupUserService.setUserStationGroups(userId, stationGroupIds);
         return RestResult.ok();
     }
 

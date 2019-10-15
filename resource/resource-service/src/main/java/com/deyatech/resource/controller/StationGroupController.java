@@ -46,8 +46,8 @@ public class StationGroupController extends BaseController {
     @GetMapping("/getClassificationStationCascader")
     @ApiOperation(value="获取的级联对象", notes="获取的级联对象")
     @ApiImplicitParam(name = "stationGroupClassification", value = "stationGroupClassification", required = false, dataType = "StationGroupClassification", paramType = "query")
-    public RestResult<List<CascaderResult>> getCascader(StationGroupClassification stationGroupClassification) {
-        Collection<StationGroupClassificationVo> stationGroupClassificationVos = stationGroupService.getClassificationStationTree(stationGroupClassification);
+    public RestResult<List<CascaderResult>> getCascader(String userId, StationGroupClassification stationGroupClassification) {
+        Collection<StationGroupClassificationVo> stationGroupClassificationVos = stationGroupService.getClassificationStationTree(userId, stationGroupClassification);
         List<CascaderResult> cascaderResults = CascaderUtil.getResult("Id", "Name","TreePosition", stationGroupClassification.getId(), stationGroupClassificationVos);
         log.info(String.format("获取的级联对象: %s ",JSONUtil.toJsonStr(cascaderResults)));
         return RestResult.ok(cascaderResults);

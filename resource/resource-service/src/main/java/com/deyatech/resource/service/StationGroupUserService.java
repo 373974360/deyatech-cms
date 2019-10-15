@@ -42,10 +42,26 @@ public interface StationGroupUserService extends BaseService<StationGroupUser> {
     void setStationGroupUsers(String stationGroupId, List<String> userIds);
 
     /**
+     * 设置用户站群
+     *
+     * @param userId
+     * @param stationGroupIds
+     */
+    void setUserStationGroups(String userId, List<String> stationGroupIds);
+
+    /**
      * 所有用户信息
      *
      * @param stationGroupUserVo
      * @return
      */
     IPage<StationGroupUserVo> pageByStationGroupUserVo(StationGroupUserVo stationGroupUserVo);
+
+    /**
+     * 删除站群用户关联根据站群编号
+     *
+     * @param stationGroupIds
+     * @return
+     */
+    int removeByStationGroupId(List<String> stationGroupIds);
 }
