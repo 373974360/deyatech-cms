@@ -1,5 +1,6 @@
 package com.deyatech.appeal.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.appeal.entity.Satisfaction;
 import com.deyatech.appeal.vo.SatisfactionVo;
 import com.deyatech.common.base.BaseService;
@@ -31,4 +32,6 @@ public interface SatisfactionService extends BaseService<Satisfaction> {
      * @return
      */
     List<SatisfactionVo> setVoProperties(Collection satisfactions);
+
+    IPage pageBySatisfaction(Satisfaction satisfaction);
 }
