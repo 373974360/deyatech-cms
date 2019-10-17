@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.assembly.mapper.ApplyOpenModelMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.deyatech.assembly.entity.ApplyOpenModel">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="model_name" property="modelName" />
+        <result column="must_member" property="mustMember" />
+        <result column="is_auto_publish" property="isAutoPublish" />
+        <result column="remind_type" property="remindType" />
+        <result column="code_pre" property="codePre" />
+        <result column="code_rule" property="codeRule" />
+        <result column="code_num" property="codeNum" />
+        <result column="time_limit" property="timeLimit" />
+        <result column="query_num" property="queryNum" />
+        <result column="file_url" property="fileUrl" />
+        <result column="template_form" property="templateForm" />
+        <result column="template_list" property="templateList" />
+        <result column="template_content" property="templateContent" />
+        <result column="template_over" property="templateOver" />
+        <result column="template_print" property="templatePrint" />
+        <result column="template_query" property="templateQuery" />
+        <result column="site_id" property="siteId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id_,
+        enable_,
+        remark_,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        version_,
+        model_name,site_id,must_member, is_auto_publish, remind_type, code_pre, code_rule, code_num, time_limit, query_num, file_url, template_form, template_list, template_content, template_over, template_print, template_query
+    </sql>
+
+</mapper>

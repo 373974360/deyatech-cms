@@ -38,6 +38,7 @@
         <module>monitor</module>
         <module>generate</module>
         <module>interview</module>
+        <module>assembly</module>
     </modules>
 
     <build>
