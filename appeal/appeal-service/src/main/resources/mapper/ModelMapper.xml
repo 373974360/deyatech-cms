@@ -35,6 +35,7 @@
         <result column="list_templet" property="listTemplet" />
         <result column="view_templet" property="viewTemplet" />
         <result column="print_templet" property="printTemplet" />
+        <result column="site_id" property="siteId" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
@@ -47,7 +48,7 @@
         update_by,
         update_time,
         version_,
-        model_name, participant, auto_publish, limit_day, reminder_day, yellow_day, red_day, bus_type, dept_transfer, competent_dept, part_dept, bus_code, spacera, day_code, spacerb, randomcode_count, querycode_count, workflow_type, workflow_id, form_templet, list_templet, view_templet, print_templet
+        site_id,model_name, participant, auto_publish, limit_day, reminder_day, yellow_day, red_day, bus_type, dept_transfer, competent_dept, part_dept, bus_code, spacera, day_code, spacerb, randomcode_count, querycode_count, workflow_type, workflow_id, form_templet, list_templet, view_templet, print_templet
     </sql>
 
 </mapper>

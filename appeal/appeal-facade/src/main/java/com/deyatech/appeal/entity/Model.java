@@ -23,6 +23,10 @@ import lombok.experimental.Accessors;
 @ApiModel(value = "对象", description = "", parent = BaseEntity.class)
 public class Model extends BaseEntity {
 
+    @ApiModelProperty(value = "站点ID", dataType = "String")
+    @TableField("site_id")
+    private String siteId;
+
     @ApiModelProperty(value = "业务名称", dataType = "String")
     @TableField("model_name")
     private String modelName;
