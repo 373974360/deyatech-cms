@@ -136,10 +136,8 @@ public class SatisfactionController extends BaseController {
     @ApiOperation(value="根据Satisfaction对象属性分页检索", notes="根据Satisfaction对象属性分页检索信息")
     @ApiImplicitParam(name = "satisfaction", value = "对象", required = false, dataType = "Satisfaction", paramType = "query")
     public RestResult<IPage<SatisfactionVo>> pageBySatisfaction(Satisfaction satisfaction) {
-        IPage<SatisfactionVo> satisfactions = satisfactionService.pageByBean(satisfaction);
-        satisfactions.setRecords(satisfactionService.setVoProperties(satisfactions.getRecords()));
-        log.info(String.format("根据Satisfaction对象属性分页检索: %s ",JSONUtil.toJsonStr(satisfactions)));
-        return RestResult.ok(satisfactions);
+        log.info(String.format("根据Satisfaction对象属性分页检索: %s ",JSONUtil.toJsonStr(satisfaction)));
+        return RestResult.ok(satisfactionService.pageBySatisfaction(satisfaction));
     }
 
 }

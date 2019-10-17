@@ -41,4 +41,14 @@ public class RecordVo extends Record {
      * 诉求目的
      * */
     private String purposeName;
+
+    /**
+     * 收件部门
+     */
+    private String treePosition;
+
+    /**
+     * 回复部门
+     */
+    private String replyTreePosition;
 }

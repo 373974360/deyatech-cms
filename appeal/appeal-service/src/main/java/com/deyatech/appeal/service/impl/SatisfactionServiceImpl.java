@@ -1,5 +1,8 @@
 package com.deyatech.appeal.service.impl;
 
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.appeal.entity.Satisfaction;
 import com.deyatech.appeal.vo.SatisfactionVo;
 import com.deyatech.appeal.mapper.SatisfactionMapper;
@@ -52,5 +55,20 @@ public class SatisfactionServiceImpl extends BaseServiceImpl<SatisfactionMapper,
             }
         }
         return satisfactionVos;
+    }
+
+    @Override
+    public IPage pageBySatisfaction(Satisfaction satisfaction) {
+        QueryWrapper<Satisfaction> queryWrapper = new QueryWrapper<>();
+        if(StrUtil.isNotBlank(satisfaction.getName())){
+            queryWrapper.and(i -> i
+                    .like("name", satisfaction.getName())
+                    .or()
+                    .like("score", satisfaction.getName())
+            );
+        }
+        IPage pages = super.page(this.getPageByBean(satisfaction), queryWrapper);
+        pages.setRecords(setVoProperties(pages.getRecords()));
+        return pages;
     }
 }

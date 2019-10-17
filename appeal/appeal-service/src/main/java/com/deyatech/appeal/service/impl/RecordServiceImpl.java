@@ -21,6 +21,7 @@ import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import com.deyatech.common.context.UserContextHelper;
+import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.utils.RandomStrg;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,8 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.List;
 import java.util.Collection;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -59,41 +62,7 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
     public RecordVo setVoProperties(Record record){
         RecordVo recordVo = new RecordVo();
         BeanUtil.copyProperties(record, recordVo);
-        //收件部门名称
-        if(StrUtil.isNotBlank(record.getDeptId())){
-            Department department = adminFeign.getDepartmentById(record.getDeptId()).getData();
-            if(ObjectUtil.isNotNull(department)){
-                recordVo.setDeptName(department.getName());
-            }
-        }
-        //处理部门名称
-        if(StrUtil.isNotBlank(record.getProDeptId())){
-            Department department = adminFeign.getDepartmentById(record.getProDeptId()).getData();
-            if(ObjectUtil.isNotNull(department)){
-                recordVo.setProDeptName(department.getName());
-            }
-        }
-        //回复部门名称
-        if(StrUtil.isNotBlank(record.getReplyDeptId())){
-            Department department = adminFeign.getDepartmentById(record.getReplyDeptId()).getData();
-            if(ObjectUtil.isNotNull(department)){
-                recordVo.setReplyDeptName(department.getName());
-            }
-        }
-        //业务模型名称
-        if(StrUtil.isNotBlank(record.getModelId())){
-            Model model = modelService.getById(record.getModelId());
-            if(ObjectUtil.isNotNull(model)){
-                recordVo.setModelName(model.getModelName());
-            }
-        }
-        //诉求目的名称
-        if(StrUtil.isNotBlank(record.getPurId())){
-            Purpose purpose = purposeService.getById(record.getPurId());
-            if(ObjectUtil.isNotNull(purpose)){
-                recordVo.setPurposeName(purpose.getPurposeName());
-            }
-        }
+        setProperties(recordVo, getDepartmentMap());
         return recordVo;
     }
 
@@ -107,48 +76,70 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
     public List<RecordVo> setVoProperties(Collection records){
         List<RecordVo> recordVos = CollectionUtil.newArrayList();
         if (CollectionUtil.isNotEmpty(records)) {
+            Map<String, Department> departmentMap = getDepartmentMap();
             for (Object record : records) {
                 RecordVo recordVo = new RecordVo();
                 BeanUtil.copyProperties(record, recordVo);
-                //收件部门名称
-                if(StrUtil.isNotBlank(recordVo.getDeptId())){
-                    Department department = adminFeign.getDepartmentById(recordVo.getDeptId()).getData();
-                    if(ObjectUtil.isNotNull(department)){
-                        recordVo.setDeptName(department.getName());
-                    }
-                }
-                //处理部门名称
-                if(StrUtil.isNotBlank(recordVo.getProDeptId())){
-                    Department department = adminFeign.getDepartmentById(recordVo.getProDeptId()).getData();
-                    if(ObjectUtil.isNotNull(department)){
-                        recordVo.setProDeptName(department.getName());
-                    }
-                }
-                //回复部门名称
-                if(StrUtil.isNotBlank(recordVo.getReplyDeptId())){
-                    Department department = adminFeign.getDepartmentById(recordVo.getReplyDeptId()).getData();
-                    if(ObjectUtil.isNotNull(department)){
-                        recordVo.setReplyDeptName(department.getName());
-                    }
-                }
-                //业务模型名称
-                if(StrUtil.isNotBlank(recordVo.getModelId())){
-                    Model model = modelService.getById(recordVo.getModelId());
-                    if(ObjectUtil.isNotNull(model)){
-                        recordVo.setModelName(model.getModelName());
-                    }
-                }
-                //诉求目的名称
-                if(StrUtil.isNotBlank(recordVo.getPurId())){
-                    Purpose purpose = purposeService.getById(recordVo.getPurId());
-                    if(ObjectUtil.isNotNull(purpose)){
-                        recordVo.setPurposeName(purpose.getPurposeName());
-                    }
-                }
+                setProperties(recordVo, departmentMap);
                 recordVos.add(recordVo);
             }
         }
         return recordVos;
+    }
+
+    private Map<String, Department> getDepartmentMap() {
+        RestResult<List<Department>> result = adminFeign.getAllDepartments();
+        if (result != null && CollectionUtil.isNotEmpty(result.getData())) {
+            return result.getData().stream().collect(Collectors.toMap(Department::getId, d -> d));
+        }
+        return null;
+    }
+
+    private void setProperties(RecordVo recordVo, Map<String, Department> departmentMap) {
+        if (departmentMap != null) {
+            Department department = null;
+            //收件部门名称
+            if (StrUtil.isNotEmpty(recordVo.getDeptId())) {
+                department = departmentMap.get(recordVo.getDeptId());
+                recordVo.setDeptName(departmentMap.get(department.getId()).getName());
+                if (StrUtil.isEmpty(department.getTreePosition())) {
+                    recordVo.setTreePosition("&" + department.getId());
+                } else {
+                    recordVo.setTreePosition(department.getTreePosition() + "&" + department.getId());
+                }
+            }
+
+            //处理部门名称
+            if (StrUtil.isNotEmpty(recordVo.getProDeptId())) {
+                department = departmentMap.get(recordVo.getProDeptId());
+                recordVo.setProDeptName(department.getName());
+            }
+
+            //回复部门名称
+            if (StrUtil.isNotEmpty(recordVo.getReplyDeptId())) {
+                department = departmentMap.get(recordVo.getReplyDeptId());
+                recordVo.setReplyDeptName(department.getName());
+                if (StrUtil.isEmpty(department.getTreePosition())) {
+                    recordVo.setReplyTreePosition("&" + department.getId());
+                } else {
+                    recordVo.setReplyTreePosition(department.getTreePosition() + "&" + department.getId());
+                }
+            }
+        }
+        //业务模型名称
+        if(StrUtil.isNotBlank(recordVo.getModelId())){
+            Model model = modelService.getById(recordVo.getModelId());
+            if(ObjectUtil.isNotNull(model)){
+                recordVo.setModelName(model.getModelName());
+            }
+        }
+        //诉求目的名称
+        if(StrUtil.isNotBlank(recordVo.getPurId())){
+            Purpose purpose = purposeService.getById(recordVo.getPurId());
+            if(ObjectUtil.isNotNull(purpose)){
+                recordVo.setPurposeName(purpose.getPurposeName());
+            }
+        }
     }
 
     @Override
@@ -181,6 +172,7 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
         if(ObjectUtil.isNotNull(userVo)){
             queryWrapper.eq("pro_dept_id",userVo.getDepartmentId());
         }
+
         IPage<RecordVo> recordVoIPage = new Page<>(record.getPage(),record.getSize());
         IPage<Record> pages = super.page(getPageByBean(record), queryWrapper);
         recordVoIPage.setRecords(setVoProperties(pages.getRecords()));
