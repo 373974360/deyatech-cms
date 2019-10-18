@@ -24,4 +24,6 @@ public class ApplyOpenRecordVo extends ApplyOpenRecord {
     private String doDeptName;
 
     private String modelName;
+
+    private String replyDeptName;
 }
