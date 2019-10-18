@@ -1,9 +1,12 @@
 package com.deyatech.assembly.controller;
 
 import cn.hutool.core.util.StrUtil;
+import com.deyatech.admin.feign.AdminFeign;
+import com.deyatech.admin.vo.UserVo;
 import com.deyatech.assembly.entity.ApplyOpenRecord;
 import com.deyatech.assembly.vo.ApplyOpenRecordVo;
 import com.deyatech.assembly.service.ApplyOpenRecordService;
+import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.entity.RestResult;
 import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
@@ -33,6 +36,8 @@ import io.swagger.annotations.ApiOperation;
 public class ApplyOpenRecordController extends BaseController {
     @Autowired
     ApplyOpenRecordService applyOpenRecordService;
+    @Autowired
+    AdminFeign adminFeign;
 
     /**
      * 单个保存或者更新
@@ -45,6 +50,8 @@ public class ApplyOpenRecordController extends BaseController {
     @ApiImplicitParam(name = "applyOpenRecord", value = "对象", required = true, dataType = "ApplyOpenRecord", paramType = "query")
     public RestResult<Boolean> saveOrUpdate(ApplyOpenRecord applyOpenRecord) {
         if(StrUtil.isBlank(applyOpenRecord.getId())){
+            UserVo userVo = adminFeign.getUserByUserId(UserContextHelper.getUserId()).getData();
+            applyOpenRecord.setReplyDeptId(userVo.getDepartmentId());
             applyOpenRecord.setQueryCode(applyOpenRecordService.getQueryCode(applyOpenRecord.getId()));
             applyOpenRecord.setYsqCode(applyOpenRecordService.getYsqCode(applyOpenRecord.getId()));
         }

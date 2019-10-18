@@ -38,6 +38,9 @@
         <result column="is_other" property="isOther" />
         <result column="is_publish" property="isPublish" />
         <result column="flag" property="flag" />
+        <result column="reply_content" property="replyContent" />
+        <result column="reply_time" property="replyTime" />
+        <result column="reply_dept_id" property="replyDeptId" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
@@ -50,7 +53,7 @@
         update_by,
         update_time,
         version_,
-        model_id,ysq_code,query_code,do_dept,ysq_type, name, company, card_name, card_code, org_code, licence, legalperson, linkman, tel, fax, phone, email, address, postcode, content, description, is_derate, get_method, is_other, is_publish, flag
+        reply_content,reply_time,reply_dept_id,model_id,ysq_code,query_code,do_dept,ysq_type, name, company, card_name, card_code, org_code, licence, legalperson, linkman, tel, fax, phone, email, address, postcode, content, description, is_derate, get_method, is_other, is_publish, flag
     </sql>
 
 </mapper>

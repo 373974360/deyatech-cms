@@ -67,6 +67,12 @@ public class ApplyOpenRecordServiceImpl extends BaseServiceImpl<ApplyOpenRecordM
                 applyOpenRecordVo.setModelName(model.getModelName());
             }
         }
+        if(StrUtil.isNotBlank(applyOpenRecordVo.getReplyDeptId())){
+            Department department = adminFeign.getDepartmentById(applyOpenRecordVo.getReplyDeptId()).getData();
+            if(ObjectUtil.isNotNull(department)){
+                applyOpenRecordVo.setReplyDeptName(department.getName());
+            }
+        }
         return applyOpenRecordVo;
     }
 
@@ -93,6 +99,12 @@ public class ApplyOpenRecordServiceImpl extends BaseServiceImpl<ApplyOpenRecordM
                     ApplyOpenModel model = applyOpenModelService.getById(applyOpenRecordVo.getModelId());
                     if(ObjectUtil.isNotNull(model)){
                         applyOpenRecordVo.setModelName(model.getModelName());
+                    }
+                }
+                if(StrUtil.isNotBlank(applyOpenRecordVo.getReplyDeptId())){
+                    Department department = adminFeign.getDepartmentById(applyOpenRecordVo.getReplyDeptId()).getData();
+                    if(ObjectUtil.isNotNull(department)){
+                        applyOpenRecordVo.setReplyDeptName(department.getName());
                     }
                 }
                 applyOpenRecordVos.add(applyOpenRecordVo);

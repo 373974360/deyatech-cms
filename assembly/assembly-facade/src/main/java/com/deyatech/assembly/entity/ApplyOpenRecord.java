@@ -8,6 +8,9 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+
+import java.util.Date;
+
 /**
  * <p>
  * 
@@ -110,9 +113,9 @@ public class ApplyOpenRecord extends BaseEntity {
     @TableField("is_derate")
     private Integer isDerate;
 
-    @ApiModelProperty(value = "获取信息方式", dataType = "String")
+    @ApiModelProperty(value = "获取信息方式", dataType = "Integer")
     @TableField("get_method")
-    private String getMethod;
+    private Integer getMethod;
 
     @ApiModelProperty(value = "是否接受其他方式；1=是，2=否", dataType = "Integer", example = "1")
     @TableField("is_other")
@@ -125,5 +128,17 @@ public class ApplyOpenRecord extends BaseEntity {
     @ApiModelProperty(value = "申请状态；1=未处理，2=已受理，3=已回复，4=无效", dataType = "Integer", example = "1")
     @TableField("flag")
     private Integer flag;
+
+    @ApiModelProperty(value = "回复内容", dataType = "String")
+    @TableField("reply_content")
+    private String replyContent;
+
+    @ApiModelProperty(value = "回复时间", dataType = "LocalDateTime")
+    @TableField("reply_time")
+    private Date replyTime;
+
+    @ApiModelProperty(value = "回复部门", dataType = "String")
+    @TableField("reply_dept_id")
+    private String replyDeptId;
 
 }
