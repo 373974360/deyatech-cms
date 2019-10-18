@@ -122,6 +122,11 @@ public class Template extends BaseEntity {
     @TableField("keyword_")
     private String keyword;
 
+    @ApiModelProperty(value = "索引编码", dataType = "String")
+    @TableField("index_code")
+    private String indexCode;
+
+
 
 
 }

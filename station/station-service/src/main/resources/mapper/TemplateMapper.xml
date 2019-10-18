@@ -35,6 +35,7 @@
         <result column="resource_category" property="resourceCategory" />
         <result column="resource_publication_date" property="resourcePublicationDate" />
         <result column="keyword_" property="keyword" />
+        <result column="index_code" property="indexCode" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
@@ -49,7 +50,7 @@
         version_,
         site_id, template_path, cms_catalog_id, content_model_id, content_id, status_, content_model_template_id, url_, author_,
         editor_, source_, thumbnail_, title_, flag_search, sort_no, flag_top, views_, flag_external, resource_summary, resource_content,
-        resource_category, resource_publication_date, keyword_
+        resource_category, resource_publication_date, keyword_, index_code
     </sql>
 
     <select id="pageByTemplate" parameterType="com.deyatech.station.entity.Template" resultType="com.deyatech.station.vo.TemplateVo">

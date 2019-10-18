@@ -109,4 +109,13 @@ public interface TemplateService extends BaseService<Template> {
      * @return
      */
     int countTemplateByCatalogId(String catalogId);
+
+    /**
+     * 检索站点下的内容
+     * @param siteId
+     * @param start
+     * @param end
+     * @return
+     */
+    List<TemplateVo> getResetTemplate(String siteId, String start, String end);
 }

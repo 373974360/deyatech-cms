@@ -6,7 +6,6 @@ import com.deyatech.common.entity.RestResult;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.config.SiteProperties;
-import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.feign.StationFeign;
 import com.deyatech.station.service.CatalogService;
 import com.deyatech.station.service.TemplateService;
@@ -16,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -66,5 +65,9 @@ public class StationFeignImpl implements StationFeign {
         IPage<TemplateVo> templates = templateService.getTemplateListView(maps,page,pageSize);
         templates.setRecords(templateService.setVoProperties(templates.getRecords()));
         return RestResult.ok(templates);
+    }
+    @Override
+    public RestResult<List<TemplateVo>> getResetTemplate(String siteId, String start, String end) {
+        return RestResult.ok(templateService.getResetTemplate(siteId, start, end));
     }
 }

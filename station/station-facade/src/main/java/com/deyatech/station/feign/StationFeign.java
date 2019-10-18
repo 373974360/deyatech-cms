@@ -1,11 +1,9 @@
 package com.deyatech.station.feign;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.config.SiteProperties;
-import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.vo.TemplateVo;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -15,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -79,4 +78,14 @@ public interface StationFeign {
      */
     @RequestMapping(value = "/feign/station/getTemplateListView")
     RestResult<Page<TemplateVo>> getTemplateListView(@RequestBody Map<String, Object> maps, @RequestParam("page") Integer page, @RequestParam("pageSize") Integer pageSize);
+
+    /**
+     * 检索站点下的内容
+     * @param siteId
+     * @param start
+     * @param end
+     * @return
+     */
+    @RequestMapping(value = "/feign/station/getResetTemplate")
+    RestResult<List<TemplateVo>> getResetTemplate(@RequestParam("siteId") String siteId, @RequestParam("start") String start, @RequestParam("end") String end);
 }

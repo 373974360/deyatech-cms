@@ -540,4 +540,19 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         queryWrapper.eq("cms_catalog_id", catalogId);
         return super.count(queryWrapper);
     }
+
+    /**
+     * 检索站点下的内容
+     * @param siteId
+     * @param start
+     * @param end
+     * @return
+     */
+    @Override
+    public List<TemplateVo> getResetTemplate(String siteId, String start, String end) {
+        QueryWrapper<Template> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("site_id", siteId);
+        queryWrapper.between("resource_publication_date", start, end);
+        return setVoProperties(super.list(queryWrapper));
+    }
 }
