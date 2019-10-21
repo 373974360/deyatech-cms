@@ -115,7 +115,9 @@ public interface TemplateService extends BaseService<Template> {
      * @param siteId
      * @param start
      * @param end
+     * @param part
+     * @param number
      * @return
      */
-    List<TemplateVo> getResetTemplate(String siteId, String start, String end);
+    Integer resetTemplateIndex(String siteId, String start, String end, String part, int number);
 }

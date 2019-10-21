@@ -24,4 +24,12 @@ public interface ResourceFeign {
      */
     @RequestMapping(value = "/feign/resource/getStationGroupAll", method = RequestMethod.GET)
     RestResult<List<StationGroup>> getStationGroupAll();
+
+    /**
+     * 检索站群
+     *
+     * @return
+     */
+    @RequestMapping(value = "/feign/resource/getStationGroupById")
+    RestResult<StationGroup> getStationGroupById(@RequestParam("id") String id);
 }

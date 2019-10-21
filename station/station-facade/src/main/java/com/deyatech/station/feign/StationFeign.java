@@ -84,8 +84,14 @@ public interface StationFeign {
      * @param siteId
      * @param start
      * @param end
+     * @param part
+     * @param number
      * @return
      */
-    @RequestMapping(value = "/feign/station/getResetTemplate")
-    RestResult<List<TemplateVo>> getResetTemplate(@RequestParam("siteId") String siteId, @RequestParam("start") String start, @RequestParam("end") String end);
+    @RequestMapping(value = "/feign/station/resetTemplateIndex")
+    RestResult<Integer> resetTemplateIndex(@RequestParam("siteId") String siteId,
+                                                    @RequestParam("start") String start,
+                                                    @RequestParam("end") String end,
+                                                    @RequestParam("part") String part,
+                                                    @RequestParam("number") int number);
 }

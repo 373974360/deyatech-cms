@@ -67,7 +67,7 @@ public class StationFeignImpl implements StationFeign {
         return RestResult.ok(templates);
     }
     @Override
-    public RestResult<List<TemplateVo>> getResetTemplate(String siteId, String start, String end) {
-        return RestResult.ok(templateService.getResetTemplate(siteId, start, end));
+    public RestResult<Integer> resetTemplateIndex(String siteId, String start, String end, String part, int number) {
+        return RestResult.ok(templateService.resetTemplateIndex(siteId, start, end, part, number));
     }
 }

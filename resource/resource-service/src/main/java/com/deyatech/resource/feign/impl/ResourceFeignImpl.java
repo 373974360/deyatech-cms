@@ -25,4 +25,9 @@ public class ResourceFeignImpl implements ResourceFeign {
     public RestResult<List<StationGroup>> getStationGroupAll() {
         return RestResult.ok(stationGroupService.list());
     }
+
+    @Override
+    public RestResult<StationGroup> getStationGroupById(String id) {
+        return RestResult.ok(stationGroupService.getById(id));
+    }
 }

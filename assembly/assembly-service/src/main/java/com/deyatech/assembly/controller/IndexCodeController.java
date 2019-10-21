@@ -52,17 +52,15 @@ public class IndexCodeController extends BaseController {
     })
     public RestResult reset(String siteId, String start, String end) {
         if (StrUtil.isEmpty(siteId)) {
-            return RestResult.error("索引码重置");
+            return RestResult.error("没有站点编码");
         }
         if (StrUtil.isEmpty(start)) {
-            return RestResult.error("开始日期");
+            return RestResult.error("没有开始日期");
         }
         if (StrUtil.isEmpty(end)) {
-            return RestResult.error("结束日期");
+            return RestResult.error("没有结束日期");
         }
-        QueryWrapper<IndexCode> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("site_id", siteId);
-        return RestResult.ok(indexCodeService.setVoProperties(indexCodeService.getOne(queryWrapper)));
+        return RestResult.ok(indexCodeService.reset(siteId,start,end));
     }
 
     /**

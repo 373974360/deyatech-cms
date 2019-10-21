@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.admin.entity.User;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.admin.vo.MetadataCollectionVo;
+import com.deyatech.common.Constants;
 import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.enums.TemplateAuthorityEnum;
@@ -546,13 +547,50 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
      * @param siteId
      * @param start
      * @param end
+     * @param part
+     * @param number
      * @return
      */
     @Override
-    public List<TemplateVo> getResetTemplate(String siteId, String start, String end) {
+    public Integer resetTemplateIndex(String siteId, String start, String end, String part, int number) {
         QueryWrapper<Template> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("id_");
         queryWrapper.eq("site_id", siteId);
-        queryWrapper.between("resource_publication_date", start, end);
-        return setVoProperties(super.list(queryWrapper));
+        queryWrapper.between("DATE_FORMAT(resource_publication_date, '%Y-%m-%d')", start, end);
+        queryWrapper.orderByAsc("resource_publication_date");
+        int total = super.count(queryWrapper);
+        if (total == 0) {
+            return new Integer(0);
+        }
+        final int SIZE = 1000;
+        int totalPage = total / SIZE;
+        if (total % SIZE != 0) {
+            totalPage += 1;
+        }
+        boolean result = true;
+        StringBuilder format = new StringBuilder("%0");
+        format.append(number);
+        format.append("d");
+        int value = 1;
+        Page page = new Page();
+        page.setSize(SIZE);
+        for (int p = 1; p <= totalPage; p++) {
+            page.setCurrent(p);
+            IPage<Template> resultPage = super.page(page, queryWrapper);
+            List<Template> list = resultPage.getRecords();
+            if (CollectionUtil.isNotEmpty(list)) {
+                for (Template t : resultPage.getRecords()) {
+                    StringBuilder indexCode = new StringBuilder(part);
+                    indexCode.append(String.format(format.toString(), value++));
+                    t.setIndexCode(indexCode.toString());
+                }
+                result &= super.updateBatchById(list);
+            }
+        }
+        if (result) {
+            return new Integer(total);
+        } else {
+            return new Integer(0);
+        }
     }
 }
