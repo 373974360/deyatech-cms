@@ -73,4 +73,12 @@ public interface TemplateFeign {
     @RequestMapping(value = "/feign/template/thyToString", method = RequestMethod.POST)
     RestResult<String> thyToString(@RequestParam("siteTemplateRoot") String siteTemplateRoot,@RequestParam("templatePath")  String templatePath,@RequestBody Map<String, Object> varMap);
 
+    /**
+     * 检查模板地址是否存在
+     *
+     * @param templatePath
+     * @return
+     */
+    @RequestMapping(value = "/feign/template/existsTemplatePath")
+    RestResult<Boolean> existsTemplatePath(@RequestParam("templatePath") String templatePath);
 }

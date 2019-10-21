@@ -54,4 +54,14 @@ public class TemplateFeignImpl implements TemplateFeign {
     public RestResult<String> thyToString(String siteTemplateRoot, String templatePath, Map<String, Object> varMap) {
         return RestResult.ok(thymeleafUtil.thyToString(siteTemplateRoot,templatePath,varMap));
     }
+
+    @Override
+    public RestResult<Boolean> existsTemplatePath(String templatePath) {
+        File template = new File(templatePath);
+        if (template.exists()) {
+            return RestResult.ok(true);
+        } else {
+            return RestResult.ok(false);
+        }
+    }
 }

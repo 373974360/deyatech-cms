@@ -193,11 +193,10 @@ public class PageController extends BaseController {
         String templateRootPath = stationFeign.getStationGroupTemplatePathBySiteId(page.getSiteId()).getData();
         String siteRootPath = stationFeign.getStationGroupRootPath(page.getSiteId()).getData();
         String templatePath = page.getTemplatePath();
-        File template = new File(templateRootPath + templatePath);
-        if (!template.exists()) {
-            return RestResult.error("模板地址不存在");
+        RestResult<Boolean> result = templateFeign.existsTemplatePath(templateRootPath + templatePath);
+        if (!result.getData()) {
+            return RestResult.ok("模板地址不存在");
         }
-
         String pagePath = siteRootPath + page.getPagePath() + page.getPageEnglishName() + templateFeign.getPageSuffix().getData();
         Map<String,Object> varMap = new HashMap<>();
         varMap.put("site",stationFeign.getStationGroupById(page.getSiteId()).getData());
@@ -218,8 +217,8 @@ public class PageController extends BaseController {
     public RestResult<Boolean> existsTemplatePath(Page page) {
         String templateRootPath = stationFeign.getStationGroupTemplatePathBySiteId(page.getSiteId()).getData();
         String templatePath = page.getTemplatePath();
-        File template = new File(templateRootPath + templatePath);
-        if (!template.exists()) {
+        RestResult<Boolean> result = templateFeign.existsTemplatePath(templateRootPath + templatePath);
+        if (!result.getData()) {
             return RestResult.ok("模板地址不存在");
         } else {
             return RestResult.ok("");
