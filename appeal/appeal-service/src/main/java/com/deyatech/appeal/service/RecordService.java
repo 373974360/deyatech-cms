@@ -34,7 +34,7 @@ public interface RecordService extends BaseService<Record> {
     List<RecordVo> setVoProperties(Collection records);
 
 
-    IPage<RecordVo> pageRecordByBean(Record record,String[] timeFrame);
+    IPage<RecordVo> pageRecordByBean(Record record,String[] timeFrame, String userDepartmentId);
 
     /**
      * 根据业务ID得到随机查询码，用于前台页面添加诉求时产生查询码

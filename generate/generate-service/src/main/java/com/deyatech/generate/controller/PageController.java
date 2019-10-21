@@ -58,7 +58,7 @@ public class PageController extends BaseController {
         log.info(String.format("保存或者更新页面管理: %s ", JSONUtil.toJsonStr(page)));
         boolean result = pageService.saveOrUpdate(page);
         if(result){
-            replay(page);
+            return replay(page);
         }
         if(!ids.isEmpty()){
             pageCatalogService.updatePageCatalogById(page.getId(),ids);
@@ -176,7 +176,7 @@ public class PageController extends BaseController {
         if (StrUtil.isEmpty(message)) {
             return RestResult.ok();
         } else {
-            return RestResult.error(message);
+            return RestResult.ok(message);
         }
     }
 
@@ -193,10 +193,36 @@ public class PageController extends BaseController {
         String templateRootPath = stationFeign.getStationGroupTemplatePathBySiteId(page.getSiteId()).getData();
         String siteRootPath = stationFeign.getStationGroupRootPath(page.getSiteId()).getData();
         String templatePath = page.getTemplatePath();
+        File template = new File(templateRootPath + templatePath);
+        if (!template.exists()) {
+            return RestResult.error("模板地址不存在");
+        }
+
         String pagePath = siteRootPath + page.getPagePath() + page.getPageEnglishName() + templateFeign.getPageSuffix().getData();
         Map<String,Object> varMap = new HashMap<>();
         varMap.put("site",stationFeign.getStationGroupById(page.getSiteId()).getData());
         templateFeign.generateStaticPage(templateRootPath,templatePath,new File(pagePath),varMap);
         return RestResult.ok(true);
+    }
+
+
+    /**
+     * 验证模板是否存在
+     *
+     * @param page
+     * @return
+     */
+    @GetMapping("/existsTemplatePath")
+    @ApiOperation(value="验证当前输入页面路径是否已经存在", notes="验证当前输入页面路径是否已经存在")
+    @ApiImplicitParam(name = "page", value = "页面管理对象", required = true, dataType = "Page", paramType = "query")
+    public RestResult<Boolean> existsTemplatePath(Page page) {
+        String templateRootPath = stationFeign.getStationGroupTemplatePathBySiteId(page.getSiteId()).getData();
+        String templatePath = page.getTemplatePath();
+        File template = new File(templateRootPath + templatePath);
+        if (!template.exists()) {
+            return RestResult.ok("模板地址不存在");
+        } else {
+            return RestResult.ok("");
+        }
     }
 }

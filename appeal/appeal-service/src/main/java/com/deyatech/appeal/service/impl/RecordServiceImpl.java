@@ -143,14 +143,18 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
     }
 
     @Override
-    public IPage<RecordVo> pageRecordByBean(Record record,String[] timeFrame) {
-        UserVo userVo = adminFeign.getUserByUserId(UserContextHelper.getUserId()).getData();
+    public IPage<RecordVo> pageRecordByBean(Record record,String[] timeFrame, String userDepartmentId) {
         QueryWrapper<Record> queryWrapper = new QueryWrapper<>();
         if(ObjectUtil.isNotNull(timeFrame)){
             queryWrapper.between("create_time",timeFrame[0],timeFrame[1]);
         }
         if(StrUtil.isNotBlank(record.getModelId())){
             queryWrapper.eq("model_id",record.getModelId());
+        } else {
+            QueryWrapper<Model> query = new QueryWrapper<>();
+            query.likeLeft("competent_dept", userDepartmentId);
+            Collection<Model> models = modelService.list(query);
+            queryWrapper.in("model_id", models.stream().map(Model::getId).collect(Collectors.toList()));
         }
         if(StrUtil.isNotBlank(record.getPurId())){
             queryWrapper.eq("pur_id",record.getPurId());
@@ -169,8 +173,8 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
         if(record.getIsPublish() != null && record.getIsPublish() > 0){
             queryWrapper.eq("is_publish",record.getIsPublish());
         }
-        if(ObjectUtil.isNotNull(userVo)){
-            queryWrapper.eq("pro_dept_id",userVo.getDepartmentId());
+        if(StrUtil.isNotEmpty(userDepartmentId)){
+            queryWrapper.or().eq("pro_dept_id", userDepartmentId);
         }
 
         IPage<RecordVo> recordVoIPage = new Page<>(record.getPage(),record.getSize());

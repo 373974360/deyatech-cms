@@ -1,5 +1,6 @@
 package com.deyatech.appeal.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.deyatech.appeal.entity.Model;
 import com.deyatech.appeal.vo.ModelVo;
 import com.deyatech.appeal.service.ModelService;
@@ -142,4 +143,21 @@ public class ModelController extends BaseController {
         return RestResult.ok(models);
     }
 
+    /**
+     * 检索主管部门的模型
+     *
+     * @param departmentId
+     * @return
+     */
+    @GetMapping("/listModelByCompetentDeptId")
+    @ApiOperation(value="检索主管部门的模型", notes="检索主管部门的模型")
+    @ApiImplicitParam(name = "model", value = "对象", required = false, dataType = "Model", paramType = "query")
+    public RestResult<Collection<ModelVo>> listModelByCompetentDeptId(String departmentId) {
+        QueryWrapper<Model> queryWrapper = new QueryWrapper<>();
+        queryWrapper.likeLeft("competent_dept", departmentId);
+        Collection<Model> models = modelService.list(queryWrapper);
+        Collection<ModelVo> modelVos = modelService.setVoProperties(models);
+        log.info(String.format("检索主管部门的模型: %s ",JSONUtil.toJsonStr(modelVos)));
+        return RestResult.ok(modelVos);
+    }
 }

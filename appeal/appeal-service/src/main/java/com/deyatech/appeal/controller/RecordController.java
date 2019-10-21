@@ -5,6 +5,7 @@ import com.deyatech.appeal.entity.Record;
 import com.deyatech.appeal.vo.RecordVo;
 import com.deyatech.appeal.service.RecordService;
 import com.deyatech.common.entity.RestResult;
+import io.swagger.annotations.ApiImplicitParams;
 import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -140,9 +141,13 @@ public class RecordController extends BaseController {
      */
     @GetMapping("/pageByRecord")
     @ApiOperation(value="根据Record对象属性分页检索", notes="根据Record对象属性分页检索信息")
-    @ApiImplicitParam(name = "record", value = "对象", required = false, dataType = "Record", paramType = "query")
-    public RestResult<IPage<RecordVo>> pageByRecord(Record record,String[] timeFrame) {
-        IPage<RecordVo> records = recordService.pageRecordByBean(record,timeFrame);
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "record", value = "对象", required = false, dataType = "Record", paramType = "query"),
+            @ApiImplicitParam(name = "timeFrame", value = "时间取件", required = false, dataType = "Record", paramType = "query"),
+            @ApiImplicitParam(name = "userDepartmentId", value = "用户部门", required = true, dataType = "Record", paramType = "query")
+    })
+    public RestResult<IPage<RecordVo>> pageByRecord(Record record, String[] timeFrame, String userDepartmentId) {
+        IPage<RecordVo> records = recordService.pageRecordByBean(record, timeFrame, userDepartmentId);
         log.info(String.format("根据Record对象属性分页检索: %s ",JSONUtil.toJsonStr(records)));
         return RestResult.ok(records);
     }

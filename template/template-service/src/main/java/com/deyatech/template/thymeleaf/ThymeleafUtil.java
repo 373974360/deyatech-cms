@@ -127,7 +127,7 @@ public class ThymeleafUtil {
             templateEngine.process(templatePath, context, write);
         } catch (Exception e) {
             log.error(String.format("静态化页面发生错误 , 模板 %s , 数据 %s", templatePath, varMap), e);
-            throw new RuntimeException(String.format("静态化页面发生错误 , 模板 %s , 数据 %s", templatePath, varMap), e);
+            throw new RuntimeException("静态化页面发生错误");
         }
     }
 
