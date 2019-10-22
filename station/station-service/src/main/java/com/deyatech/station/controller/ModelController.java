@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.web.bind.annotation.RestController;
 import com.deyatech.common.base.BaseController;
 import io.swagger.annotations.Api;
@@ -202,5 +204,19 @@ public class ModelController extends BaseController {
         Collection<ModelVo> modelVos = modelService.setVoProperties(models);
         log.info(String.format("根据站点id属性检索所有内容模型: %s ",JSONUtil.toJsonStr(modelVos)));
         return RestResult.ok(modelVos);
+    }
+
+
+    /**
+     * 元数据集的模型件数
+     *
+     * @param collectionIds
+     * @return
+     */
+    @RequestMapping("/countModelByCollectionIds")
+    @ApiOperation(value="元数据集的模型件数", notes="元数据集的模型件数")
+    @ApiImplicitParam(name = "collectionIds", value = "数据集编号", required = false, dataType = "String", paramType = "query")
+    public RestResult<Map<String, Long>> countModelByCollectionIds(@RequestParam("collectionIds[]") List<String> collectionIds) {
+        return RestResult.ok(modelService.getStationModelCountByCollectionIds(collectionIds));
     }
 }

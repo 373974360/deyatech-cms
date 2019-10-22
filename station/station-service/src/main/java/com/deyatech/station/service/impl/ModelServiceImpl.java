@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.entity.Model;
@@ -21,10 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Collection;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -204,5 +202,24 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
 //            modelList = super.listByIds(modelIds);
 //        }
 //        return modelList;
+    }
+
+
+    @Override
+    public Map<String, Long> getStationModelCountByCollectionIds(List<String> collectionIds) {
+        if (CollectionUtil.isNotEmpty(collectionIds)) {
+            Map<String, Long> result;
+            QueryWrapper<Model> queryWrapper = new QueryWrapper<>();
+            queryWrapper.in("meta_data_collection_id", collectionIds);
+            List<Model> list = list(queryWrapper);
+            if (CollectionUtil.isNotEmpty(list)) {
+                result = new HashMap<>();
+                for (String collectionId : collectionIds) {
+                    result.put(collectionId, list.stream().filter(m -> collectionId.equals(m.getMetaDataCollectionId())).count());
+                }
+                return result;
+            }
+        }
+        return null;
     }
 }

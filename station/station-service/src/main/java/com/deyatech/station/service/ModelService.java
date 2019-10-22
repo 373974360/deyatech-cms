@@ -1,10 +1,12 @@
 package com.deyatech.station.service;
 
+import com.deyatech.common.base.BaseService;
 import com.deyatech.station.entity.Model;
 import com.deyatech.station.vo.ModelVo;
-import com.deyatech.common.base.BaseService;
+
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -70,4 +72,12 @@ public interface ModelService extends BaseService<Model> {
      * @return
      */
     Collection<Model> getModelByCatalogId(String catalogId);
+
+    /**
+     * 元数据集的模型件数
+     *
+     * @param collectionIds
+     * @return
+     */
+    Map<String, Long> getStationModelCountByCollectionIds(List<String> collectionIds);
 }
