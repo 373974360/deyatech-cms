@@ -4,10 +4,13 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.exception.BusinessException;
+import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.entity.Model;
 import com.deyatech.station.entity.ModelTemplate;
 import com.deyatech.station.index.IndexService;
+import com.deyatech.station.service.CatalogService;
 import com.deyatech.station.service.ModelTemplateService;
 import com.deyatech.station.vo.ModelVo;
 import com.deyatech.station.mapper.ModelMapper;
@@ -19,8 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Collection;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -35,7 +37,7 @@ import java.util.stream.Collectors;
 public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implements ModelService {
 
     @Autowired
-    private ModelMapper modelMapper;
+    private CatalogService catalogService;
     @Autowired
     private ModelTemplateService modelTemplateService;
     @Autowired
@@ -103,7 +105,7 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
 
     @Override
     public IPage<Model> pageByBean(Model entity) {
-        return modelMapper.pageByBean(getPageByBean(entity), entity);
+        return baseMapper.pageByBean(getPageByBean(entity), entity);
     }
 
     /**
@@ -146,17 +148,18 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
      */
     @Override
     public Collection<Model> getAllModelBySiteId(String siteId) {
-        Collection<Model> modelList = null;
-        // 通过查询ModelTemplate获取model id
-        QueryWrapper<ModelTemplate> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select("content_model_id").eq("site_id", siteId);
-        List<ModelTemplate> modelTemplateList = modelTemplateService.list(queryWrapper);
-        List<String> modelIds = modelTemplateList.stream().map(m -> m.getContentModelId()).distinct().collect(Collectors.toList());
-        // 通过model id获取Model集合
-        if (CollectionUtil.isNotEmpty(modelIds)) {
-            modelList = super.listByIds(modelIds);
-        }
-        return modelList;
+        return super.list();
+//        Collection<Model> modelList = null;
+//        // 通过查询ModelTemplate获取model id
+//        QueryWrapper<ModelTemplate> queryWrapper = new QueryWrapper<>();
+//        queryWrapper.select("content_model_id").eq("site_id", siteId);
+//        List<ModelTemplate> modelTemplateList = modelTemplateService.list(queryWrapper);
+//        List<String> modelIds = modelTemplateList.stream().map(m -> m.getContentModelId()).distinct().collect(Collectors.toList());
+//        // 通过model id获取Model集合
+//        if (CollectionUtil.isNotEmpty(modelIds)) {
+//            modelList = super.listByIds(modelIds);
+//        }
+//        return modelList;
     }
 
     /**
@@ -178,16 +181,45 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
      */
     @Override
     public Collection<Model> getModelByCatalogId(String catalogId) {
-        Collection<Model> modelList = null;
-        // 通过查询ModelTemplate获取model id
-        QueryWrapper<ModelTemplate> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select("content_model_id").eq("cms_catalog_id", catalogId);
-        List<ModelTemplate> modelTemplateList = modelTemplateService.list(queryWrapper);
-        List<String> modelIds = modelTemplateList.stream().map(m -> m.getContentModelId()).distinct().collect(Collectors.toList());
-        // 通过model id获取Model集合
-        if (CollectionUtil.isNotEmpty(modelIds)) {
-            modelList = super.listByIds(modelIds);
+        Catalog catalog = catalogService.getById(catalogId);
+        if (Objects.nonNull(catalog)) {
+            String modelIds = catalog.getContentModelId();
+            if (StrUtil.isNotEmpty(modelIds)) {
+                QueryWrapper<Model> queryWrapper = new QueryWrapper<>();
+                queryWrapper.in("id_", Arrays.asList(modelIds.split(",")));
+                return super.list(queryWrapper);
+            }
         }
-        return modelList;
+        return null;
+//        Collection<Model> modelList = null;
+//        // 通过查询ModelTemplate获取model id
+//        QueryWrapper<ModelTemplate> queryWrapper = new QueryWrapper<>();
+//        queryWrapper.select("content_model_id").eq("cms_catalog_id", catalogId);
+//        List<ModelTemplate> modelTemplateList = modelTemplateService.list(queryWrapper);
+//        List<String> modelIds = modelTemplateList.stream().map(m -> m.getContentModelId()).distinct().collect(Collectors.toList());
+//        // 通过model id获取Model集合
+//        if (CollectionUtil.isNotEmpty(modelIds)) {
+//            modelList = super.listByIds(modelIds);
+//        }
+//        return modelList;
+    }
+
+
+    @Override
+    public Map<String, Long> getStationModelCountByCollectionIds(List<String> collectionIds) {
+        if (CollectionUtil.isNotEmpty(collectionIds)) {
+            Map<String, Long> result;
+            QueryWrapper<Model> queryWrapper = new QueryWrapper<>();
+            queryWrapper.in("meta_data_collection_id", collectionIds);
+            List<Model> list = list(queryWrapper);
+            if (CollectionUtil.isNotEmpty(list)) {
+                result = new HashMap<>();
+                for (String collectionId : collectionIds) {
+                    result.put(collectionId, list.stream().filter(m -> collectionId.equals(m.getMetaDataCollectionId())).count());
+                }
+                return result;
+            }
+        }
+        return null;
     }
 }

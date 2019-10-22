@@ -97,8 +97,9 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             mt.setCmsCatalogId(null);
             modelTemplate = modelTemplateService.getByBean(mt);
         }
-
-        templateVo.setTemplatePath(modelTemplate.getTemplatePath());
+        if (Objects.nonNull(modelTemplate)) {
+            templateVo.setTemplatePath(modelTemplate.getTemplatePath());
+        }
         return templateVo;
     }
 
@@ -129,7 +130,9 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                     mt.setCmsCatalogId(null);
                     modelTemplate = modelTemplateService.getByBean(mt);
                 }
-                templateVo.setTemplatePath(modelTemplate.getTemplatePath());
+                if (Objects.nonNull(modelTemplate)) {
+                    templateVo.setTemplatePath(modelTemplate.getTemplatePath());
+                }
                 templateVos.add(templateVo);
             }
         }
