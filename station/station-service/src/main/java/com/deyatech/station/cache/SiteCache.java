@@ -114,7 +114,7 @@ public class SiteCache {
      * 本地缓存站点信息
      */
     @Scheduled(initialDelay = 5000L, fixedRate = 10 * 60 * 1000)
-    private void cacheSite() {
+    public void cacheSite() {
         if (inited) {
             log.warn("reinitialization site info caches");
         }
@@ -141,6 +141,22 @@ public class SiteCache {
             cacheSiteProperties.setNginxConfigDir(siteProperties.getNginxConfigDir());
             cacheSiteProperties.setNginxProxyPass(siteProperties.getNginxProxyPass());
             this.cacheManager.getCache(CacheNames.SITE_PROPERTIES_CACHE_KEY).put("siteProperties", cacheSiteProperties);
+        } catch (Exception e) {
+            log.error("缓存站点信息失败", e);
+            throw new RuntimeException("缓存站点信息失败", e);
+        }
+    }
+
+    public void cacheSite(String siteId) {
+        if (inited) {
+            log.warn("reinitialization site info caches");
+        }
+        //站点信息
+        try {
+            log.debug("缓存栏目信息{}",siteId);
+            Catalog catalog = new Catalog();
+            catalog.setSiteId(siteId);
+            this.cacheManager.getCache(CacheNames.CATALOG_CACHE_KEY).put(siteId,this.catalogService.getCatalogTree(catalog));
         } catch (Exception e) {
             log.error("缓存站点信息失败", e);
             throw new RuntimeException("缓存站点信息失败", e);

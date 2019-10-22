@@ -2,6 +2,7 @@ package com.deyatech.station.controller;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.service.TemplateService;
 import com.deyatech.station.vo.CatalogVo;
@@ -39,6 +40,8 @@ public class CatalogController extends BaseController {
     CatalogService catalogService;
     @Autowired
     TemplateService templateService;
+    @Autowired
+    SiteCache siteCache;
     /**
      * 单个保存或者更新栏目
      *
@@ -55,6 +58,7 @@ public class CatalogController extends BaseController {
             return RestResult.error("当前栏目下已存在内容，不能添加栏目");
         }
         boolean result = catalogService.saveOrUpdate(catalogVo);
+        siteCache.cacheSite(catalogVo.getSiteId());
         return RestResult.ok(result);
     }
 
@@ -85,6 +89,7 @@ public class CatalogController extends BaseController {
     public RestResult<Boolean> removeByCatalog(Catalog catalog) {
         log.info(String.format("根据Catalog对象属性逻辑删除栏目: %s ", catalog));
         boolean result = catalogService.removeByBean(catalog);
+        siteCache.cacheSite(catalog.getSiteId());
         return RestResult.ok(result);
     }
 
@@ -110,6 +115,11 @@ public class CatalogController extends BaseController {
             return RestResult.error("当前栏目下已存在内容，不能删除栏目");
         }
         boolean result = catalogService.removeByIds(ids);
+
+        if (CollectionUtil.isNotEmpty(ids)) {
+            Catalog catalog = catalogService.getById(ids.get(0));
+            siteCache.cacheSite(catalog.getSiteId());
+        }
         return RestResult.ok(result);
     }
 
