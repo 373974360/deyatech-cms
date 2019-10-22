@@ -24,10 +24,18 @@ server {
         proxy_pass ${proxyPass}/;
     }
     location / {
-         if ($request_uri ~ "^/search.list\?*(.*)") {
-             proxy_pass ${proxyPass}/manage/cms/q/${siteId}?$1;
-             break;
-         }
+        if ($request_uri ~ "^/search.list\?*(.*)") {
+            proxy_pass ${proxyPass}/manage/cms/q/${siteId}?$1;
+            break;
+        }
+        if ($request_uri ~ "^/index.list\?*(.*)") {
+            proxy_pass ${proxyPass}/manage/cms/s/${siteId}?$1;
+            break;
+        }
+        if ($request_uri ~ "^/view.list\?*(.*)") {
+            proxy_pass ${proxyPass}/manage/cms/m/${siteId}?$1;
+            break;
+        }
         if ($request_uri ~ "^/(.*).list\?*(.*)") {
             proxy_pass ${proxyPass}/manage/cms/c/${siteId}?namePath=$1&$2;
             break;
