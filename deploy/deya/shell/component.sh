@@ -22,9 +22,7 @@ docker exec -d rabbitmq rabbitmqadmin -u deyatech -p 88352636 declare queue name
 docker exec -d rabbitmq rabbitmqadmin -u deyatech -p 88352636 declare binding source=logs-exchange destination=logs-queue routing_key=logs-queue
 
 
-
-
-
+docker run -d --restart=always -m=512m --name nginx --network deyatech -p 80:80 --privileged=true -v /deya/data/nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro -v /deya/data/nginx/html:/usr/share/nginx/html:ro -v /deya/data/nginx/conf/nginx.d:/etc/nginx/conf.d:ro -v /deya/vhost:/deya/vhost:ro -v /deya/logs/nginx:/var/log/nginx nginx
 
 
 

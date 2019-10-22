@@ -6,22 +6,38 @@ server {
     location ~* \/template\/.*\.(html)$ {
         deny all;
     }
-
-    location /admin/ {
+    location /web/websocket/info {
+        proxy_pass ${proxyPass};
+    }
+    location /web/websocket {
+            proxy_pass ${proxyPass};
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+    }
+    location ~ ^/manage {
+        proxy_pass ${proxyPass};
+    }
+    location ~ ^/web/api {
+        proxy_pass ${proxyPass};
+    }
+    location ~ ^/admin {
         root /usr/share/nginx/html;
+        index  index.html index.htm;
+    }
+    location ~ ^/upload {
+        root /usr/share/nginx/html;
+        index  index.html index.htm;
     }
     location ~ ^/.+\.(htm|swf|wmv|mp3|avi|wma|rar|zip|doc|docx|ppt|xls|pdf|rmvb|rm|rmi|xsl|txt|chm)$  {
         expires 30d;
     }
-    error_page  500  404  /404.html;
-    location = /404.html {
-        root ${siteRootDir};
-    }
     location /upload {
         root /usr/share/nginx/html/upload/${siteId};
     }
-    location /api/ {
-        proxy_pass ${proxyPass}/;
+    error_page  500  404  /404.html;
+    location = /404.html {
+        root ${siteRootDir};
     }
     location / {
         if ($request_uri ~ "^/search.list\?*(.*)") {
