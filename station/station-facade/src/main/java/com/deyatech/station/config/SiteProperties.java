@@ -5,14 +5,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * 站群配置文件
+ * 站点配置文件
  */
 @ConfigurationProperties(prefix = "site")
 @Configuration
 @Data
 public class SiteProperties {
     /**
-     * 站群根目录
+     * 站点根目录
      */
     private String hostsRoot;
     /**

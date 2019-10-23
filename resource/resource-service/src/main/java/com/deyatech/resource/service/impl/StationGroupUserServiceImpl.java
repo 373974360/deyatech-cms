@@ -17,7 +17,7 @@ import java.util.Collection;
 
 /**
  * <p>
- * 站群用户关联 服务实现类
+ * 站点用户关联 服务实现类
  * </p>
  *
  * @Author lee.
@@ -27,7 +27,7 @@ import java.util.Collection;
 public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUserMapper, StationGroupUser> implements StationGroupUserService {
 
     /**
-     * 单个将对象转换为vo站群用户关联
+     * 单个将对象转换为vo站点用户关联
      *
      * @param stationGroupUser
      * @return
@@ -40,7 +40,7 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
     }
 
     /**
-     * 批量将对象转换为vo站群用户关联
+     * 批量将对象转换为vo站点用户关联
      *
      * @param stationGroupUsers
      * @return
@@ -59,7 +59,7 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
     }
 
     /**
-     * 设置站群用户
+     * 设置站点用户
      *
      * @param stationGroupId
      * @param userIds
@@ -69,7 +69,7 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
     public void setStationGroupUsers(String stationGroupId, List<String> userIds) {
         StationGroupUser stationGroupUser = new StationGroupUser();
         stationGroupUser.setStationGroupId(stationGroupId);
-        // 根据站群ID删除
+        // 根据站点ID删除
         this.removeByBean(stationGroupUser);
         if (CollectionUtil.isNotEmpty(userIds)) {
             List<StationGroupUser> list = new ArrayList<>();
@@ -84,7 +84,7 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
     }
 
     /**
-     * 设置用户站群
+     * 设置用户站点
      *
      * @param userId
      * @param stationGroupIds
@@ -109,7 +109,7 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
     }
 
     /**
-     * 站群关联的所有用户信息
+     * 站点关联的所有用户信息
      *
      * @param stationGroupUserVo
      * @return
@@ -120,7 +120,7 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
     }
 
     /**
-     * 删除站群用户关联根据站群编号
+     * 删除站点用户关联根据站点编号
      *
      * @param stationGroupIds
      * @return

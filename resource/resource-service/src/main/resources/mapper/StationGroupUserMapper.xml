@@ -47,7 +47,7 @@
         order by au.update_time desc
     </select>
 
-    <!--删除站群用户关联根据站群编号-->
+    <!--删除站点用户关联根据站点编号-->
     <update id="removeByStationGroupId">
         delete from resource_station_group_user where station_group_id in
         <foreach index="index" item="item" collection="list" open="(" separator="," close=")">

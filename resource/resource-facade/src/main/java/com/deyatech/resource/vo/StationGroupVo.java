@@ -9,7 +9,7 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * 站群扩展对象
+ * 站点扩展对象
  * </p>
  *
  * @author lee.
@@ -18,7 +18,7 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-@ApiModel(value = "站群扩展对象", description = "站群扩展对象", parent = StationGroup.class)
+@ApiModel(value = "站点扩展对象", description = "站点扩展对象", parent = StationGroup.class)
 public class StationGroupVo extends StationGroup {
 
     /**

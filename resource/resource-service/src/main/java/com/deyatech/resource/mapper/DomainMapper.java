@@ -66,7 +66,7 @@ public interface DomainMapper extends BaseMapper<Domain> {
     long updateEnableByIds(@Param("list") Collection<String> list, @Param("enable") int enable);
 
     /**
-     * 修改状态根据站群编号
+     * 修改状态根据站点编号
      *
      * @param stationGroupId
      * @param enable
@@ -82,7 +82,7 @@ public interface DomainMapper extends BaseMapper<Domain> {
     Domain getDomainById(@Param("id") Serializable id);
 
     /**
-     * 统计站群下的域名
+     * 统计站点下的域名
      *
      * @param stationGroupId
      * @return
@@ -106,7 +106,7 @@ public interface DomainMapper extends BaseMapper<Domain> {
     Collection<DomainVo> selectDomainByIds(@Param("list") Collection<String> list);
 
     /**
-     * 检索站群根据站群编号检索
+     * 检索站点根据站点编号检索
      *
      * @param stationGroupId
      * @return

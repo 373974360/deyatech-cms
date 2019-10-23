@@ -70,7 +70,7 @@
     </sql>
 
 
-    <!--获取设置根据站群编号-->
+    <!--获取设置根据站点编号-->
     <select id="getSettingByStationGroupId" resultMap="SettingVoBaseResultMap">
         select
         s.id_,
@@ -110,7 +110,7 @@
         </choose>
     </select>
 
-    <!--删除设置根据站群编号-->
+    <!--删除设置根据站点编号-->
     <update id="removeByStationGroupId">
         update resource_setting set enable_ = -1 where station_group_id in
         <foreach index="index" item="item" collection="list" open="(" separator="," close=")">

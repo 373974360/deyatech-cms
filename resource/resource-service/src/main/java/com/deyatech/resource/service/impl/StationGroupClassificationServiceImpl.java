@@ -45,7 +45,7 @@ public class StationGroupClassificationServiceImpl extends BaseServiceImpl<Stati
         List<StationGroupClassificationVo> rootStationGroupClassifications = CollectionUtil.newArrayList();
         if (CollectionUtil.isNotEmpty(stationGroupClassificationVos)) {
             for (StationGroupClassificationVo stationGroupClassificationVo : stationGroupClassificationVos) {
-                // 分类下站群的件数
+                // 分类下站点的件数
                 stationGroupClassificationVo.setStationCount(stationGroupService.countStationGroupByClassificationId(stationGroupClassificationVo.getId()));
                 // 分类下子分类的件数
                 stationGroupClassificationVo.setClassificationCount(baseMapper.countClassificationByParentId(stationGroupClassificationVo.getId()));

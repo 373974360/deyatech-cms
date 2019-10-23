@@ -21,6 +21,6 @@ import lombok.experimental.Accessors;
 @ApiModel(value = "扩展对象", description = "扩展对象", parent = Setting.class)
 public class SettingVo extends Setting {
 
-    @ApiModelProperty(value = "站群名", dataType = "String")
+    @ApiModelProperty(value = "站点名", dataType = "String")
     private String stationGroupName;
 }

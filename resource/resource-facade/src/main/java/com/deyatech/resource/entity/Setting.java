@@ -23,7 +23,7 @@ import lombok.experimental.Accessors;
 @ApiModel(value = "对象", description = "", parent = BaseEntity.class)
 public class Setting extends BaseEntity {
 
-    @ApiModelProperty(value = "站群ID(为空则全站群共享)", dataType = "String")
+    @ApiModelProperty(value = "站点ID(为空则全站点共享)", dataType = "String")
     @TableField("station_group_id")
     private String stationGroupId;
 

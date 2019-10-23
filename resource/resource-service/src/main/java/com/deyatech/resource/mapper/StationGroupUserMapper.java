@@ -10,7 +10,7 @@ import java.util.List;
 
 /**
  * <p>
- * 站群用户关联 Mapper 接口
+ * 站点用户关联 Mapper 接口
  * </p>
  *
  * @Author lee.
@@ -26,7 +26,7 @@ public interface StationGroupUserMapper extends BaseMapper<StationGroupUser> {
     IPage<StationGroupUserVo> pageByStationGroupUserVo(@Param("page") IPage<StationGroupUser> page, @Param("stationGroupUserVo") StationGroupUserVo stationGroupUserVo);
 
     /**
-     * 删除站群用户关联根据站群编号
+     * 删除站点用户关联根据站点编号
      *
      * @param list
      * @return

@@ -39,7 +39,7 @@ public class Domain extends BaseEntity {
     @TableField("sort_no")
     private Integer sortNo;
 
-    @ApiModelProperty(value = "站群编号", dataType = "String")
+    @ApiModelProperty(value = "站点编号", dataType = "String")
     @TableField("station_group_id")
     private String stationGroupId;
 

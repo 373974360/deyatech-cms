@@ -33,7 +33,7 @@ public interface SettingService extends BaseService<Setting> {
     List<SettingVo> setVoProperties(Collection settings);
 
     /**
-     * 获取设置根据站群编号
+     * 获取设置根据站点编号
      *
      * @param stationGroupId
      * @return
@@ -41,7 +41,7 @@ public interface SettingService extends BaseService<Setting> {
     Setting getSettingByStationGroupId(String stationGroupId);
 
     /**
-     * 删除设置根据站群编号
+     * 删除设置根据站点编号
      *
      * @param stationGroupIds
      * @return

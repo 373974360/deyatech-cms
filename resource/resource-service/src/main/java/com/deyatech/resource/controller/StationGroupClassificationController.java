@@ -57,7 +57,7 @@ public class StationGroupClassificationController extends BaseController {
         }
         long count = stationGroupService.countStationGroupByClassificationId(stationGroupClassification.getParentId());
         if (count > 0) {
-            return RestResult.error("当前分类下已存在站群，不能添加分类");
+            return RestResult.error("当前分类下已存在站点，不能添加分类");
         }
         count = stationGroupClassificationService.countNameByParentId(
                 stationGroupClassification.getId(),
@@ -111,7 +111,7 @@ public class StationGroupClassificationController extends BaseController {
             ids.add(stationGroupClassification.getId());
             long count = stationGroupService.countStationGroupByClassificationIdList(ids);
             if (count > 0) {
-                return RestResult.error("当前分类下已存在站群，不允许删除");
+                return RestResult.error("当前分类下已存在站点，不允许删除");
             }
             count = stationGroupClassificationService.countClassificationByParentIdList(ids);
             if (count > 0) {
@@ -136,7 +136,7 @@ public class StationGroupClassificationController extends BaseController {
         log.info(String.format("根据id批量删除: %s ", JSONUtil.toJsonStr(ids)));
         long count = stationGroupService.countStationGroupByClassificationIdList(ids);
         if (count > 0) {
-            return RestResult.error("当前分类下已存在站群，不允许删除");
+            return RestResult.error("当前分类下已存在站点，不允许删除");
         }
         count = stationGroupClassificationService.countClassificationByParentIdList(ids);
         if (count > 0) {
@@ -275,19 +275,19 @@ public class StationGroupClassificationController extends BaseController {
     }
 
     /**
-     * 检查分类下有无站群或分类
+     * 检查分类下有无站点或分类
      *
      * @param ids
      * @return
      */
     @PostMapping("/hasStationOrClassification")
-    @ApiOperation(value="检查分类下有无站群或分类", notes="检查分类下有无站群或分类")
+    @ApiOperation(value="检查分类下有无站点或分类", notes="检查分类下有无站点或分类")
     @ApiImplicitParam(name = "ids", value = "对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
     public RestResult<Boolean> hasStationOrClassification(@RequestParam("ids[]") List<String> ids) {
-        log.info(String.format("检查分类下有无站群或分类: %s ", JSONUtil.toJsonStr(ids)));
+        log.info(String.format("检查分类下有无站点或分类: %s ", JSONUtil.toJsonStr(ids)));
         long count = stationGroupService.countStationGroupByClassificationIdList(ids);
         if (count > 0) {
-            return new RestResult(200, "当前分类下已存在站群", true);
+            return new RestResult(200, "当前分类下已存在站点", true);
         }
         count = stationGroupClassificationService.countClassificationByParentIdList(ids);
         if (count > 0) {
@@ -297,16 +297,16 @@ public class StationGroupClassificationController extends BaseController {
     }
 
     /**
-     * 检查分类下有无站群
+     * 检查分类下有无站点
      *
      * @param id
      * @return
      */
     @RequestMapping("/hasStation")
-    @ApiOperation(value="检查分类下有无站群", notes="检查分类下有无站群")
+    @ApiOperation(value="检查分类下有无站点", notes="检查分类下有无站点")
     @ApiImplicitParam(name = "id", value = "分类编号", required = true, dataType = "String", paramType = "query")
     public RestResult<Boolean> hasStation(String id) {
-        log.info(String.format("检查分类下有无站群: id = %s",id));
+        log.info(String.format("检查分类下有无站点: id = %s",id));
         long count = stationGroupService.countStationGroupByClassificationId(id);
         return RestResult.ok(count > 0 ? true : false);
     }

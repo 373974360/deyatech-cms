@@ -62,19 +62,19 @@
         name_, english_name, abbreviation_, description_, sort_no, station_group_classification_id, department_id, site_code, icp_code, police_code
     </sql>
 
-    <!--根据分类编号统计站群个数-->
+    <!--根据分类编号统计站点个数-->
     <select id="countStationGroupByClassificationId" resultType="java.lang.Long">
         select count(*) from resource_station_group where enable_ != -1 and station_group_classification_id = #{classificationId}
     </select>
 
-    <!--根据分类编号列表统计站群个数-->
+    <!--根据分类编号列表统计站点个数-->
     <select id="countStationGroupByClassificationIdList" resultType="java.lang.Long">
         select count(*) from resource_station_group where enable_ != -1 and station_group_classification_id in
         <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
             #{item}
         </foreach>
     </select>
-    <!--根据条件查询站群-->
+    <!--根据条件查询站点-->
     <select id="pageSelectByStationGroupVo" resultMap="StationGroupVoResultMap">
         select
         s.id_,
@@ -118,7 +118,7 @@
         order by s.sort_no asc, s.update_time desc
     </select>
 
-    <!--根据条件查询所有站群-->
+    <!--根据条件查询所有站点-->
     <select id="listSelectByStationGroupVo" resultMap="StationGroupVoResultMap">
         select
         s.id_,
@@ -199,13 +199,13 @@
         </foreach>
     </update>
 
-    <!--根据编号检索站群-->
+    <!--根据编号检索站点-->
     <select id="getStationGroupById" resultMap="BaseResultMap">
         select <include refid="Base_Column_List"></include>
         from resource_station_group
         where id_ = #{id} and enable_ != -1
     </select>
-    <!--检索站群根据编号-->
+    <!--检索站点根据编号-->
     <select id="selectStationGroupByIds" resultMap="StationGroupVoResultMap">
         select
         s.id_,
@@ -233,7 +233,7 @@
         </foreach>
     </select>
 
-    <!--更新站群-->
+    <!--更新站点-->
     <update id="updateStationGroupById" parameterType="com.deyatech.resource.entity.StationGroup">
         update resource_station_group set
         name_ = #{name},

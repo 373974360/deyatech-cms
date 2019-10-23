@@ -15,10 +15,12 @@ import com.deyatech.resource.mapper.StationGroupMapper;
 import com.deyatech.resource.service.*;
 import com.deyatech.resource.vo.StationGroupClassificationVo;
 import com.deyatech.resource.vo.StationGroupVo;
+import com.deyatech.station.feign.StationFeign;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
@@ -27,7 +29,7 @@ import java.util.stream.Collectors;
 
 /**
  * <p>
- * 站群 服务实现类
+ * 站点 服务实现类
  * </p>
  *
  * @Author lee.
@@ -44,7 +46,8 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     StationGroupClassificationService classificationService;
     @Autowired
     StationGroupUserService stationGroupUserService;
-
+    @Autowired
+    StationFeign stationFeign;
 
 
     /**
@@ -84,7 +87,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
                 }
             }
 
-            // 添加站群
+            // 添加站点
             List<StationGroupClassificationVo> childrenList = CollectionUtil.newArrayList();
             for (StationGroupClassificationVo node : rootClassificationList) {
                 addNode(userId, childrenList, node);
@@ -107,7 +110,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
         // 叶子结点
         } else {
             List<StationGroupClassificationVo> stationGroupList = getStationGroupList(userId, childrenNode);
-            // 有站群则添加该结点
+            // 有站点则添加该结点
             if (CollectionUtil.isNotEmpty(stationGroupList)) {
                 childrenNode.setChildren(stationGroupList);
                 childrenList.add(childrenNode);
@@ -121,7 +124,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
         stationGroupVo.setStationGroupClassificationId(node.getId());
         Collection<StationGroupVo> stationGroupVos = listSelectByStationGroupVo(stationGroupVo);
         if (StrUtil.isNotEmpty(userId)) {
-            // 用户关联的站群
+            // 用户关联的站点
             StationGroupUser stationGroupUser = new StationGroupUser();
             stationGroupUser.setUserId(userId);
             Collection<StationGroupUser> stationGroupUserList = stationGroupUserService.listByBean(stationGroupUser);
@@ -155,7 +158,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     }
 
     /**
-     * 单个将对象转换为vo站群
+     * 单个将对象转换为vo站点
      *
      * @param stationGroup
      * @return
@@ -168,7 +171,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     }
 
     /**
-     * 批量将对象转换为vo站群
+     * 批量将对象转换为vo站点
      *
      * @param stationGroups
      * @return
@@ -187,7 +190,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     }
 
     /**
-     * 根据分类编号统计站群个数
+     * 根据分类编号统计站点个数
      * @param classificationId
      * @return
      */
@@ -197,7 +200,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     }
 
     /**
-     * 根据分类编号列表统计站站群数
+     * 根据分类编号列表统计站站点数
      * @param list
      * @return
      */
@@ -207,7 +210,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     }
 
     /**
-     * 根据条件查询站群
+     * 根据条件查询站点
      *
      * @param stationGroupVo
      * @return
@@ -218,7 +221,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     }
 
     /**
-     * 根据条件查询所有站群
+     * 根据条件查询所有站点
      * @param stationGroupVo
      * @return
      */
@@ -264,7 +267,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     }
 
     /**
-     * 根据编号检索站群
+     * 根据编号检索站点
      *
      * @param id
      * @return
@@ -275,7 +278,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     }
 
     /**
-     * 启用或停用站群
+     * 启用或停用站点
      *
      * @param id
      * @param flag
@@ -290,8 +293,8 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
             count = baseMapper.updateEnableById(id, EnableEnum.DISABLE.getCode());
         }
         if (count > 0) {
-            // 启用停用 站群下所有域名 nginx 配置
-            domainService.runOrStopStationGroupNginxConfigAndPage(id);
+            // 启用停用 站点下所有域名 nginx 配置
+            domainService.runOrStopStationGroupNginxConfig(id);
             return true;
         } else {
             return false;
@@ -299,7 +302,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     }
 
     /**
-     * 删除站群
+     * 删除站点
      *
      * @param ids
      * @return
@@ -307,15 +310,15 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean removeStationGroupAndConfig(List<String> ids, Map<String, StationGroup> maps) {
-        // 删除站群
+        // 删除站点
         long count = baseMapper.updateEnableByIds(ids, EnableEnum.DELETED.getCode());
         if (count > 0) {
-            // 删除站群用户关联
+            // 删除站点用户关联
             stationGroupUserService.removeByStationGroupId(ids);
-            // 删除站群配置
+            // 删除站点配置
             settingService.removeByStationGroupId(ids);
-            // 删除 站群下所有域名 nginx 配置
-            domainService.removeStationGroupNginxConfigAndPage(ids, maps);
+            // 删除 站点下所有域名 nginx 配置
+            domainService.removeStationGroupNginxConfig(ids, maps);
             return true;
         } else {
             return false;
@@ -330,23 +333,44 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean saveOrUpdateAndNginx(StationGroup stationGroup) {
-        String oldStationGroupEnglishName = null;
+        String hostRootDir = this.getHostsRootDir();
         boolean flag;
+        // 编辑
         if (StrUtil.isNotEmpty(stationGroup.getId())) {
-            // 旧站群
+            // 旧站点
+            String oldStationGroupEnglishName = null;
             StationGroup oldStationGroup = this.getById(stationGroup.getId());
-            // 若站群英文名称变更，则 nginx 需要做对应变更
+            // 若站点英文名称变更，则 nginx 需要做对应变更
             if (!stationGroup.getEnglishName().equals(oldStationGroup.getEnglishName())) {
                 oldStationGroupEnglishName = oldStationGroup.getEnglishName();
             }
             flag = baseMapper.updateStationGroupById(stationGroup) > 0 ? true : false;
+            if (flag) {
+                // 文件夹重命名
+                File src = new File(hostRootDir, oldStationGroupEnglishName);
+                File dest = new File(hostRootDir, stationGroup.getEnglishName());
+                src.renameTo(dest);
+            }
+            // 新增
         } else {
             flag = super.save(stationGroup);
-        }
-        if (flag && StrUtil.isNotEmpty(oldStationGroupEnglishName)) {
-            // 更新 站群下所有域名 nginx 配置
-            domainService.updateStationGroupNginxConfigAndPage(stationGroup.getId(), oldStationGroupEnglishName);
+            if (flag) {
+                File dir = new File(hostRootDir, stationGroup.getEnglishName());
+                if (!dir.exists()) {
+                    dir.mkdirs();
+                }
+            }
+
         }
         return flag;
+    }
+
+    private String getHostsRootDir() {
+        String hostRoot = stationFeign.getSiteProperties().getData().getHostsRoot();
+        hostRoot = hostRoot.replace("\\\\", "/");
+        if (!hostRoot.endsWith("/")) {
+            hostRoot += "/";
+        }
+        return hostRoot;
     }
 }

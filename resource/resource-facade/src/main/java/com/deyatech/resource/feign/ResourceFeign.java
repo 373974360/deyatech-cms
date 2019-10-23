@@ -26,7 +26,7 @@ public interface ResourceFeign {
     RestResult<List<StationGroup>> getStationGroupAll();
 
     /**
-     * 检索站群
+     * 检索站点
      *
      * @return
      */

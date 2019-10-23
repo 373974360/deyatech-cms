@@ -105,24 +105,17 @@ public interface DomainService extends BaseService<Domain> {
     boolean removeDomainsAndConfig(Collection<String> idList, Map<String, Domain> maps);
 
     /**
-     * 更新 站群下所有域名 nginx 配置
+     * 启用停用 站点下所有域名 nginx 配置
      *
      * @param stationGroupId
      */
-    void updateStationGroupNginxConfigAndPage(String stationGroupId, String oldStationGroupEnglishName);
+    void runOrStopStationGroupNginxConfig(String stationGroupId);
 
     /**
-     * 启用停用 站群下所有域名 nginx 配置
-     *
-     * @param stationGroupId
-     */
-    void runOrStopStationGroupNginxConfigAndPage(String stationGroupId);
-
-    /**
-     * 删除 站群下所有域名 nginx 配置
+     * 删除 站点下所有域名 nginx 配置
      *
      * @param ids
      * @param maps
      */
-    void removeStationGroupNginxConfigAndPage(List<String> ids, Map<String, StationGroup> maps);
+    void removeStationGroupNginxConfig(List<String> ids, Map<String, StationGroup> maps);
 }

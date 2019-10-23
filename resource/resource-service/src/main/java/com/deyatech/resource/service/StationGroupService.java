@@ -15,7 +15,7 @@ import java.util.Map;
 
 /**
  * <p>
- *  站群 服务类
+ *  站点 服务类
  * </p>
  *
  * @Author lee.
@@ -32,7 +32,7 @@ public interface StationGroupService extends BaseService<StationGroup> {
     Collection<StationGroupClassificationVo> getClassificationStationTree(String userId, StationGroupClassification classification);
 
     /**
-     * 单个将对象转换为vo站群
+     * 单个将对象转换为vo站点
      *
      * @param stationGroup
      * @return
@@ -40,7 +40,7 @@ public interface StationGroupService extends BaseService<StationGroup> {
     StationGroupVo setVoProperties(StationGroup stationGroup);
 
     /**
-     * 批量将对象转换为vo站群
+     * 批量将对象转换为vo站点
      *
      * @param stationGroups
      * @return
@@ -48,7 +48,7 @@ public interface StationGroupService extends BaseService<StationGroup> {
     List<StationGroupVo> setVoProperties(Collection stationGroups);
 
     /**
-     * 根据分类编号统计站群个数
+     * 根据分类编号统计站点个数
      *
      * @param classificationId
      * @return
@@ -56,14 +56,14 @@ public interface StationGroupService extends BaseService<StationGroup> {
     long countStationGroupByClassificationId(String classificationId);
 
     /**
-     * 根据分类编号列表统计站站群数
+     * 根据分类编号列表统计站站点数
      * @param list
      * @return
      */
     long countStationGroupByClassificationIdList(List<String> list);
 
     /**
-     * 根据条件翻页查询站群
+     * 根据条件翻页查询站点
      *
      * @param stationGroupVo
      * @return
@@ -71,7 +71,7 @@ public interface StationGroupService extends BaseService<StationGroup> {
     IPage<StationGroupVo> pageSelectByStationGroupVo(StationGroupVo stationGroupVo);
 
     /**
-     * 根据条件查询所有站群
+     * 根据条件查询所有站点
      * @param stationGroupVo
      * @return
      */
@@ -105,7 +105,7 @@ public interface StationGroupService extends BaseService<StationGroup> {
     long countAbbreviation(String id, String abbreviation);
 
     /**
-     * 启用或停用站群
+     * 启用或停用站点
      *
      * @param id
      * @param flag
@@ -114,7 +114,7 @@ public interface StationGroupService extends BaseService<StationGroup> {
     boolean runOrStopStationById(String id, String flag);
 
     /**
-     * 根据编号检索站群
+     * 根据编号检索站点
      *
      * @param id
      * @return
@@ -122,7 +122,7 @@ public interface StationGroupService extends BaseService<StationGroup> {
     StationGroup getById(Serializable id);
 
     /**
-     * 删除站群
+     * 删除站点
      *
      * @param ids
      * @return

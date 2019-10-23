@@ -11,7 +11,7 @@ import lombok.experimental.Accessors;
 import java.util.Date;
 /**
  * <p>
- * 站群用户关联
+ * 站点用户关联
  * </p>
  *
  * @author lee.
@@ -21,10 +21,10 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 @TableName("resource_station_group_user")
-@ApiModel(value = "站群用户关联对象", description = "站群用户关联", parent = BaseEntity.class)
+@ApiModel(value = "站点用户关联对象", description = "站点用户关联", parent = BaseEntity.class)
 public class StationGroupUser extends BaseEntity {
 
-    @ApiModelProperty(value = "站群id", dataType = "String")
+    @ApiModelProperty(value = "站点id", dataType = "String")
     @TableField("station_group_id")
     private String stationGroupId;
 

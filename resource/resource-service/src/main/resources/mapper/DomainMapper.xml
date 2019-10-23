@@ -142,7 +142,7 @@
         </foreach>
     </update>
 
-    <!--修改状态根据站群编号-->
+    <!--修改状态根据站点编号-->
     <update id="updateEnableByStationGroupId">
         update resource_domain set enable_ = #{enable} where station_group_id = #{stationGroupId}
     </update>
@@ -155,7 +155,7 @@
         where id_ = #{id} and enable_ != -1
     </select>
 
-    <!--统计站群下的域名-->
+    <!--统计站点下的域名-->
     <select id="countDomainByStationGroupId" resultType="java.lang.Long">
         select count(*) from resource_domain where enable_ != -1 and station_group_id = #{stationGroupId}
     </select>
@@ -199,7 +199,7 @@
             #{item}
         </foreach>
     </select>
-    <!--检索站群根据站群编号检索-->
+    <!--检索站点根据站点编号检索-->
     <select id="selectDomainByStationGroupId" resultType="com.deyatech.resource.vo.DomainVo">
         select
         d.id_,

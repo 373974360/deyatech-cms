@@ -61,7 +61,7 @@ public class SettingServiceImpl extends BaseServiceImpl<SettingMapper, Setting> 
     }
 
     /**
-     * 获取设置根据站群编号
+     * 获取设置根据站点编号
      *
      * @param stationGroupId
      * @return
@@ -72,7 +72,7 @@ public class SettingServiceImpl extends BaseServiceImpl<SettingMapper, Setting> 
     }
 
     /**
-     * 删除设置根据站群编号
+     * 删除设置根据站点编号
      *
      * @param stationGroupIds
      * @return

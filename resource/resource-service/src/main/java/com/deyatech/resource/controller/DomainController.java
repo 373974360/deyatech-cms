@@ -6,7 +6,6 @@ import com.deyatech.common.base.BaseController;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.enums.EnableEnum;
 import com.deyatech.resource.entity.Domain;
-import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.service.DomainService;
 import com.deyatech.resource.vo.DomainVo;
 import io.swagger.annotations.Api;
@@ -162,7 +161,7 @@ public class DomainController extends BaseController {
     @ApiOperation(value="域名重名检查", notes="域名重名检查")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "id", value = "域名编号", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "name", value = "站群名称", required = true, dataType = "String", paramType = "query")
+            @ApiImplicitParam(name = "name", value = "站点名称", required = true, dataType = "String", paramType = "query")
     })
     public RestResult<Boolean> isNameExist(@RequestParam(required = false) String id, String name) {
         log.info(String.format("域名重名检查: id = %s, name = %s", id, name));
@@ -185,7 +184,7 @@ public class DomainController extends BaseController {
     @ApiOperation(value="英文名称重名检查", notes="英文名称重名检查")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "id", value = "域名编号", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "englishName", value = "站群名称", required = true, dataType = "String", paramType = "query")
+            @ApiImplicitParam(name = "englishName", value = "站点名称", required = true, dataType = "String", paramType = "query")
     })
     public RestResult<Boolean> isEnglishNameExist(@RequestParam(required = false) String id, String englishName) {
         log.info(String.format("英文名称重名检查: id = %s,  englishName = %s", id, englishName));
@@ -207,11 +206,11 @@ public class DomainController extends BaseController {
     @RequestMapping("/runOrStopDomainById")
     @ApiOperation(value="启用或停用域名", notes="启用或停用域名")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", value = "站群编号", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "id", value = "站点编号", required = true, dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "flag", value = "运行或停止标记", required = true, dataType = "String", paramType = "query"),
     })
     public RestResult<Boolean> runOrStopDomainById(String id, String flag) {
-        log.info(String.format("运行或停止站群 id = %s, flag = %s", id , flag));
+        log.info(String.format("运行或停止站点 id = %s, flag = %s", id , flag));
         long count = this.domainService.runOrStopDomainById(id, flag);
         if (count > 0) {
             return RestResult.ok(true);

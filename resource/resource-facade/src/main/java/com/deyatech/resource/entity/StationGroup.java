@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 /**
  * <p>
- * 站群
+ * 站点
  * </p>
  *
  * @author lee.
@@ -20,18 +20,18 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 @TableName("resource_station_group")
-@ApiModel(value = "站群对象", description = "站群", parent = BaseEntity.class)
+@ApiModel(value = "站点对象", description = "站点", parent = BaseEntity.class)
 public class StationGroup extends BaseEntity {
 
-    @ApiModelProperty(value = "站群名称", dataType = "String")
+    @ApiModelProperty(value = "站点名称", dataType = "String")
     @TableField("name_")
     private String name;
 
-    @ApiModelProperty(value = "站群英文名称", dataType = "String")
+    @ApiModelProperty(value = "站点英文名称", dataType = "String")
     @TableField("english_name")
     private String englishName;
 
-    @ApiModelProperty(value = "站群简称", dataType = "String")
+    @ApiModelProperty(value = "站点简称", dataType = "String")
     @TableField("abbreviation_")
     private String abbreviation;
 

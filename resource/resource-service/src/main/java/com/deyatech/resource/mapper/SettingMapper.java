@@ -17,7 +17,7 @@ import java.util.List;
 public interface SettingMapper extends BaseMapper<Setting> {
 
     /**
-     * 获取设置根据站群编号
+     * 获取设置根据站点编号
      *
      * @param stationGroupId
      * @return
@@ -25,7 +25,7 @@ public interface SettingMapper extends BaseMapper<Setting> {
     Setting getSettingByStationGroupId(@Param("stationGroupId") String stationGroupId);
 
     /**
-     * 删除设置根据站群编号
+     * 删除设置根据站点编号
      *
      * @param list
      * @return

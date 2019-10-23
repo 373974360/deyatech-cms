@@ -22,9 +22,9 @@ import lombok.experimental.Accessors;
 public class DomainVo extends Domain {
 
     /**
-     * 站群名称
+     * 站点名称
      */
-    @ApiModelProperty(value = "站群名称", dataType = "String")
+    @ApiModelProperty(value = "站点名称", dataType = "String")
     private String stationGroupName;
 
 }
