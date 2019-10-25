@@ -69,4 +69,19 @@ public class TemplateVo extends Template {
      * 缩略图上传路径
      */
     private String thumbnailUrl;
+
+    /**
+     * 录入人姓名
+     */
+    private String inputUserName;
+
+    /**
+     * 审核人姓名
+     */
+    private String verifyUserName;
+
+    /**
+     * 草稿标记
+     */
+    private String draftFlag;
 }

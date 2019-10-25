@@ -1,9 +1,11 @@
 package com.deyatech.station.controller;
 
+import com.deyatech.common.enums.ContentStatusEnum;
 import com.deyatech.station.entity.Template;
 import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.station.service.TemplateService;
 import com.deyatech.common.entity.RestResult;
+import io.swagger.annotations.ApiImplicitParams;
 import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -11,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.web.bind.annotation.RestController;
 import com.deyatech.common.base.BaseController;
@@ -93,6 +96,74 @@ public class TemplateController extends BaseController {
         log.info(String.format("根据id批量删除内容模板: %s ", JSONUtil.toJsonStr(ids)));
         boolean result = templateService.removeByIds(ids);
         return RestResult.ok(result);
+    }
+
+    /**
+     * 删除内容到回收站
+     *
+     * @param ids
+     * @return
+     */
+    @RequestMapping("/recycleByIds")
+    @ApiOperation(value="删除内容到回收站", notes="删除内容到回收站")
+    @ApiImplicitParam(name = "ids", value = "内容模板对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
+    public RestResult<Boolean> recycleByIds(@RequestParam("ids[]") List<String> ids) {
+        log.info(String.format("删除内容到回收站: %s ", JSONUtil.toJsonStr(ids)));
+        int count = templateService.updateStatusByIds(ids, ContentStatusEnum.RECYCLE.getCode());
+        return RestResult.ok(count > 0 ? true : false);
+    }
+
+    /**
+     * 撤销内容
+     *
+     * @param ids
+     * @return
+     */
+    @RequestMapping("/cancelByIds")
+    @ApiOperation(value="撤销内容", notes="撤销内容")
+    @ApiImplicitParam(name = "ids", value = "内容模板对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
+    public RestResult<Boolean> cancelByIds(@RequestParam("ids[]") List<String> ids) {
+        log.info(String.format("撤销内容: %s ", JSONUtil.toJsonStr(ids)));
+        int count = templateService.updateStatusByIds(ids, ContentStatusEnum.CANCEL.getCode());
+        return RestResult.ok(count > 0 ? true : false);
+    }
+
+    /**
+     * 更新权重
+     *
+     * @param sortNo
+     * @param id
+     * @return
+     */
+    @RequestMapping("/updateSortNoById")
+    @ApiOperation(value="更新权重", notes="更新权重")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "sortNo", value = "权重", required = true, allowMultiple = true, dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "id", value = "编号", required = true, allowMultiple = true, dataType = "String", paramType = "query")
+    })
+    public RestResult<Boolean> updateSortNoById(int sortNo, String id) {
+        log.info(String.format("更新权重: sortNo=%s id=%s ", sortNo, id));
+        int count = templateService.updateSortNoById(sortNo, id);
+        return RestResult.ok(count > 0 ? true : false);
+    }
+
+    /**
+     * 更新置顶
+     *
+     * @param flagTop
+     * @param id
+     * @return
+     */
+    @RequestMapping("/updateFlagTopById")
+    @ApiOperation(value="更新置顶", notes="更新置顶")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "flagTop", value = "置顶", required = true, allowMultiple = true, dataType = "boolean", paramType = "query"),
+            @ApiImplicitParam(name = "id", value = "编号", required = true, allowMultiple = true, dataType = "String", paramType = "query")
+    })
+    public RestResult<Boolean> updateFlagTopById(boolean flagTop, String id) {
+        log.info(String.format("更新置顶: flagTop=%s id=%s", flagTop, id));
+        int count = templateService.updateFlagTopById(flagTop, id);
+        return RestResult.ok(count > 0 ? true : false);
     }
 
     /**

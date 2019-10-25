@@ -120,4 +120,31 @@ public interface TemplateService extends BaseService<Template> {
      * @return
      */
     Integer resetTemplateIndex(String siteId, String start, String end, String part, int number);
+
+    /**
+     * 更新信息状态
+     *
+     * @param ids
+     * @param status
+     * @return
+     */
+    int updateStatusByIds(List<String> ids, int status);
+
+    /**
+     * 更新权重
+     *
+     * @param sortNo
+     * @param id
+     * @return
+     */
+    int updateSortNoById(int sortNo, String id);
+
+    /**
+     * 更新置顶
+     *
+     * @param flagTop
+     * @param id
+     * @return
+     */
+    int updateFlagTopById(boolean flagTop, String id);
 }

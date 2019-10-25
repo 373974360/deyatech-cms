@@ -49,4 +49,30 @@ public interface TemplateMapper extends BaseMapper<Template> {
      */
     IPage<TemplateVo> getTemplateListView(@Param("page") Page<Template> page,@Param("map") Map<String,Object> map);
 
+    /**
+     * 更新信息状态
+     *
+     * @param ids
+     * @param status
+     * @return
+     */
+    int updateStatusByIds(@Param("ids") List<String> ids, @Param("status") int status);
+
+    /**
+     * 更新权重
+     *
+     * @param sortNo
+     * @param id
+     * @return
+     */
+    int updateSortNoById(@Param("sortNo") int sortNo, @Param("id") String id);
+
+    /**
+     * 更新置顶
+     *
+     * @param flagTop
+     * @param id
+     * @return
+     */
+    int updateFlagTopById(@Param("flagTop") boolean flagTop, @Param("id") String id);
 }

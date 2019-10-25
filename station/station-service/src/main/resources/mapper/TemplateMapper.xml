@@ -54,17 +54,29 @@
     </sql>
 
     <select id="pageByTemplate" parameterType="com.deyatech.station.entity.Template" resultType="com.deyatech.station.vo.TemplateVo">
-        select st.*, sm.name_ as contentModelName, sm.meta_data_collection_id as metaDataCollectionId,
-            smt.url_ as thumbnailUrl
+        select st.*,
+            sm.name_ as contentModelName,
+            sm.meta_data_collection_id as metaDataCollectionId,
+            smt.url_ as thumbnailUrl,
+            aui.name_ as inputUserName,
+            auv.name_ as verifyUserName
         from station_template st
-        left join station_model sm on st.content_model_id = sm.id_
-        left join station_material smt on st.thumbnail_ = smt.id_
+        left join station_model sm on st.content_model_id = sm.id_ and sm.enable_ = 1
+        left join station_material smt on st.thumbnail_ = smt.id_ and smt.enable_ = 1
+        left join admin_user aui on aui.id_ = st.create_by and aui.enable_ = 1
+        left join admin_user auv on auv.id_ = st.update_by and auv.enable_ = 1
         where st.enable_ = 1
         <if test="template.title != null">
-            and (st.title_ like concat('%', #{template.title}, '%') or st.author_ like concat('%', #{template.title}, '%'))
+            and (
+                st.title_ like concat('%', #{template.title}, '%') or
+                st.author_ like concat('%', #{template.title}, '%')
+             )
         </if>
         <if test="template.siteId != null">
             and st.site_id = #{template.siteId}
+        </if>
+        <if test="template.status != null">
+            and st.status_ = #{template.status}
         </if>
         <if test="catalogIdList != null and catalogIdList.size > 0">
             and st.cms_catalog_id in
@@ -120,4 +132,19 @@
         order by st.resource_publication_date desc
     </select>
 
+    <!--更新信息状态-->
+    <update id="updateStatusByIds">
+        update station_template set status_ = #{status} where id_ in
+        <foreach index="index" item="item" collection="ids" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+    <!--更新权重-->
+    <update id="updateSortNoById">
+        update station_template set sort_no = #{sortNo} where id_ = #{id}
+    </update>
+    <!--更新置顶-->
+    <update id="updateFlagTopById">
+        update station_template set flag_top = #{flagTop} where id_ = #{id}
+    </update>
 </mapper>

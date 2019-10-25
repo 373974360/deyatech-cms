@@ -15,6 +15,7 @@ import com.deyatech.admin.vo.MetadataCollectionVo;
 import com.deyatech.common.Constants;
 import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.common.enums.ContentStatusEnum;
 import com.deyatech.common.enums.TemplateAuthorityEnum;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.content.feign.ContentFeign;
@@ -58,8 +59,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     @Autowired
     private ModelService modelService;
     @Autowired
-    private TemplateMapper templateMapper;
-    @Autowired
     private ContentFeign contentFeign;
     @Autowired
     private WorkflowFeign workflowFeign;
@@ -82,24 +81,12 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
      */
     @Override
     public TemplateVo setVoProperties(Template template){
-        TemplateVo templateVo = templateMapper.queryTemplateById(template.getId());
+        TemplateVo templateVo = baseMapper.queryTemplateById(template.getId());
         BeanUtil.copyProperties(template, templateVo);
         // 查询元数据结构及数据
         this.queryMetadata(templateVo);
-        //  查询模板配置
-        ModelTemplate mt = new ModelTemplate();
-        mt.setCmsCatalogId(templateVo.getCmsCatalogId());
-        mt.setContentModelId(templateVo.getContentModelId());
-        mt.setSiteId(templateVo.getSiteId());
-        ModelTemplate modelTemplate = modelTemplateService.getByBean(mt);
-        // 如果为空，查询站点默认模板
-        if (ObjectUtil.isNull(modelTemplate)) {
-            mt.setCmsCatalogId(null);
-            modelTemplate = modelTemplateService.getByBean(mt);
-        }
-        if (Objects.nonNull(modelTemplate)) {
-            templateVo.setTemplatePath(modelTemplate.getTemplatePath());
-        }
+        // 查询模型模板
+        this.queryModelTemplate(templateVo);
         return templateVo;
     }
 
@@ -118,25 +105,38 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 BeanUtil.copyProperties(template, templateVo);
                 // 查询元数据结构及数据
                 this.queryMetadata(templateVo);
-
-                //  查询模板配置
-                ModelTemplate mt = new ModelTemplate();
-                mt.setCmsCatalogId(templateVo.getCmsCatalogId());
-                mt.setContentModelId(templateVo.getContentModelId());
-                mt.setSiteId(templateVo.getSiteId());
-                ModelTemplate modelTemplate = modelTemplateService.getByBean(mt);
-                // 如果为空，查询站点默认模板
-                if (ObjectUtil.isNull(modelTemplate)) {
-                    mt.setCmsCatalogId(null);
-                    modelTemplate = modelTemplateService.getByBean(mt);
-                }
-                if (Objects.nonNull(modelTemplate)) {
-                    templateVo.setTemplatePath(modelTemplate.getTemplatePath());
-                }
+                // 查询模型模板
+                this.queryModelTemplate(templateVo);
                 templateVos.add(templateVo);
             }
         }
         return templateVos;
+    }
+
+    /**
+     * 查询模型模板
+     *
+     * @param templateVo
+     * @return
+     */
+    private void queryModelTemplate(TemplateVo templateVo) {
+        //  查询模板配置
+        ModelTemplate mt = new ModelTemplate();
+        mt.setCmsCatalogId(templateVo.getCmsCatalogId());
+        mt.setContentModelId(templateVo.getContentModelId());
+        mt.setSiteId(templateVo.getSiteId());
+        ModelTemplate modelTemplate = modelTemplateService.getByBean(mt);
+        // 如果为空，查询站点默认模板
+        if (ObjectUtil.isNull(modelTemplate)) {
+            QueryWrapper<ModelTemplate> queryWrapper = new QueryWrapper<>();
+            queryWrapper.isNull("cms_catalog_id");
+            queryWrapper.eq("content_model_id", templateVo.getContentModelId());
+            queryWrapper.eq("site_id", templateVo.getSiteId());
+            modelTemplate = modelTemplateService.getOne(queryWrapper);
+        }
+        if (Objects.nonNull(modelTemplate)) {
+            templateVo.setTemplatePath(modelTemplate.getTemplatePath());
+        }
     }
 
     /**
@@ -193,49 +193,56 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             }
         }
 
-        // 工作流相关
-        String workflowKey = templateVo.getWorkflowKey();
-        if (StrUtil.isNotEmpty(workflowKey)) {
-            // 启动审核流程生命周期 TODO
-/*            ReviewProcess reviewProcess = new ReviewProcess();
-            reviewProcess.setContentId(templateVo.getId());
-            reviewProcess.setWorkflowId(workflowId);
-            // 审核生命周期状态：0.启动 1.审核 2.完成
-            reviewProcess.setStatus(0);
-            contentFeign.saveOrUpdate(reviewProcess);*/
-
-            // 启动工作流 TODO
-            ProcessInstanceVo processInstanceVo = new ProcessInstanceVo();
-            processInstanceVo.setActDefinitionKey(workflowKey);
-            processInstanceVo.setBusinessId(String.valueOf(System.currentTimeMillis()));
-            processInstanceVo.setSource("CMS");
-            processInstanceVo.setUserId(UserContextHelper.getUserId());
-            Map<String, Object> mapParams = CollectionUtil.newHashMap();
-            mapParams.put("title", templateVo.getTitle());
-            mapParams.put("author", templateVo.getAuthor());
-            mapParams.put("templateId", templateVo.getId());
-            mapParams.put("siteId", templateVo.getSiteId());
-            processInstanceVo.setVariables(mapParams);
-            workflowFeign.startInstance(processInstanceVo);
-
-            // 设置内容发布状态：1-草稿，2-已发布，没有工作流时默认发布
-            templateVo.setStatus(1);
+        // 保存草稿
+        if ("true".equals(templateVo.getDraftFlag())) {
+            // 草稿
+            templateVo.setStatus(ContentStatusEnum.DRAFT.getCode());
         } else {
-            templateVo.setStatus(2);
-            // 发布日期
-            templateVo.setResourcePublicationDate(new Date());
+            // 工作流
+            if (StrUtil.isNotEmpty(templateVo.getWorkflowKey())) {
+                /*
+                // 启动审核流程生命周期 TODO
+                ReviewProcess reviewProcess = new ReviewProcess();
+                reviewProcess.setContentId(templateVo.getId());
+                reviewProcess.setWorkflowId(workflowId);
+                // 审核生命周期状态：0.启动 1.审核 2.完成
+                reviewProcess.setStatus(0);
+                contentFeign.saveOrUpdate(reviewProcess);
+                */
+
+                // 启动工作流 TODO
+                ProcessInstanceVo processInstanceVo = new ProcessInstanceVo();
+                processInstanceVo.setActDefinitionKey(templateVo.getWorkflowKey());
+                processInstanceVo.setBusinessId(String.valueOf(System.currentTimeMillis()));
+                processInstanceVo.setSource("CMS");
+                processInstanceVo.setUserId(UserContextHelper.getUserId());
+                Map<String, Object> mapParams = CollectionUtil.newHashMap();
+                mapParams.put("title", templateVo.getTitle());
+                mapParams.put("author", templateVo.getAuthor());
+                mapParams.put("templateId", templateVo.getId());
+                mapParams.put("siteId", templateVo.getSiteId());
+                processInstanceVo.setVariables(mapParams);
+                workflowFeign.startInstance(processInstanceVo);
+
+                // 审核中
+                templateVo.setStatus(ContentStatusEnum.VERIFY.getCode());
+            } else {
+                // 已发布
+                templateVo.setStatus(ContentStatusEnum.PUBLISH.getCode());
+            }
         }
 
+        // 发布时间
+        templateVo.setResourcePublicationDate(new Date());
         // 保存内容
-        super.saveOrUpdate(templateVo);
-
-        // 生成静态页面任务 TODO
-        this.addStaticPageTask(templateVo);
-
-        // 默认都创建索引, 索引任务 TODO
-        this.addIndexTask(templateVo, toUpdate ? RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE : RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
-
-        return true;
+        boolean res = super.saveOrUpdate(templateVo);
+        if (res && ContentStatusEnum.PUBLISH.getCode() == templateVo.getStatus()) {
+            // 生成静态页面任务
+            this.addStaticPageTask(templateVo);
+            // 默认都创建索引, 索引任务
+            this.addIndexTask(templateVo, toUpdate ? RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE : RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
+        }
+        return res;
     }
 
     @Override
@@ -443,7 +450,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         } else if (TemplateAuthorityEnum.USER.getCode().equals(authority)) {
             userIdList.add(userId);
         }
-        return templateMapper.pageByTemplate(getPageByBean(entity), entity, catalogIdList, userIdList);
+        return baseMapper.pageByTemplate(getPageByBean(entity), entity, catalogIdList, userIdList);
     }
 
     private void getChildrenCatalogId(String catalogId, Collection<Catalog> allCatalogList, List<String> childrenCatalogIds) {
@@ -489,7 +496,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             System.out.println(cmsCatalogId);
             maps.put("cmsCatalogId",cmsCatalogId);
         }
-        return templateMapper.getTemplateListView(pages,maps);
+        return baseMapper.getTemplateListView(pages,maps);
     }
 
 
@@ -596,4 +603,33 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             return new Integer(0);
         }
     }
+
+    /**
+     * 更新信息状态
+     *
+     * @param ids
+     * @param status
+     * @return
+     */
+    public int updateStatusByIds(List<String> ids, int status) {
+        return baseMapper.updateStatusByIds(ids, status);
+    }
+
+    /**
+     * 更新权重
+     *
+     * @param sortNo
+     * @param id
+     * @return
+     */
+    public int updateSortNoById(int sortNo, String id) {return baseMapper.updateSortNoById(sortNo, id);}
+
+    /**
+     * 更新置顶
+     *
+     * @param flagTop
+     * @param id
+     * @return
+     */
+    public int updateFlagTopById(boolean flagTop, String id) {return baseMapper.updateFlagTopById(flagTop, id);}
 }
