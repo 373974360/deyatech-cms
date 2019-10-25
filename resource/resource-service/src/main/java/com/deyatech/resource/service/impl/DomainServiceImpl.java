@@ -21,6 +21,7 @@ import com.deyatech.station.feign.StationFeign;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
@@ -288,9 +289,21 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
         map.put("siteId", stationGroup.getId());
         // 增加配置 nginx
         try {
-            File siteNginxTemplateFile = ResourceUtils.getFile("classpath:nginx_site.template");
-            String nginxTemplate = FileUtils.readFileToString(siteNginxTemplateFile, Charset.forName("UTF-8"));
-            String nginxContent = StringHelper.processTemplate(nginxTemplate, map);
+            //File siteNginxTemplateFile = ResourceUtils.getFile("nginx_site.template");
+            //String nginxTemplate = FileUtils.readFileToString(siteNginxTemplateFile, Charset.forName("UTF-8"));
+            StringBuilder nginxTemplate = new StringBuilder();
+            ClassPathResource classPathResource = new ClassPathResource("nginx_site.template");
+            InputStream inputStream = classPathResource.getInputStream();
+            byte[] buf = new byte[2048];
+            int len;
+            while( (len = inputStream.read(buf)) != -1) {
+                nginxTemplate.append(new String(buf, 0, len, Charset.forName("UTF-8")));
+            }
+            if (len != -1) {
+                nginxTemplate.append(new String(buf, 0, len, Charset.forName("UTF-8")));
+            }
+            inputStream.close();
+            String nginxContent = StringHelper.processTemplate(nginxTemplate.toString(), map);
             // 配置文件
             File desc = new File(site.getNginxConfigDir(), domain.getName() + NGINX_ENABLE_SUFFIX);
             if (!desc.getParentFile().exists()) {
