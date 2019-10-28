@@ -14,6 +14,7 @@ import com.deyatech.station.entity.Template;
 import com.deyatech.station.service.CatalogAggregationService;
 import com.deyatech.station.service.CatalogUserService;
 import com.deyatech.station.service.TemplateService;
+import com.deyatech.station.vo.CatalogAggregationVo;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.mapper.CatalogMapper;
 import com.deyatech.station.service.CatalogService;
@@ -137,8 +138,8 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
                 BeanUtil.copyProperties(catalog, catalogVo);
                 // 装填聚合栏目
                 if (YesNoEnum.YES.getCode().equals(catalogVo.getFlagAggregation())) {
-                    CatalogAggregation catalogAggregation = catalogAggregationService.getById(catalogVo.getAggregationId());
-                    catalogVo.setCatalogAggregation(catalogAggregation);
+                    CatalogAggregationVo catalogAggregationVo = catalogAggregationService.getCatalogAggregationById(catalogVo.getAggregationId());
+                    catalogVo.setCatalogAggregation(catalogAggregationVo);
                 }
                 catalogVos.add(catalogVo);
             }

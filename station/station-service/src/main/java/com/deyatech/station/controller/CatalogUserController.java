@@ -156,8 +156,8 @@ public class CatalogUserController extends BaseController {
             @ApiImplicitParam(name = "userId", value = "用户id", required = true, dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "catalogIds", value = "栏目id", required = true, dataType = "String", paramType = "query")
     })
-    public RestResult setUserCatalogs(String userId, @RequestParam(value = "catalogIds[]", required = false) List<String> catalogIds) {
-        catalogUserService.setUserCatalogs(userId, catalogIds);
+    public RestResult setUserCatalogs(String userId, @RequestParam(value = "catalogIds[]", required = false) List<String> catalogIds, String siteId) {
+        catalogUserService.setUserCatalogs(userId, catalogIds, siteId);
         return RestResult.ok();
     }
 }

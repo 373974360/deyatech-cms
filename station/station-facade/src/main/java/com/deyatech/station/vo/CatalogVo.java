@@ -45,7 +45,7 @@ public class CatalogVo extends Catalog {
     /**
      * 聚合栏目对象
      */
-    private CatalogAggregation catalogAggregation;
+    private CatalogAggregationVo catalogAggregation;
 
     /**
      * 栏目关联的内容数量

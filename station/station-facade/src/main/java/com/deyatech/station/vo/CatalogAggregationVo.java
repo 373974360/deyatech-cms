@@ -20,4 +20,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @ApiModel(value = "聚合栏目扩展对象", description = "聚合栏目扩展对象", parent = CatalogAggregation.class)
 public class CatalogAggregationVo extends CatalogAggregation {
+
+    private String publisherName;
+    private String publishOrganizationTreePosition;
 }

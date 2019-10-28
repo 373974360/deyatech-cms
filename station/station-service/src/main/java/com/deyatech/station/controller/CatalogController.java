@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+
 import org.springframework.web.bind.annotation.RestController;
 import com.deyatech.common.base.BaseController;
 import io.swagger.annotations.Api;
@@ -114,11 +116,16 @@ public class CatalogController extends BaseController {
         if (count > 0) {
             return RestResult.error("当前栏目下已存在内容，不能删除栏目");
         }
-        boolean result = catalogService.removeByIds(ids);
-
+        String siteId = null;
         if (CollectionUtil.isNotEmpty(ids)) {
             Catalog catalog = catalogService.getById(ids.get(0));
-            siteCache.cacheSite(catalog.getSiteId());
+            if (Objects.nonNull(catalog)) {
+                siteId = catalog.getSiteId();
+            }
+        }
+        boolean result = catalogService.removeByIds(ids);
+        if (Objects.nonNull(siteId)) {
+            siteCache.cacheSite(siteId);
         }
         return RestResult.ok(result);
     }

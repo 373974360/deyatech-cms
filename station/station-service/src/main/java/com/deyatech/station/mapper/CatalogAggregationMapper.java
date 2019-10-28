@@ -2,6 +2,7 @@ package com.deyatech.station.mapper;
 
 import com.deyatech.station.entity.CatalogAggregation;
 import com.deyatech.common.base.BaseMapper;
+import com.deyatech.station.vo.CatalogAggregationVo;
 
 /**
  * <p>
@@ -13,4 +14,5 @@ import com.deyatech.common.base.BaseMapper;
  */
 public interface CatalogAggregationMapper extends BaseMapper<CatalogAggregation> {
 
+    CatalogAggregationVo getCatalogAggregationById(String id);
 }

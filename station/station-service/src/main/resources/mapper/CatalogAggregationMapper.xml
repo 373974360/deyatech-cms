@@ -31,5 +31,27 @@
         version_,
         cms_catalog_id, keyword_, publish_organization, publish_time, publisher
     </sql>
+    <select id="getCatalogAggregationById" resultType="com.deyatech.station.vo.CatalogAggregationVo">
+        select
+        sca.id_ as id,
+        sca.enable_ as enable,
+        sca.remark_ as remark,
+        sca.create_by as createBy,
+        sca.create_time as createTime,
+        sca.update_by as updateBy,
+        sca.update_time as updateTime,
+        sca.version_ as version,
+        sca.cms_catalog_id as cmsCatalogId,
+        sca.keyword_ as keyword,
+        sca.publish_organization as publishOrganization,
+        sca.publish_time as publishTime,
+        sca.publisher as publisher,
+        ad.tree_position as publishOrganizationTreePosition,
+        au.name_ as publisherName
+        from station_catalog_aggregation sca
+             left join admin_department ad on sca.publish_organization = ad.id_ and ad.enable_ = 1
+             left join admin_user au on sca.publisher = au.id_ and au.enable_ = 1
+        where sca.enable_ = 1 and sca.id_ = #{id}
+    </select>
 
 </mapper>

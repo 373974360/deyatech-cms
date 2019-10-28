@@ -31,4 +31,11 @@ public interface CatalogAggregationService extends BaseService<CatalogAggregatio
      * @return
      */
     List<CatalogAggregationVo> setVoProperties(Collection catalogAggregations);
+
+    /**
+     * 检索聚合对象
+     *
+     * @return
+     */
+    CatalogAggregationVo getCatalogAggregationById(String id);
 }

@@ -37,6 +37,7 @@ public interface CatalogUserService extends BaseService<CatalogUser> {
      *
      * @param userId
      * @param catalogIds
+     * @param siteId
      */
-    void setUserCatalogs(String userId, List<String> catalogIds);
+    void setUserCatalogs(String userId, List<String> catalogIds, String siteId);
 }

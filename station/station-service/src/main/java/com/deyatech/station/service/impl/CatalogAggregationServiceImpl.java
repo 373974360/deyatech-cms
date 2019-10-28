@@ -53,4 +53,14 @@ public class CatalogAggregationServiceImpl extends BaseServiceImpl<CatalogAggreg
         }
         return catalogAggregationVos;
     }
+
+    /**
+     * 检索聚合对象
+     *
+     * @return
+     */
+    @Override
+    public CatalogAggregationVo getCatalogAggregationById(String id) {
+        return baseMapper.getCatalogAggregationById(id);
+    }
 }
