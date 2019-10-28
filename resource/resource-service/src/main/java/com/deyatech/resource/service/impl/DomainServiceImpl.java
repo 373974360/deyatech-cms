@@ -289,8 +289,6 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
         map.put("siteId", stationGroup.getId());
         // 增加配置 nginx
         try {
-            //File siteNginxTemplateFile = ResourceUtils.getFile("nginx_site.template");
-            //String nginxTemplate = FileUtils.readFileToString(siteNginxTemplateFile, Charset.forName("UTF-8"));
             StringBuilder nginxTemplate = new StringBuilder();
             ClassPathResource classPathResource = new ClassPathResource("nginx_site.template");
             InputStream inputStream = classPathResource.getInputStream();
@@ -321,19 +319,23 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
     private void reloadNginx() {
         BufferedReader br = null;
         try {
+            StringBuilder command = new StringBuilder();
+            StringBuilder path = new StringBuilder(stationFeign.getSiteProperties().getData().getHostsRoot());
             String osName = System.getProperty("os.name");
-            File file = null;
-            Process exec = null;
             if(osName.toLowerCase().startsWith("win")){
-                file = ResourceUtils.getFile("classpath:reloadNginx.bat");
-                if(ObjectUtil.isNotNull(file)){
-                    exec = Runtime.getRuntime().exec(file.getPath());
-                }
+                path.append("reloadNginx.bat");
+                command.append(path.toString());
             }else{
-                file = ResourceUtils.getFile("classpath:reloadNginx.sh");
-                if(ObjectUtil.isNotNull(file)){
-                    exec = Runtime.getRuntime().exec("sh ".concat(file.getPath()));
-                }
+                path.append("reloadNginx.sh");
+                command.append("sh ");
+                command.append(path.toString());
+            }
+            Process exec = null;
+            File file = new File(path.toString());
+            if(file != null && file.exists()){
+                exec = Runtime.getRuntime().exec(command.toString());
+            } else {
+                throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "重启失败，文件不存在: " + path.toString());
             }
             br = new BufferedReader(new InputStreamReader(exec.getInputStream()));
             String line = null;
@@ -407,7 +409,7 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
         if (StrUtil.isEmpty(stationGroupId))
             return;
         // 检错站点下的所有域名
-        Collection<DomainVo> list = baseMapper.selectDomainByStationGroupId(stationGroupId);;
+        Collection<DomainVo> list = baseMapper.selectDomainByStationGroupId(stationGroupId);
         StationGroup stationGroup = stationGroupService.getById(stationGroupId);
         // 设置站点下所有域名的状态
         long count = baseMapper.updateEnableByStationGroupId(stationGroup.getId(), stationGroup.getEnable());
