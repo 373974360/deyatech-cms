@@ -411,4 +411,22 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
         }
         return rootCatalogs;
     }
+
+    /**
+     * 更新隐藏
+     *
+     * @param allowHidden
+     * @param id
+     * @return
+     */
+    public int updateAllowHiddenById(int allowHidden, String id) {return baseMapper.updateAllowHiddenById(allowHidden, id);}
+
+    /**
+     * 更新归档
+     *
+     * @param placeOnFile
+     * @param id
+     * @return
+     */
+    public int updatePlaceOnFileById(int placeOnFile, String id) {return baseMapper.updatePlaceOnFileById(placeOnFile, id);}
 }

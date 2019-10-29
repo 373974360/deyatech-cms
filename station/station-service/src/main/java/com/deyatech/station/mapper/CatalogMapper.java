@@ -30,4 +30,22 @@ public interface CatalogMapper extends BaseMapper<Catalog> {
      * @return
      */
     List<CatalogVo> getCatalogBySiteIds (@Param("list") List<String> list);
+
+    /**
+     * 更新隐藏
+     *
+     * @param allowHidden
+     * @param id
+     * @return
+     */
+    int updateAllowHiddenById(@Param("allowHidden") int allowHidden, @Param("id") String id);
+
+    /**
+     * 更新归档
+     *
+     * @param placeOnFile
+     * @param id
+     * @return
+     */
+    int updatePlaceOnFileById(@Param("placeOnFile") int placeOnFile, @Param("id") String id);
 }

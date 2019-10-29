@@ -83,10 +83,6 @@ public class Catalog extends BaseEntity {
     @TableField("allow_comment")
     private Integer allowComment;
 
-    @ApiModelProperty(value = "是否允许分享: 0.否 1.是", dataType = "Integer", example = "1")
-    @TableField("allow_share")
-    private Integer allowShare;
-
     @ApiModelProperty(value = "应用id", dataType = "String")
     @TableField("application_id")
     private String applicationId;
@@ -102,10 +98,6 @@ public class Catalog extends BaseEntity {
     @ApiModelProperty(value = "内容对象id", dataType = "String")
     @TableField("contect_object_id")
     private String contectObjectId;
-
-    @ApiModelProperty(value = "显示条数", dataType = "Integer", example = "1")
-    @TableField("display_number")
-    private Integer displayNumber;
 
     @ApiModelProperty(value = "生成栏目首页:0.否 1.是", dataType = "Integer", example = "1")
     @TableField("generate_home")
@@ -135,9 +127,17 @@ public class Catalog extends BaseEntity {
     @TableField("content_model_id")
     private String contentModelId;
 
-    @ApiModelProperty(value = "是否归档: 0.否 1.是", dataType = "Integer", example = "1")
+    @ApiModelProperty(value = "是否归档", dataType = "Integer", example = "1")
     @TableField("place_on_file")
     private Integer placeOnFile;
+
+    @ApiModelProperty(value = "是否共享", dataType = "Integer", example = "1")
+    @TableField("allow_share")
+    private Integer allowShare;
+
+    @ApiModelProperty(value = "是否隐藏", dataType = "Integer", example = "1")
+    @TableField("allow_hidden")
+    private Integer allowHidden;
 
     @ApiModelProperty(value = "是否外链: 0.否 1.是", dataType = "Integer", example = "1")
     @TableField("flag_external")

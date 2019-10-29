@@ -1,30 +1,28 @@
 package com.deyatech.station.controller;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.StrUtil;
-import com.deyatech.station.cache.SiteCache;
-import com.deyatech.station.entity.Catalog;
-import com.deyatech.station.service.TemplateService;
-import com.deyatech.station.vo.CatalogVo;
-import com.deyatech.station.service.CatalogService;
-import com.deyatech.common.entity.RestResult;
-import com.deyatech.common.entity.CascaderResult;
-import com.deyatech.common.utils.CascaderUtil;
-import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.common.base.BaseController;
+import com.deyatech.common.entity.CascaderResult;
+import com.deyatech.common.entity.RestResult;
+import com.deyatech.common.utils.CascaderUtil;
+import com.deyatech.station.cache.SiteCache;
+import com.deyatech.station.entity.Catalog;
+import com.deyatech.station.service.CatalogService;
+import com.deyatech.station.service.TemplateService;
+import com.deyatech.station.vo.CatalogVo;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import java.io.Serializable;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-
-import org.springframework.web.bind.annotation.RestController;
-import com.deyatech.common.base.BaseController;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiOperation;
 
 /**
  * <p>
@@ -294,5 +292,43 @@ public class CatalogController extends BaseController {
         Collection<CatalogVo> catalogTree = catalogService.getUserCatalogTree(catalog);
         log.info(String.format("获取栏目的tree对象: %s ",JSONUtil.toJsonStr(catalogTree)));
         return RestResult.ok(catalogTree);
+    }
+
+    /**
+     * 更新隐藏
+     *
+     * @param allowHidden
+     * @param id
+     * @return
+     */
+    @RequestMapping("/updateAllowHiddenById")
+    @ApiOperation(value="更新隐藏", notes="更新隐藏")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "allowHidden", value = "隐藏", required = true, allowMultiple = true, dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "id", value = "编号", required = true, allowMultiple = true, dataType = "String", paramType = "query")
+    })
+    public RestResult<Boolean> updateAllowHiddenById(int allowHidden, String id) {
+        log.info(String.format("更新隐藏: sortNo=%s id=%s ", allowHidden, id));
+        int count = catalogService.updateAllowHiddenById(allowHidden, id);
+        return RestResult.ok(count > 0 ? true : false);
+    }
+
+    /**
+     * 更新归档
+     *
+     * @param placeOnFile
+     * @param id
+     * @return
+     */
+    @RequestMapping("/updatePlaceOnFileById")
+    @ApiOperation(value="更新归档", notes="更新归档")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "placeOnFile", value = "归档", required = true, allowMultiple = true, dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "id", value = "编号", required = true, allowMultiple = true, dataType = "String", paramType = "query")
+    })
+    public RestResult<Boolean> updatePlaceOnFileById(int placeOnFile, String id) {
+        log.info(String.format("更新隐藏: sortNo=%s id=%s ", placeOnFile, id));
+        int count = catalogService.updatePlaceOnFileById(placeOnFile, id);
+        return RestResult.ok(count > 0 ? true : false);
     }
 }

@@ -93,4 +93,22 @@ public interface CatalogService extends BaseService<Catalog> {
      * @return
      */
     Collection<CatalogVo> getUserCatalogTree(Catalog catalog);
+
+    /**
+     * 更新隐藏
+     *
+     * @param allowHidden
+     * @param id
+     * @return
+     */
+    int updateAllowHiddenById(int allowHidden, String id);
+
+    /**
+     * 更新归档
+     *
+     * @param placeOnFile
+     * @param id
+     * @return
+     */
+    int updatePlaceOnFileById(int placeOnFile, String id);
 }
