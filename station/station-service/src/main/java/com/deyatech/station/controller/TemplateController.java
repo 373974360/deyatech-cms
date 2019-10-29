@@ -1,6 +1,9 @@
 package com.deyatech.station.controller;
 
+import cn.hutool.core.util.StrUtil;
+import com.baidu.aip.nlp.AipNlp;
 import com.deyatech.common.enums.ContentStatusEnum;
+import com.deyatech.station.config.AipNlpConfig;
 import com.deyatech.station.entity.Template;
 import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.station.service.TemplateService;
@@ -9,11 +12,12 @@ import io.swagger.annotations.ApiImplicitParams;
 import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+
+import java.util.*;
 
 import org.springframework.web.bind.annotation.RestController;
 import com.deyatech.common.base.BaseController;
@@ -33,7 +37,8 @@ import io.swagger.annotations.ApiOperation;
 @RequestMapping("/station/template")
 @Api(tags = {"内容模板接口"})
 public class TemplateController extends BaseController {
-
+    @Autowired
+    AipNlpConfig aipNlpConfig;
     @Autowired
     TemplateService templateService;
 
@@ -293,4 +298,66 @@ public class TemplateController extends BaseController {
         return RestResult.ok(result);
     }
 
+    /**
+     * 关键字
+     *
+     * @param title
+     * @param content
+     * @return
+     */
+    @RequestMapping("/keyword")
+    @ApiOperation(value="关键字", notes="关键字")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "title", value = "标题", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "content", value = "正文", required = false, dataType = "String", paramType = "query")
+    })
+    public RestResult keyword(String title, String content) {
+        if (StrUtil.isEmpty(title) || StrUtil.isEmpty(content)) {
+            return RestResult.error("标题和内容不能为空");
+        }
+        List<String> keywords = new ArrayList<>();
+        AipNlp aipNlp = this.aipNlpConfig.getInstance();
+        JSONObject res = aipNlp.keyword(title, content, new HashMap<>());
+        if (res.has("error_code")) {
+            return RestResult.error(res.getString("error_msg"));
+        }
+        JSONArray items = res.getJSONArray("items");
+        if (items != null && items.length() > 0) {
+            for (int i = 0; i < items.length(); i++) {
+                keywords.add(items.getJSONObject(i).getString("tag"));
+            }
+        }
+        return RestResult.ok(keywords);
+    }
+
+    /**
+     * 摘要
+     *
+     * @param title
+     * @param content
+     * @param maxSummaryLen
+     * @return
+     */
+    @RequestMapping("/summary")
+    @ApiOperation(value="摘要", notes="摘要")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "title", value = "标题", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "content", value = "正文", required = false, dataType = "String", paramType = "query")
+    })
+    public RestResult summary(String title, String content, int maxSummaryLen) {
+        if (StrUtil.isEmpty(title) || StrUtil.isEmpty(content)) {
+            return RestResult.error("标题和内容不能为空");
+        }
+        if (maxSummaryLen <= 0) {
+            maxSummaryLen = 100;
+        }
+        AipNlp aipNlp = this.aipNlpConfig.getInstance();
+        HashMap<String, Object> options = new HashMap<>();
+        options.put("title", title);
+        JSONObject res = aipNlp.newsSummary(content, maxSummaryLen, options);
+        if (res.has("error_code")) {
+            return RestResult.error(res.getString("error_msg"));
+        }
+        return RestResult.ok(res.getString("summary"));
+    }
 }
