@@ -154,7 +154,8 @@ public class ModelController extends BaseController {
     @ApiImplicitParam(name = "model", value = "对象", required = false, dataType = "Model", paramType = "query")
     public RestResult<Collection<ModelVo>> listModelByCompetentDeptId(String departmentId) {
         QueryWrapper<Model> queryWrapper = new QueryWrapper<>();
-        queryWrapper.likeLeft("competent_dept", departmentId);
+        queryWrapper.likeLeft("competent_dept", departmentId)
+                .or().like("part_dept",departmentId);
         Collection<Model> models = modelService.list(queryWrapper);
         Collection<ModelVo> modelVos = modelService.setVoProperties(models);
         log.info(String.format("检索主管部门的模型: %s ",JSONUtil.toJsonStr(modelVos)));

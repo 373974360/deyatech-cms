@@ -1,6 +1,8 @@
 package com.deyatech.appeal.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.admin.entity.Department;
+import com.deyatech.admin.vo.DepartmentVo;
 import com.deyatech.appeal.entity.Record;
 import com.deyatech.appeal.vo.RecordVo;
 import com.deyatech.common.base.BaseService;
@@ -51,4 +53,13 @@ public interface RecordService extends BaseService<Record> {
      * @return String
      */
     String getAppealCode(String modelId);
+
+
+    /**
+     * 根据业务ID得到参与部门
+     *
+     * @param modelId
+     * @return String
+     */
+    List<DepartmentVo> getCompetentDept(String modelId);
 }
