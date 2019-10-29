@@ -90,4 +90,24 @@ public class ApplyOpenModel extends BaseEntity {
     @TableField("site_id")
     private String siteId;
 
+    @ApiModelProperty(value = "部门间转办1是，2否", dataType = "Integer", example = "1")
+    @TableField("dept_transfer")
+    private Integer deptTransfer;
+
+    @ApiModelProperty(value = "主管部门引用部门ID", dataType = "String")
+    @TableField("competent_dept")
+    private String competentDept;
+
+    @ApiModelProperty(value = "参与部门部门ID数组", dataType = "String")
+    @TableField("part_dept")
+    private String partDept;
+
+    @ApiModelProperty(value = "是否开启工作流1:是，2否", dataType = "Integer", example = "1")
+    @TableField("workflow_type")
+    private Integer workflowType;
+
+    @ApiModelProperty(value = "工作流ID", dataType = "String", example = "1")
+    @TableField("workflow_id")
+    private String workflowId;
+
 }

@@ -2,8 +2,6 @@ package com.deyatech.template;
 
 import cn.hutool.json.JSONObject;
 import com.deyatech.common.exception.GlobalExceptionHandler;
-import com.deyatech.template.thymeleaf.tools.FormatExpressionObject;
-import com.deyatech.template.thymeleaf.utils.TemplateConstants;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
