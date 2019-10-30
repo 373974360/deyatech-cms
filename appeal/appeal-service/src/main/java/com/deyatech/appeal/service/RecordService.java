@@ -8,6 +8,7 @@ import com.deyatech.appeal.vo.RecordVo;
 import com.deyatech.common.base.BaseService;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -62,4 +63,25 @@ public interface RecordService extends BaseService<Record> {
      * @return String
      */
     List<DepartmentVo> getCompetentDept(String modelId);
+
+
+
+    /**
+     * 网站前台根据条件获取诉求列表
+     *
+     * @param maps
+     * @param page
+     * @param pageSize
+     * @return Ipage
+     */
+    IPage<RecordVo> getAppealList(Map<String, Object> maps, Integer page, Integer pageSize);
+
+    /**
+     * 网站前台根据诉求编码和查询码查询诉求信息
+     *
+     * @param sqCode
+     * @param queryCode
+     * @return Ipage
+     */
+    RecordVo queryAppeal(String sqCode,String queryCode);
 }

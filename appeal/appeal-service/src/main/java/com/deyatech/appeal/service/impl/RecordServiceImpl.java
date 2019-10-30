@@ -260,5 +260,44 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
         return rootDepartments;
     }
 
+    @Override
+    public IPage<RecordVo> getAppealList(Map<String, Object> maps, Integer page, Integer pageSize) {
+        QueryWrapper<Record> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("is_publish",1)
+                .eq("is_open",1);
+        if(maps.containsKey("modelId")){
+            queryWrapper.in("model_id",maps.get("modelId"));
+        }
+        if(maps.containsKey("flag")){
+            queryWrapper.in("flag",maps.get("flag"));
+        }
+        if(maps.containsKey("purId")){
+            queryWrapper.in("pur_id",maps.get("purId"));
+        }
+        if(maps.containsKey("title")){
+            queryWrapper.like("title",maps.get("title"));
+        }
+        if(maps.containsKey("orderby")){
+            queryWrapper.orderByDesc(maps.get("orderby").toString());
+        }else{
+            queryWrapper.orderByDesc("reply_time");
+        }
+        IPage<RecordVo> recordVoIPage = new Page<>(page,pageSize);
+        IPage<Record> pages = super.page(getPageByBean(new Record()), queryWrapper);
+        recordVoIPage.setRecords(setVoProperties(pages.getRecords()));
+        recordVoIPage.setPages(pages.getPages());
+        recordVoIPage.setTotal(pages.getTotal());
+        recordVoIPage.setCurrent(pages.getCurrent());
+        return recordVoIPage;
+    }
+
+    @Override
+    public RecordVo queryAppeal(String sqCode, String queryCode) {
+        Record record = new Record();
+        record.setSqCode(sqCode);
+        record.setQueryCode(queryCode);
+        return setVoProperties(super.getByBean(record));
+    }
+
 
 }

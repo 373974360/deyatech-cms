@@ -129,7 +129,7 @@
                 #{id}
             </foreach>
         </if>
-        order by st.resource_publication_date desc
+        order by st.sort_no desc,st.resource_publication_date desc
     </select>
 
     <!--更新信息状态-->
