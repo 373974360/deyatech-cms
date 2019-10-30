@@ -1,17 +1,21 @@
 package com.deyatech.appeal.controller;
 
 import cn.hutool.core.util.StrUtil;
+import com.deyatech.admin.entity.Department;
+import com.deyatech.admin.vo.DepartmentVo;
+import com.deyatech.appeal.entity.Model;
 import com.deyatech.appeal.entity.Record;
 import com.deyatech.appeal.vo.RecordVo;
 import com.deyatech.appeal.service.RecordService;
+import com.deyatech.common.entity.CascaderResult;
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.common.utils.CascaderUtil;
 import io.swagger.annotations.ApiImplicitParams;
 import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.web.bind.annotation.RestController;
@@ -150,6 +154,23 @@ public class RecordController extends BaseController {
         IPage<RecordVo> records = recordService.pageRecordByBean(record, timeFrame, userDepartmentId);
         log.info(String.format("根据Record对象属性分页检索: %s ",JSONUtil.toJsonStr(records)));
         return RestResult.ok(records);
+    }
+
+
+    /**
+     * 根据Record对象属性分页检索
+     *
+     * @param modelId
+     * @return
+     */
+    @GetMapping("/getCompetentDept")
+    @ApiOperation(value="根据业务模型获取参与部门", notes="根据业务模型获取参与部门")
+    @ApiImplicitParam(name = "modelId", value = "业务模型ID", required = false, dataType = "String", paramType = "query")
+    public RestResult<List<CascaderResult>> getCompetentDept(String modelId) {
+        Collection<DepartmentVo> departmentVos = recordService.getCompetentDept(modelId);
+        List<CascaderResult> cascaderResults = CascaderUtil.getResult("Id", "Name","TreePosition","0", departmentVos);
+        log.info(String.format("获取系统部门信息的级联对象: %s ",JSONUtil.toJsonStr(cascaderResults)));
+        return RestResult.ok(cascaderResults);
     }
 
 }

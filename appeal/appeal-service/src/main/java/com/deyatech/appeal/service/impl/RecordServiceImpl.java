@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.admin.entity.Department;
 import com.deyatech.admin.feign.AdminFeign;
-import com.deyatech.admin.vo.UserVo;
+import com.deyatech.admin.vo.DepartmentVo;
 import com.deyatech.appeal.entity.Model;
 import com.deyatech.appeal.entity.Purpose;
 import com.deyatech.appeal.entity.Record;
@@ -17,19 +17,16 @@ import com.deyatech.appeal.service.PurposeService;
 import com.deyatech.appeal.vo.RecordVo;
 import com.deyatech.appeal.mapper.RecordMapper;
 import com.deyatech.appeal.service.RecordService;
+import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
-import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.utils.RandomStrg;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -150,11 +147,26 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
         }
         if(StrUtil.isNotBlank(record.getModelId())){
             queryWrapper.eq("model_id",record.getModelId());
+            QueryWrapper<Model> query = new QueryWrapper<>();
+            query.likeLeft("competent_dept", userDepartmentId);
+            query.eq("id_", record.getModelId());
+            Model model = modelService.getOne(query);
+            //当前登录用户的所属部门不是所选择业务的主管部门
+            if(ObjectUtil.isNull(model)){
+                queryWrapper.eq("pro_dept_id", userDepartmentId);
+            }
         } else {
             QueryWrapper<Model> query = new QueryWrapper<>();
             query.likeLeft("competent_dept", userDepartmentId);
             Collection<Model> models = modelService.list(query);
-            queryWrapper.in("model_id", models.stream().map(Model::getId).collect(Collectors.toList()));
+            if(models != null && !models.isEmpty()){
+                //有主管业务查询主管业务的所有信息和处理部门是自己所属部门的信息
+                queryWrapper.and(i -> i.in("model_id", models.stream().map(Model::getId).collect(Collectors.toList()))
+                    .or().eq("pro_dept_id", userDepartmentId));
+            }else{
+                //没有主管业务只查询处理部门是当前用户所属部门的信息
+                queryWrapper.or().eq("pro_dept_id", userDepartmentId);
+            }
         }
         if(StrUtil.isNotBlank(record.getPurId())){
             queryWrapper.eq("pur_id",record.getPurId());
@@ -170,11 +182,11 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
         if(record.getFlag() != null && record.getFlag() > 0){
             queryWrapper.eq("flag",record.getFlag());
         }
+        if(record.getTimeFlag() != null && record.getTimeFlag() > 0){
+            queryWrapper.eq("time_flag",record.getTimeFlag());
+        }
         if(record.getIsPublish() != null && record.getIsPublish() > 0){
             queryWrapper.eq("is_publish",record.getIsPublish());
-        }
-        if(StrUtil.isNotEmpty(userDepartmentId)){
-            queryWrapper.or().eq("pro_dept_id", userDepartmentId);
         }
 
         IPage<RecordVo> recordVoIPage = new Page<>(record.getPage(),record.getSize());
@@ -197,4 +209,56 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
         //编码头＋日期＋随机码
         return model.getBusCode() + DateUtil.format(new Date(),model.getDayCode()) + RandomStrg.getRandomStr(DEFAULT_RANDON_STR, model.getRandomcodeCount() + "");
     }
+
+    @Override
+    public List<DepartmentVo> getCompetentDept(String modelId) {
+        List<DepartmentVo> rootDepartments = CollectionUtil.newArrayList();
+        List<Department> departments = adminFeign.getAllDepartments().getData();
+        Model model = modelService.getById(modelId);
+        String partDept = model.getPartDept();
+        Map<String,String> deptMaps = new HashMap<>();
+        if(StrUtil.isNotBlank(partDept)){
+            for(String deptIds:partDept.split("&")){
+                for(String deptId:deptIds.split(",")){
+                    deptMaps.put(deptId,deptId);
+                }
+            }
+        }
+        List<DepartmentVo> departmentVos = CollectionUtil.newArrayList();
+        if(CollectionUtil.isNotEmpty(departments)){
+            for(Department dept:departments){
+                if(deptMaps.containsKey(dept.getId())){
+                    DepartmentVo departmentVo = new DepartmentVo();
+                    BeanUtil.copyProperties(dept,departmentVo);
+                    departmentVos.add(departmentVo);
+                }
+            }
+        }
+        for (DepartmentVo departmentVo : departmentVos) {
+            departmentVo.setLabel(departmentVo.getName());
+            if(StrUtil.isNotBlank(departmentVo.getTreePosition())){
+                String[] split = departmentVo.getTreePosition().split(Constants.DEFAULT_TREE_POSITION_SPLIT);
+                departmentVo.setLevel(split.length);
+            }else{
+                departmentVo.setLevel(Constants.DEFAULT_ROOT_LEVEL);
+            }
+            if (ObjectUtil.equal(departmentVo.getParentId(), Constants.ZERO)) {
+                rootDepartments.add(departmentVo);
+            }
+            for (DepartmentVo childVo : departmentVos) {
+                if (ObjectUtil.equal(childVo.getParentId(), departmentVo.getId())) {
+                    if (ObjectUtil.isNull(departmentVo.getChildren())) {
+                        List<DepartmentVo> children = CollectionUtil.newArrayList();
+                        children.add(childVo);
+                        departmentVo.setChildren(children);
+                    } else {
+                        departmentVo.getChildren().add(childVo);
+                    }
+                }
+            }
+        }
+        return rootDepartments;
+    }
+
+
 }

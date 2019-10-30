@@ -106,5 +106,9 @@ public class Record extends BaseEntity {
     @TableField("flag")
     private Integer flag;
 
+    @ApiModelProperty(value = "1:预警件，2：黄牌件，3：红牌件", dataType = "Integer")
+    @TableField("time_flag")
+    private Integer timeFlag;
+
 
 }

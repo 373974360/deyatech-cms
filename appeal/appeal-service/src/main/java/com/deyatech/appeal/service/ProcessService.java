@@ -1,6 +1,7 @@
 package com.deyatech.appeal.service;
 
 import com.deyatech.appeal.entity.Process;
+import com.deyatech.appeal.entity.Record;
 import com.deyatech.appeal.vo.ProcessVo;
 import com.deyatech.common.base.BaseService;
 import java.util.Collection;
@@ -31,4 +32,6 @@ public interface ProcessService extends BaseService<Process> {
      * @return
      */
     List<ProcessVo> setVoProperties(Collection processs);
+
+    void doProcess(Process process, Record record);
 }

@@ -22,7 +22,7 @@ public class TemplateConstants {
      */
     public static final String TEMPLATE_OBJ_SITE_UTIL = "SiteData";
     /**
-     * 模板自定义内置对象-格式化工具
+     * 模板自定义内置对象-诉求工具
      */
-    public static final String TEMPLATE_OBJ_FORMAT_UTIL = "FormatUtil";
+    public static final String TEMPLATE_OBJ_APPEAL_UTIL = "AppealUtil";
 }

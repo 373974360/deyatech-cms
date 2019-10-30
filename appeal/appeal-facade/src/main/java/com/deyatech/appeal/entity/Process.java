@@ -58,4 +58,8 @@ public class Process extends BaseEntity {
     @TableField("pro_time")
     private Date proTime;
 
+    @ApiModelProperty(value = "延期审核状态", dataType = "Integer")
+    @TableField("reasons_status")
+    private Integer reasonsStatus;
+
 }
