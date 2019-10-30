@@ -30,7 +30,7 @@ public interface TemplateFeign {
      * @return
      */
     @RequestMapping(value = "/feign/template/getTemplateFiles", method = RequestMethod.GET)
-    RestResult<String> getTemplateFiles(@RequestParam("siteId") String siteId);
+    RestResult<String> getTemplateFiles(@RequestParam("siteId") String siteId,@RequestParam("type") String type);
 
     /**
      * 获取静态页后缀名

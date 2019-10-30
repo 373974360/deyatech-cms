@@ -31,8 +31,8 @@ public class TemplateFeignImpl implements TemplateFeign {
 
 
     @Override
-    public RestResult<String> getTemplateFiles(String siteId) {
-        return RestResult.ok(stationGitService.getTemplateAllFiles(siteId));
+    public RestResult<String> getTemplateFiles(String siteId,String type) {
+        return RestResult.ok(stationGitService.getTemplateAllFiles(siteId,type));
     }
     @Override
     public RestResult<String> getPageSuffix() {

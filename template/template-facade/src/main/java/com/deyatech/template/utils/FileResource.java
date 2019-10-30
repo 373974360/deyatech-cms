@@ -1,6 +1,7 @@
 package com.deyatech.template.utils;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.slf4j.Logger;
@@ -202,9 +203,15 @@ public class FileResource {
      * @param path 当前路径
      * @return
      */
-    public static String getAllFiles(String path) {
-
+    public static String getAllFiles(String path,String type) {
         JSONArray files = new JSONArray();
+        String dir = path.substring(path.lastIndexOf("/")+1);
+        if(dir.equals("images") || dir.equals("js") || dir.equals("styles")){
+            return null;
+        }
+        if(StrUtil.isNotBlank(type) && !type.equals(dir) && !dir.equals("template")){
+            return null;
+        }
         File file = new File(path);
         File[] tempList = file.listFiles();
         if(ObjectUtil.isNotNull(tempList)) {
@@ -225,9 +232,11 @@ public class FileResource {
                         object.put("filePath", tempList[i].toString());
                         object.put("lastModified", timestampToDate(tempList[i].lastModified(), "yyyy-MM-dd HH:mm"));
 
-                        String children = getAllFiles(tempList[i].toString());
-                        object.put("children", children);
-                        files.add(object);
+                        String children = getAllFiles(tempList[i].toString(),type);
+                        if(StrUtil.isNotBlank(children)){
+                            object.put("children", children);
+                            files.add(object);
+                        }
                     }
 
                 }
@@ -259,7 +268,7 @@ public class FileResource {
     }
     public static void main(String[] args) {
 //        getFiles("d:\\temp");
-        String files = getAllFiles("D:/temp/");
+        String files = getAllFiles("D:/temp/","");
         System.out.println(files);
     }
 

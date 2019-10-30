@@ -88,10 +88,10 @@ public class StationGitServiceImpl extends BaseServiceImpl<StationGitMapper, Sta
     }
 
     @Override
-    public String getTemplateAllFiles(String siteId) {
+    public String getTemplateAllFiles(String siteId,String type) {
         JSONObject jsonObject = new JSONObject();
         String dir = stationFeign.getStationGroupTemplatePathBySiteId(siteId).getData();
-        String files = FileResource.getAllFiles(dir);
+        String files = FileResource.getAllFiles(dir,type);
         jsonObject.put("files", files);
         return jsonObject.toString();
     }

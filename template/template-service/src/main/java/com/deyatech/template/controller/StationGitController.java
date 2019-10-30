@@ -230,8 +230,8 @@ public class StationGitController extends BaseController {
     @GetMapping("/listTemplateAllFiles")
     @ApiOperation(value="根据站点ID递归获取所有模板文件信息", notes="根据站点ID递归获取所有模板文件信息")
     @ApiImplicitParam(name = "siteId", value = "站点ID", required = true, dataType = "String", paramType = "query")
-    public RestResult<String> listTemplateAllFiles(String siteId) {
-        return RestResult.ok(stationGitService.getTemplateAllFiles(siteId));
+    public RestResult<String> listTemplateAllFiles(String siteId,String type) {
+        return RestResult.ok(stationGitService.getTemplateAllFiles(siteId,type));
     }
 
     /**

@@ -87,11 +87,11 @@ public class ViewController extends BaseController {
     }
 
     /**
-     * 动态栏目页
+     * 栏目列表页
      * @param p 页码
      * @return
      */
-    @GetMapping(value = "/c/{siteId}")
+    @GetMapping(value = "/c/{siteId}", produces = {"text/html;charset=utf-8"})
     @ResponseBody
     public String list(@PathVariable("siteId") String siteId,@RequestParam("namePath") String namePath,Integer p){
         Catalog catalog = new Catalog();
@@ -112,6 +112,30 @@ public class ViewController extends BaseController {
 
 
 
+
+    /**
+     * 栏目频道页
+     * @param p 页码
+     * @return
+     */
+    @GetMapping(value = "/i/{siteId}", produces = {"text/html;charset=utf-8"})
+    @ResponseBody
+    public String catIndex(@PathVariable("siteId") String siteId,@RequestParam("namePath") String namePath,Integer p){
+        Catalog catalog = new Catalog();
+        catalog.setSiteId(siteId);
+        catalog.setPathName(namePath);
+        catalog = catalogService.getByBean(catalog);
+        if (catalog == null) {
+            return "栏目不存在";
+        }
+        String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(siteId);
+        Map<String,Object> varMap = new HashMap<>();
+        varMap.put("site",siteCache.getStationGroupById(siteId));
+        varMap.put("catalog",catalog);
+        varMap.put("rootCatalog",getRootCatalog(siteId,catalog.getId()));
+        varMap.put("p",p==null||p<=0?1:p);
+        return templateFeign.thyToString(siteTemplateRoot,catalog.getIndexTemplate(),varMap).getData();
+    }
 
     /**
      * 根据条件获取当前栏目的顶级栏目信息
