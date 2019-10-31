@@ -205,6 +205,7 @@ public class FileResource {
      */
     public static String getAllFiles(String path,String type) {
         JSONArray files = new JSONArray();
+        path = path.replaceAll("\\\\", "/");
         String dir = path.substring(path.lastIndexOf("/")+1);
         if(dir.equals("images") || dir.equals("js") || dir.equals("styles")){
             return null;
