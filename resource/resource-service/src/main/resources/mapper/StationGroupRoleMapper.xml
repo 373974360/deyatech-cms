@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.resource.mapper.StationGroupRoleMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.deyatech.resource.entity.StationGroupRole">
+        <result column="id_" property="id" />
+        <result column="station_group_id" property="stationGroupId" />
+        <result column="role_id" property="roleId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id_,
+        station_group_id, role_id
+    </sql>
+
+</mapper>
