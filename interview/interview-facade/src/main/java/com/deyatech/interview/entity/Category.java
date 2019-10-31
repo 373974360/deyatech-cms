@@ -31,4 +31,11 @@ public class Category extends BaseEntity {
     @TableField("site_id")
     private String siteId;
 
+    @ApiModelProperty(value = "列表页模板", dataType = "String")
+    @TableField("list_page_template")
+    private String listPageTemplate;
+
+    @ApiModelProperty(value = "详情页模板", dataType = "String")
+    @TableField("detail_page_template")
+    private String detailPageTemplate;
 }

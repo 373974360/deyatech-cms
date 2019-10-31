@@ -14,6 +14,8 @@
         <result column="version_" property="version" />
         <result column="name_" property="name" />
         <result column="site_id" property="siteId" />
+        <result column="list_page_template" property="listPageTemplate" />
+        <result column="detail_page_template" property="detailPageTemplate" />
     </resultMap>
 
     <resultMap id="CategoryVoResultMap" type="com.deyatech.interview.vo.CategoryVo">
@@ -28,6 +30,8 @@
         <result column="name_" property="name" />
         <result column="site_id" property="siteId" />
         <result column="site_name" property="siteName" />
+        <result column="list_page_template" property="listPageTemplate" />
+        <result column="detail_page_template" property="detailPageTemplate" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
@@ -40,11 +44,11 @@
         update_by,
         update_time,
         version_,
-        name_, site_id
+        name_, site_id, list_page_template, detail_page_template
     </sql>
     <!-- 检索访谈分类根据名称和站点 -->
     <select id="pageByNameAndSiteId" resultMap="CategoryVoResultMap">
-        SELECT c.site_id,s.name_ as site_name, c.id_,c.name_,c.enable_,c.remark_,c.create_by,c.create_time,c.update_by,c.update_time,c.version_
+        SELECT c.site_id,s.name_ as site_name,c.id_,c.name_,c.list_page_template,c.detail_page_template,c.enable_,c.remark_,c.create_by,c.create_time,c.update_by,c.update_time,c.version_
         FROM interview_category c
         left join resource_station_group s on c.site_id = s.id_ and s.enable_ != -1
         WHERE c.enable_ = 1
@@ -60,7 +64,7 @@
     </select>
     <!-- 检索访谈分类根据名称和站点 -->
     <select id="listByNameAndSiteId" resultMap="CategoryVoResultMap">
-        SELECT c.site_id,s.name_ as site_name, c.id_,c.name_,c.enable_,c.remark_,c.create_by,c.create_time,c.update_by,c.update_time,c.version_
+        SELECT c.site_id,s.name_ as site_name,c.id_,c.name_,c.list_page_template,c.detail_page_template,c.enable_,c.remark_,c.create_by,c.create_time,c.update_by,c.update_time,c.version_
         FROM interview_category c
         left join resource_station_group s on c.site_id = s.id_ and s.enable_ != -1
         WHERE c.enable_ = 1
