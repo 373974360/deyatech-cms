@@ -2,6 +2,7 @@ package com.deyatech.appeal.feign.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.deyatech.appeal.entity.Record;
 import com.deyatech.appeal.feign.AppealFeign;
 import com.deyatech.appeal.service.RecordService;
 import com.deyatech.appeal.vo.RecordVo;
@@ -33,5 +34,10 @@ public class AppealFeignImpl implements AppealFeign {
     @Override
     public RestResult<RecordVo> queryAppeal(String sqCode, String queryCode) {
         return RestResult.ok(recordService.queryAppeal(sqCode,queryCode));
+    }
+
+    @Override
+    public RestResult insertAppeal(Record record) {
+        return RestResult.ok(recordService.save(record));
     }
 }

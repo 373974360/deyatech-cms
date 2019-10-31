@@ -51,4 +51,9 @@ public class RecordVo extends Record {
      * 回复部门
      */
     private String replyTreePosition;
+
+    /**
+     * 处理状态名称
+     */
+    private String flagName;
 }

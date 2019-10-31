@@ -46,23 +46,23 @@ server {
             break;
         }
         #首页
-        if ($request_uri ~ "^/index.list\?*(.*)") {
+        if ($request_uri ~ "^/index.list") {
             proxy_pass ${proxyPass}/manage/cms/s/${siteId}?$1;
             break;
         }
-        #内容页
-        if ($request_uri ~ "^/view.list\?*(.*)") {
-            proxy_pass ${proxyPass}/manage/cms/m/${siteId}?$1;
-            break;
-        }
         #列表页
-        if ($request_uri ~ "^/(.*).list\?*(.*)") {
+        if ($request_uri ~ "^/(.*_list.*).list\?*(.*)") {
             proxy_pass ${proxyPass}/manage/cms/c/${siteId}?namePath=$1&$2;
             break;
         }
         #频道页
-        if ($request_uri ~ "^/(.*).index\?*(.*)") {
-            proxy_pass ${proxyPass}/manage/cms/i/${siteId}?namePath=$1&$2;
+        if ($request_uri ~ "^/(.*_index).list\?*(.*)") {
+            proxy_pass ${proxyPass}/manage/cms/c/${siteId}?namePath=$1&$2;
+            break;
+        }
+        #内容页
+        if ($request_uri ~ "^/(.*_info).list\?*(.*)") {
+            proxy_pass ${proxyPass}/manage/cms/m/${siteId}?namePath=$1&$2;
             break;
         }
         root ${siteRootDir};
