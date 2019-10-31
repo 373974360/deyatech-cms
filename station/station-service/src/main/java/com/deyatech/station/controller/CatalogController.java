@@ -2,6 +2,7 @@ package com.deyatech.station.controller;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseController;
 import com.deyatech.common.entity.CascaderResult;
@@ -330,5 +331,18 @@ public class CatalogController extends BaseController {
         log.info(String.format("更新隐藏: sortNo=%s id=%s ", placeOnFile, id));
         int count = catalogService.updatePlaceOnFileById(placeOnFile, id);
         return RestResult.ok(count > 0 ? true : false);
+    }
+
+    /**
+     * 下一个排序号
+     *
+     * @return
+     */
+    @RequestMapping("/getNextSortNo")
+    @ApiOperation(value = "下一个排序号", notes = "下一个排序号")
+    public RestResult<Integer> getNextSortNo() {
+        QueryWrapper queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("ifnull(max(sort_no), 0) + 1 as sortNo");
+        return RestResult.ok(catalogService.getMap(queryWrapper).get("sortNo"));
     }
 }

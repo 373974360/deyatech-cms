@@ -1,6 +1,7 @@
 package com.deyatech.resource.controller;
 
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseController;
 import com.deyatech.common.entity.CascaderResult;
@@ -258,5 +259,18 @@ public class StationGroupController extends BaseController {
     public RestResult<Boolean> runOrStopStationById(String id, String flag) {
         log.info(String.format("启用或停用站点 id = %s, flag = %s", id , flag));
         return RestResult.ok(this.stationGroupService.runOrStopStationById(id, flag));
+    }
+
+    /**
+     * 下一个排序号
+     *
+     * @return
+     */
+    @RequestMapping("/getNextSortNo")
+    @ApiOperation(value = "下一个排序号", notes = "下一个排序号")
+    public RestResult<Integer> getNextSortNo() {
+        QueryWrapper queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("ifnull(max(sort_no), 0) + 1 as sortNo");
+        return RestResult.ok(stationGroupService.getMap(queryWrapper).get("sortNo"));
     }
 }

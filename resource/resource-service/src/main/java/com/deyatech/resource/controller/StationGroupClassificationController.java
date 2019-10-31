@@ -2,6 +2,7 @@ package com.deyatech.resource.controller;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseController;
@@ -309,5 +310,18 @@ public class StationGroupClassificationController extends BaseController {
         log.info(String.format("检查分类下有无站点: id = %s",id));
         long count = stationGroupService.countStationGroupByClassificationId(id);
         return RestResult.ok(count > 0 ? true : false);
+    }
+
+    /**
+     * 下一个排序号
+     *
+     * @return
+     */
+    @RequestMapping("/getNextSortNo")
+    @ApiOperation(value = "下一个排序号", notes = "下一个排序号")
+    public RestResult<Integer> getNextSortNo() {
+        QueryWrapper queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("ifnull(max(sort_no), 0) + 1 as sortNo");
+        return RestResult.ok(stationGroupClassificationService.getMap(queryWrapper).get("sortNo"));
     }
 }

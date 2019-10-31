@@ -1,6 +1,7 @@
 package com.deyatech.resource.controller;
 
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseController;
 import com.deyatech.common.entity.RestResult;
@@ -219,4 +220,16 @@ public class DomainController extends BaseController {
         }
     }
 
+    /**
+     * 下一个排序号
+     *
+     * @return
+     */
+    @RequestMapping("/getNextSortNo")
+    @ApiOperation(value = "下一个排序号", notes = "下一个排序号")
+    public RestResult<Integer> getNextSortNo() {
+        QueryWrapper queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("ifnull(max(sort_no), 0) + 1 as sortNo");
+        return RestResult.ok(domainService.getMap(queryWrapper).get("sortNo"));
+    }
 }
