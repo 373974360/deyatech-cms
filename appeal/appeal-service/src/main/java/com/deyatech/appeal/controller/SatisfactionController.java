@@ -1,5 +1,6 @@
 package com.deyatech.appeal.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.deyatech.appeal.entity.Satisfaction;
 import com.deyatech.appeal.vo.SatisfactionVo;
 import com.deyatech.appeal.service.SatisfactionService;
@@ -140,4 +141,16 @@ public class SatisfactionController extends BaseController {
         return RestResult.ok(satisfactionService.pageBySatisfaction(satisfaction));
     }
 
+    /**
+     * 下一个排序号
+     *
+     * @return
+     */
+    @RequestMapping("/getNextSortNo")
+    @ApiOperation(value = "下一个排序号", notes = "下一个排序号")
+    public RestResult<Integer> getNextSortNo() {
+        QueryWrapper queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("ifnull(max(sort), 0) + 1 as sortNo");
+        return RestResult.ok(satisfactionService.getMap(queryWrapper).get("sortNo"));
+    }
 }
