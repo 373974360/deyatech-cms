@@ -1,8 +1,10 @@
 package com.deyatech.appeal.feign;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.deyatech.appeal.entity.Record;
 import com.deyatech.appeal.vo.RecordVo;
 import com.deyatech.common.entity.RestResult;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,4 +40,13 @@ public interface AppealFeign {
      */
     @RequestMapping(value = "/feign/appeal/queryAppeal")
     RestResult<RecordVo> queryAppeal(@RequestParam("sqCode") String sqCode, @RequestParam("queryCode") String queryCode);
+
+    /**
+     * 诉求提交
+     * @param record
+     * @return
+     */
+    @RequestMapping(value = "/feign/appeal/insertAppeal")
+    RestResult insertAppeal(@RequestBody Record record);
+
 }
