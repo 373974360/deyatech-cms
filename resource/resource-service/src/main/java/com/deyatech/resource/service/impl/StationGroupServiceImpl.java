@@ -4,12 +4,14 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.enums.EnableEnum;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.entity.StationGroupClassification;
+import com.deyatech.resource.entity.StationGroupRole;
 import com.deyatech.resource.entity.StationGroupUser;
 import com.deyatech.resource.mapper.StationGroupMapper;
 import com.deyatech.resource.service.*;
@@ -48,6 +50,8 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     StationGroupUserService stationGroupUserService;
     @Autowired
     StationFeign stationFeign;
+    @Autowired
+    StationGroupRoleService stationGroupRoleService;
 
 
     /**
@@ -58,11 +62,18 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
      */
     @Override
     public Collection<StationGroupClassificationVo> getClassificationStationTree(String userId, StationGroupClassification classification) {
+        List<StationGroupClassificationVo> rootClassificationList = CollectionUtil.newArrayList();
+        List<StationGroupVo> userStationGroupList;
+        if (StrUtil.isNotEmpty(userId)) {
+            userStationGroupList = baseMapper.selectStationGroupByUserId(userId);
+        } else {
+            userStationGroupList = setVoProperties(super.list());
+        }
+        if (CollectionUtil.isEmpty(userStationGroupList))
+            return rootClassificationList;
         classification.setSortSql("sortNo asc");
         List<StationGroupClassificationVo> classificationList = classificationService.setVoProperties(classificationService.listByBean(classification));
-        List<StationGroupClassificationVo> rootClassificationList = CollectionUtil.newArrayList();
         if (CollectionUtil.isNotEmpty(classificationList)) {
-            // 构建树
             for (StationGroupClassificationVo stationGroupClassificationVo : classificationList) {
                 stationGroupClassificationVo.setLabel(stationGroupClassificationVo.getName());
                 if(StrUtil.isNotBlank(stationGroupClassificationVo.getTreePosition())){
@@ -86,56 +97,38 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
                     }
                 }
             }
-
-            // 添加站点
-            List<StationGroupClassificationVo> childrenList = CollectionUtil.newArrayList();
+            List<StationGroupClassificationVo> resultList = CollectionUtil.newArrayList();
             for (StationGroupClassificationVo node : rootClassificationList) {
-                addNode(userId, childrenList, node);
+                addNode(userStationGroupList, resultList, node);
             }
-            rootClassificationList = childrenList;
+            rootClassificationList = resultList;
         }
         return rootClassificationList;
     }
 
-    private void addNode(String userId, List<StationGroupClassificationVo> childrenList, StationGroupClassificationVo childrenNode) {
+    private void addNode(List<StationGroupVo> userStationGroupList, List<StationGroupClassificationVo> resultList, StationGroupClassificationVo childrenNode) {
         if (CollectionUtil.isNotEmpty(childrenNode.getChildren())) {
             List<StationGroupClassificationVo> subList = CollectionUtil.newArrayList();
             for (StationGroupClassificationVo subNode : childrenNode.getChildren()) {
-                addNode(userId, subList, subNode);
+                addNode(userStationGroupList, subList, subNode);
             }
             if (subList.size() > 0) {
                 childrenNode.setChildren(subList);
-                childrenList.add(childrenNode);
+                resultList.add(childrenNode);
             }
-        // 叶子结点
         } else {
-            List<StationGroupClassificationVo> stationGroupList = getStationGroupList(userId, childrenNode);
-            // 有站点则添加该结点
+
+            List<StationGroupClassificationVo> stationGroupList = getUserStationGroupList(userStationGroupList, childrenNode);
             if (CollectionUtil.isNotEmpty(stationGroupList)) {
                 childrenNode.setChildren(stationGroupList);
-                childrenList.add(childrenNode);
+                resultList.add(childrenNode);
             }
         }
 
     }
 
-    private List<StationGroupClassificationVo> getStationGroupList(String userId, StationGroupClassificationVo node) {
-        StationGroupVo stationGroupVo = new StationGroupVo();
-        stationGroupVo.setStationGroupClassificationId(node.getId());
-        Collection<StationGroupVo> stationGroupVos = listSelectByStationGroupVo(stationGroupVo);
-        if (StrUtil.isNotEmpty(userId)) {
-            // 用户关联的站点
-            StationGroupUser stationGroupUser = new StationGroupUser();
-            stationGroupUser.setUserId(userId);
-            Collection<StationGroupUser> stationGroupUserList = stationGroupUserService.listByBean(stationGroupUser);
-            if (CollectionUtil.isNotEmpty(stationGroupUserList)) {
-                List<String> stationGroupIds = stationGroupUserList.stream().map(StationGroupUser::getStationGroupId).collect(Collectors.toList());
-                stationGroupVos = stationGroupVos.stream().filter(c -> stationGroupIds.contains(c.getId())).collect(Collectors.toList());
-            } else {
-                stationGroupVos = null;
-            }
-        }
-
+    private List<StationGroupClassificationVo> getUserStationGroupList(List<StationGroupVo> userStationGroupList, StationGroupClassificationVo node) {
+        List<StationGroupVo> stationGroupVos = userStationGroupList.stream().filter(s -> s.getStationGroupClassificationId().equals(node.getId())).collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(stationGroupVos)) {
             List<StationGroupClassificationVo> children = CollectionUtil.newArrayList();
             for (StationGroupVo station : stationGroupVos) {

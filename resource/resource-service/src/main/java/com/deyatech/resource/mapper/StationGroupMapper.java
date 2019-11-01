@@ -111,4 +111,12 @@ public interface StationGroupMapper extends BaseMapper<StationGroup> {
      * @return
      */
     long updateStationGroupById(StationGroup stationGroup);
+
+    /**
+     * 检索用户的站点
+     *
+     * @param userId
+     * @return
+     */
+    List<StationGroupVo> selectStationGroupByUserId(String userId);
 }

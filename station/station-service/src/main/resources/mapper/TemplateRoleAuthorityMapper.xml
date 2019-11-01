@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.station.mapper.TemplateRoleAuthorityMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.deyatech.station.entity.TemplateRoleAuthority">
+        <result column="id_" property="id" />
+        <result column="role_id" property="roleId" />
+        <result column="authority" property="authority" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id_,
+        role_id, authority
+    </sql>
+    <select id="getStationCount" resultType="Map">
+        SELECT count(*) AS cnt, sr.role_id as roleId
+        FROM resource_station_group_role sr
+        JOIN resource_station_group s ON s.id_ = sr.station_group_id AND s.enable_ = 1
+        JOIN admin_role r ON r.id_ = sr.role_id AND r.enable_ = 1
+        WHERE sr.role_id in
+        <foreach index="index" item="item" collection="roleIds" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        GROUP BY sr.role_id
+    </select>
+    <select id="getCatalogCount" resultType="Map">
+        SELECT count(*) AS cnt, cr.role_id as roleId
+        FROM station_catalog_role cr
+        JOIN station_catalog c ON c.id_ = cr.catalog_id AND c.enable_ = 1
+        JOIN admin_role r ON r.id_ = cr.role_id AND r.enable_ = 1
+        WHERE cr.role_id in
+        <foreach index="index" item="item" collection="roleIds" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        GROUP BY cr.role_id
+    </select>
+    <select id="getContentCount" resultType="Map">
+        SELECT count(*) AS cnt, tr.role_id as roleId
+        FROM station_template_role_authority tr
+        JOIN admin_role r ON r.id_ = tr.role_id AND r.enable_ = 1
+        WHERE tr.role_id in
+        <foreach index="index" item="item" collection="roleIds" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        GROUP BY tr.role_id
+    </select>
+
+</mapper>

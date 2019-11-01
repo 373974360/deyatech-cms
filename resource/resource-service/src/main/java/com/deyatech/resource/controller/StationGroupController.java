@@ -4,6 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseController;
+import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.entity.CascaderResult;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.enums.EnableEnum;
@@ -37,6 +38,21 @@ import java.util.*;
 public class StationGroupController extends BaseController {
     @Autowired
     StationGroupService stationGroupService;
+
+    /**
+     * 获取登陆用户的站点
+     *
+     * @return
+     */
+    @GetMapping("/getLoginUserStationCascader")
+    @ApiOperation(value="获取登陆用户的站点", notes="获取登陆用户的站点")
+    @ApiImplicitParam(name = "stationGroupClassification", value = "stationGroupClassification", required = false, dataType = "StationGroupClassification", paramType = "query")
+    public RestResult<List<CascaderResult>> getLoginUserStationCascader() {
+        Collection<StationGroupClassificationVo> stationGroupClassificationVos = stationGroupService.getClassificationStationTree(UserContextHelper.getUserId(), new StationGroupClassification());
+        List<CascaderResult> cascaderResults = CascaderUtil.getResult("Id", "Name","TreePosition", "", stationGroupClassificationVos);
+        log.info(String.format("获取登陆用户的站点: %s ",JSONUtil.toJsonStr(cascaderResults)));
+        return RestResult.ok(cascaderResults);
+    }
 
     /**
      * 获取的级联对象
