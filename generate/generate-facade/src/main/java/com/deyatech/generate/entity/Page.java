@@ -47,4 +47,7 @@ public class Page extends BaseEntity {
     @TableField("page_interval")
     private Integer pageInterval;
 
+    @ApiModelProperty(value = "是否自动更新", dataType = "Integer")
+    @TableField("auto_update")
+    private Integer autoUpdate;
 }

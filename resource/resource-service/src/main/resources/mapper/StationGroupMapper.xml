@@ -98,8 +98,7 @@
         c.name_ as station_group_classification_name,
         c.tree_position as station_group_classification_tree_position,
         d.name_ as department_name,
-        d.tree_position as department_tree_position,
-        (select count(*) from resource_station_group_user rsgu join admin_user au on rsgu.user_id = au.id_ and au.enable_ = 1 where rsgu.station_group_id = s.id_) as userNumber
+        d.tree_position as department_tree_position
         from resource_station_group s
              join resource_station_group_classification c on c.enable_ = 1 and s.station_group_classification_id = c.id_
              join admin_department d on d.enable_ = 1 and s.department_id = d.id_
@@ -281,11 +280,47 @@
         join resource_station_group_classification c on c.enable_ = 1 and s.station_group_classification_id = c.id_
         join admin_department d on d.enable_ = 1 and s.department_id = d.id_
         where s.enable_ != -1 and s.id_ in (
-          select distinct sr.station_group_id from resource_station_group_role sr where sr.role_id in (
-            select distinct ru.role_id from admin_role_user ru where ru.user_id = #{userId}
+          select distinct sr.station_group_id from resource_station_group_role sr
+          where sr.role_id in (
+            select distinct ru.role_id from admin_role_user ru join admin_role r on r.id_ = ru.role_id and r.enable_ = 1 where ru.user_id = #{userId}
           )
         )
         order by s.sort_no asc, s.update_time desc
     </select>
 
+    <select id="selectStationGroupByRoleId" resultMap="StationGroupVoResultMap">
+        select
+        s.id_,
+        s.enable_,
+        s.remark_,
+        s.create_by,
+        s.create_time,
+        s.update_by,
+        s.update_time,
+        s.version_,
+        s.name_,
+        s.english_name,
+        s.abbreviation_,
+        s.description_,
+        s.sort_no,
+        s.station_group_classification_id,
+        s.department_id,
+        s.site_code,
+        s.icp_code,
+        s.police_code,
+        c.name_ as station_group_classification_name,
+        c.tree_position as station_group_classification_tree_position,
+        d.name_ as department_name,
+        d.tree_position as department_tree_position
+        from resource_station_group s
+        join resource_station_group_classification c on c.enable_ = 1 and s.station_group_classification_id = c.id_
+        join admin_department d on d.enable_ = 1 and s.department_id = d.id_
+        where s.enable_ != -1 and s.id_ in (
+          select distinct sr.station_group_id
+          from resource_station_group_role sr
+          join admin_role r on r.id_ = sr.role_id and r.enable_ = 1
+          where sr.role_id = #{roleId}
+        )
+        order by s.sort_no asc, s.update_time desc
+    </select>
 </mapper>

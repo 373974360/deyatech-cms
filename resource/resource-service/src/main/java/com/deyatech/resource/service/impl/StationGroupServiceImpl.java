@@ -4,15 +4,12 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.enums.EnableEnum;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.entity.StationGroupClassification;
-import com.deyatech.resource.entity.StationGroupRole;
-import com.deyatech.resource.entity.StationGroupUser;
 import com.deyatech.resource.mapper.StationGroupMapper;
 import com.deyatech.resource.service.*;
 import com.deyatech.resource.vo.StationGroupClassificationVo;
@@ -47,30 +44,36 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     @Autowired
     StationGroupClassificationService classificationService;
     @Autowired
-    StationGroupUserService stationGroupUserService;
-    @Autowired
     StationFeign stationFeign;
     @Autowired
     StationGroupRoleService stationGroupRoleService;
 
+    @Override
+    public Collection<StationGroupClassificationVo> getRoleStationCascader(String roleId) {
+        List<StationGroupVo> filterStationGroupList = baseMapper.selectStationGroupByRoleId(roleId);
+        if (CollectionUtil.isEmpty(filterStationGroupList))
+            return CollectionUtil.newArrayList();
+        return getClassificationStationTree(filterStationGroupList);
+    }
+
+    @Override
+    public Collection<StationGroupClassificationVo> getUserStationCascader(String userId) {
+        List<StationGroupVo> filterStationGroupList = baseMapper.selectStationGroupByUserId(userId);
+        if (CollectionUtil.isEmpty(filterStationGroupList))
+            return CollectionUtil.newArrayList();
+        return getClassificationStationTree(filterStationGroupList);
+    }
 
     /**
      * 根据StationGroupClassification对象属性检索的tree对象
      *
-     * @param classification
+     * @param filterStationGroupList
      * @return
      */
     @Override
-    public Collection<StationGroupClassificationVo> getClassificationStationTree(String userId, StationGroupClassification classification) {
+    public Collection<StationGroupClassificationVo> getClassificationStationTree(List<StationGroupVo> filterStationGroupList) {
         List<StationGroupClassificationVo> rootClassificationList = CollectionUtil.newArrayList();
-        List<StationGroupVo> userStationGroupList;
-        if (StrUtil.isNotEmpty(userId)) {
-            userStationGroupList = baseMapper.selectStationGroupByUserId(userId);
-        } else {
-            userStationGroupList = setVoProperties(super.list());
-        }
-        if (CollectionUtil.isEmpty(userStationGroupList))
-            return rootClassificationList;
+        StationGroupClassification classification = new StationGroupClassification();
         classification.setSortSql("sortNo asc");
         List<StationGroupClassificationVo> classificationList = classificationService.setVoProperties(classificationService.listByBean(classification));
         if (CollectionUtil.isNotEmpty(classificationList)) {
@@ -99,18 +102,18 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
             }
             List<StationGroupClassificationVo> resultList = CollectionUtil.newArrayList();
             for (StationGroupClassificationVo node : rootClassificationList) {
-                addNode(userStationGroupList, resultList, node);
+                addNode(filterStationGroupList, resultList, node);
             }
             rootClassificationList = resultList;
         }
         return rootClassificationList;
     }
 
-    private void addNode(List<StationGroupVo> userStationGroupList, List<StationGroupClassificationVo> resultList, StationGroupClassificationVo childrenNode) {
+    private void addNode(List<StationGroupVo> filterStationGroupList, List<StationGroupClassificationVo> resultList, StationGroupClassificationVo childrenNode) {
         if (CollectionUtil.isNotEmpty(childrenNode.getChildren())) {
             List<StationGroupClassificationVo> subList = CollectionUtil.newArrayList();
             for (StationGroupClassificationVo subNode : childrenNode.getChildren()) {
-                addNode(userStationGroupList, subList, subNode);
+                addNode(filterStationGroupList, subList, subNode);
             }
             if (subList.size() > 0) {
                 childrenNode.setChildren(subList);
@@ -118,7 +121,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
             }
         } else {
 
-            List<StationGroupClassificationVo> stationGroupList = getUserStationGroupList(userStationGroupList, childrenNode);
+            List<StationGroupClassificationVo> stationGroupList = getUserStationGroupList(filterStationGroupList, childrenNode);
             if (CollectionUtil.isNotEmpty(stationGroupList)) {
                 childrenNode.setChildren(stationGroupList);
                 resultList.add(childrenNode);
@@ -127,25 +130,26 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
 
     }
 
-    private List<StationGroupClassificationVo> getUserStationGroupList(List<StationGroupVo> userStationGroupList, StationGroupClassificationVo node) {
-        List<StationGroupVo> stationGroupVos = userStationGroupList.stream().filter(s -> s.getStationGroupClassificationId().equals(node.getId())).collect(Collectors.toList());
-        if (CollectionUtil.isNotEmpty(stationGroupVos)) {
-            List<StationGroupClassificationVo> children = CollectionUtil.newArrayList();
-            for (StationGroupVo station : stationGroupVos) {
-                StationGroupClassificationVo c = new StationGroupClassificationVo();
-                c.setId(station.getId());
-                c.setName(station.getName());
-                c.setLabel(station.getName());
-                c.setLevel(node.getLevel() + 1);
-                if (StrUtil.isNotEmpty(node.getTreePosition())) {
-                    c.setTreePosition(node.getTreePosition() + '&' + node.getId());
-                } else {
-                    c.setTreePosition('&' + node.getId() );
+    private List<StationGroupClassificationVo> getUserStationGroupList(List<StationGroupVo> filterStationGroupList, StationGroupClassificationVo node) {
+        if (CollectionUtil.isNotEmpty(filterStationGroupList)) {
+            List<StationGroupVo> stationGroupVos = filterStationGroupList.stream().filter(s -> s.getStationGroupClassificationId().equals(node.getId())).collect(Collectors.toList());
+            if (CollectionUtil.isNotEmpty(stationGroupVos)) {
+                List<StationGroupClassificationVo> children = CollectionUtil.newArrayList();
+                for (StationGroupVo station : stationGroupVos) {
+                    StationGroupClassificationVo c = new StationGroupClassificationVo();
+                    c.setId(station.getId());
+                    c.setName(station.getName());
+                    c.setLabel(station.getName());
+                    c.setLevel(node.getLevel() + 1);
+                    if (StrUtil.isNotEmpty(node.getTreePosition())) {
+                        c.setTreePosition(node.getTreePosition() + '&' + node.getId());
+                    } else {
+                        c.setTreePosition('&' + node.getId() );
+                    }
+                    children.add(c);
                 }
-
-                children.add(c);
+                return children;
             }
-            return children;
         }
         return null;
     }
@@ -306,8 +310,8 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
         // 删除站点
         long count = baseMapper.updateEnableByIds(ids, EnableEnum.DELETED.getCode());
         if (count > 0) {
-            // 删除站点用户关联
-            stationGroupUserService.removeByStationGroupId(ids);
+            // 删除站点角色关联
+            stationGroupRoleService.removeByStationGroupId(ids);
             // 删除站点配置
             settingService.removeByStationGroupId(ids);
             // 删除 站点下所有域名 nginx 配置

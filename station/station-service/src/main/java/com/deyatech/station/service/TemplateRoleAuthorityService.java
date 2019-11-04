@@ -39,7 +39,7 @@ public interface TemplateRoleAuthorityService extends BaseService<TemplateRoleAu
      * @param roleIds
      * @return
      */
-    Map<String, String> getStationCount(List<String> roleIds);
+    List<Map<String, Object>> getStationCount(List<String> roleIds);
 
     /**
      * 关联栏目个数
@@ -47,7 +47,7 @@ public interface TemplateRoleAuthorityService extends BaseService<TemplateRoleAu
      * @param roleIds
      * @return
      */
-    Map<String, String> getCatalogCount(List<String> roleIds);
+    List<Map<String, Object>> getCatalogCount(List<String> roleIds);
 
     /**
      * 关联内容个数
@@ -55,5 +55,13 @@ public interface TemplateRoleAuthorityService extends BaseService<TemplateRoleAu
      * @param roleIds
      * @return
      */
-    Map<String, String> getContentCount(List<String> roleIds);
+    List<Map<String, Object>> getContentCount(List<String> roleIds);
+
+    /**
+     * 获取角色页面上的数量统计结果
+     *
+     * @param roleIds
+     * @return
+     */
+    Map<String, String> getRoleViewCount(List<String> roleIds);
 }

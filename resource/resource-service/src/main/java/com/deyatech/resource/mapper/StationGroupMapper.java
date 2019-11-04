@@ -119,4 +119,12 @@ public interface StationGroupMapper extends BaseMapper<StationGroup> {
      * @return
      */
     List<StationGroupVo> selectStationGroupByUserId(String userId);
+
+    /**
+     * 检索角色的站点
+     *
+     * @param roleId
+     * @return
+     */
+    List<StationGroupVo> selectStationGroupByRoleId(String roleId);
 }

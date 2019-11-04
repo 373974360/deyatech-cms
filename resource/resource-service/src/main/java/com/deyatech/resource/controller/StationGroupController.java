@@ -40,33 +40,59 @@ public class StationGroupController extends BaseController {
     StationGroupService stationGroupService;
 
     /**
-     * 获取登陆用户的站点
+     * 获取角色站点级联
+     *
+     * @return
+     */
+    @GetMapping("/getRoleStationCascader")
+    @ApiOperation(value="获取角色站点级联", notes="获取角色站点级联")
+    @ApiImplicitParam(name = "roleId", value = "角色编号", required = true, dataType = "String", paramType = "query")
+    public RestResult<List<CascaderResult>> getRoleStationCascader(String roleId) {
+        Collection<StationGroupClassificationVo> stationGroupClassificationVos = stationGroupService.getRoleStationCascader(roleId);
+        List<CascaderResult> cascaderResults = CascaderUtil.getResult("Id", "Name","TreePosition", "", stationGroupClassificationVos);
+        log.info(String.format("获取角色站点级联: %s ",JSONUtil.toJsonStr(cascaderResults)));
+        return RestResult.ok(cascaderResults);
+    }
+    /**
+     * 获取用户站点级联
+     *
+     * @return
+     */
+    @GetMapping("/getUserStationCascader")
+    @ApiOperation(value="获取用户站点级联", notes="获取用户站点级联")
+    @ApiImplicitParam(name = "userId", value = "用户编号", required = true, dataType = "String", paramType = "query")
+    public RestResult<List<CascaderResult>> getUserStationCascader(String userId) {
+        Collection<StationGroupClassificationVo> stationGroupClassificationVos = stationGroupService.getUserStationCascader(userId);
+        List<CascaderResult> cascaderResults = CascaderUtil.getResult("Id", "Name","TreePosition", "", stationGroupClassificationVos);
+        log.info(String.format("获取用户站点级联: %s ",JSONUtil.toJsonStr(cascaderResults)));
+        return RestResult.ok(cascaderResults);
+    }
+    /**
+     * 获取登陆用户站点级联
      *
      * @return
      */
     @GetMapping("/getLoginUserStationCascader")
-    @ApiOperation(value="获取登陆用户的站点", notes="获取登陆用户的站点")
-    @ApiImplicitParam(name = "stationGroupClassification", value = "stationGroupClassification", required = false, dataType = "StationGroupClassification", paramType = "query")
+    @ApiOperation(value="获取登陆用户站点级联", notes="获取登陆用户站点级联")
     public RestResult<List<CascaderResult>> getLoginUserStationCascader() {
-        Collection<StationGroupClassificationVo> stationGroupClassificationVos = stationGroupService.getClassificationStationTree(UserContextHelper.getUserId(), new StationGroupClassification());
+        Collection<StationGroupClassificationVo> stationGroupClassificationVos = stationGroupService.getUserStationCascader(UserContextHelper.getUserId());
         List<CascaderResult> cascaderResults = CascaderUtil.getResult("Id", "Name","TreePosition", "", stationGroupClassificationVos);
-        log.info(String.format("获取登陆用户的站点: %s ",JSONUtil.toJsonStr(cascaderResults)));
+        log.info(String.format("获取登陆用户站点级联: %s ",JSONUtil.toJsonStr(cascaderResults)));
         return RestResult.ok(cascaderResults);
     }
 
     /**
-     * 获取的级联对象
+     * 获取全部站点级联
      *
-     * @param stationGroupClassification
      * @return
      */
-    @GetMapping("/getClassificationStationCascader")
-    @ApiOperation(value="获取的级联对象", notes="获取的级联对象")
-    @ApiImplicitParam(name = "stationGroupClassification", value = "stationGroupClassification", required = false, dataType = "StationGroupClassification", paramType = "query")
-    public RestResult<List<CascaderResult>> getCascader(String userId, StationGroupClassification stationGroupClassification) {
-        Collection<StationGroupClassificationVo> stationGroupClassificationVos = stationGroupService.getClassificationStationTree(userId, stationGroupClassification);
-        List<CascaderResult> cascaderResults = CascaderUtil.getResult("Id", "Name","TreePosition", stationGroupClassification.getId(), stationGroupClassificationVos);
-        log.info(String.format("获取的级联对象: %s ",JSONUtil.toJsonStr(cascaderResults)));
+    @GetMapping("/getAllStationCascader")
+    @ApiOperation(value="获取全部站点级联", notes="获取全部站点级联")
+    public RestResult<List<CascaderResult>> getAllStationCascader() {
+        List<StationGroupVo> filterStationGroupList = stationGroupService.setVoProperties(stationGroupService.list());
+        Collection<StationGroupClassificationVo> stationGroupClassificationVos = stationGroupService.getClassificationStationTree(filterStationGroupList);
+        List<CascaderResult> cascaderResults = CascaderUtil.getResult("Id", "Name","TreePosition", "", stationGroupClassificationVos);
+        log.info(String.format("获取全部站点级联: %s ",JSONUtil.toJsonStr(cascaderResults)));
         return RestResult.ok(cascaderResults);
     }
 

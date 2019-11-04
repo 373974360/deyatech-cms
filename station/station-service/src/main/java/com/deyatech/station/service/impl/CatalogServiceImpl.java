@@ -1,38 +1,38 @@
 package com.deyatech.station.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.BooleanUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.deyatech.admin.feign.AdminFeign;
+import com.deyatech.common.Constants;
+import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.context.UserContextHelper;
+import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.entity.CatalogAggregation;
-import com.deyatech.station.entity.CatalogUser;
+import com.deyatech.station.entity.CatalogRole;
 import com.deyatech.station.entity.Template;
+import com.deyatech.station.mapper.CatalogMapper;
 import com.deyatech.station.service.CatalogAggregationService;
-import com.deyatech.station.service.CatalogUserService;
+import com.deyatech.station.service.CatalogRoleService;
+import com.deyatech.station.service.CatalogService;
 import com.deyatech.station.service.TemplateService;
 import com.deyatech.station.vo.CatalogAggregationVo;
 import com.deyatech.station.vo.CatalogVo;
-import com.deyatech.station.mapper.CatalogMapper;
-import com.deyatech.station.service.CatalogService;
-import com.deyatech.common.base.BaseServiceImpl;
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollectionUtil;
-import com.deyatech.common.Constants;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.core.util.ObjectUtil;
-import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -51,7 +51,9 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
     @Autowired
     TemplateService templateService;
     @Autowired
-    CatalogUserService catalogUserService;
+    AdminFeign adminFeign;
+    @Autowired
+    CatalogRoleService catalogRoleService;
 
     /**
      * 根据Catalog对象属性检索栏目的tree对象
@@ -372,12 +374,17 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
     @Override
     public Collection<CatalogVo> getUserCatalogTree(Catalog catalog) {
         List<CatalogVo> rootCatalogs = CollectionUtil.newArrayList();
+        RestResult<List<String>> roleResult =  adminFeign.getRoleIdsByUserId(UserContextHelper.getUserId());
+        List<String> roleIds = roleResult.getData();
+        if (CollectionUtil.isEmpty(roleIds)) {
+            throw new BusinessException( HttpStatus.HTTP_INTERNAL_ERROR, "没有分配角色");
+        }
+        QueryWrapper<CatalogRole> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("role_id", roleIds);
+        Collection<CatalogRole> roleCatalogs = catalogRoleService.list(queryWrapper);
 
-        CatalogUser catalogUser = new CatalogUser();
-        catalogUser.setUserId(UserContextHelper.getUserId());
-        Collection<CatalogUser> userCatalogs = catalogUserService.listByBean(catalogUser);
-        if (CollectionUtil.isNotEmpty(userCatalogs)) {
-            List<String> catalogIds = userCatalogs.stream().map(CatalogUser::getCatalogId).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(roleCatalogs)) {
+            List<String> catalogIds = roleCatalogs.stream().map(CatalogRole::getCatalogId).collect(Collectors.toList());
 
             catalog.setSortSql("sortNo asc");
             List<CatalogVo> catalogVos = setVoProperties(super.listByBean(catalog));

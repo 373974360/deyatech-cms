@@ -1,5 +1,6 @@
 package com.deyatech.resource.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.deyatech.resource.entity.StationGroupRole;
 import com.deyatech.resource.vo.StationGroupRoleVo;
 import com.deyatech.resource.mapper.StationGroupRoleMapper;
@@ -81,5 +82,18 @@ public class StationGroupRoleServiceImpl extends BaseServiceImpl<StationGroupRol
             }
             this.saveOrUpdateBatch(list);
         }
+    }
+
+    /**
+     * 删除站点角色关联
+     *
+     * @param StationGroupIds
+     */
+    @Override
+    public void removeByStationGroupId(List<String> StationGroupIds) {
+        if (CollectionUtil.isEmpty(StationGroupIds)) return;
+        QueryWrapper<StationGroupRole> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("station_group_id", StationGroupIds);
+        super.remove(queryWrapper);
     }
 }

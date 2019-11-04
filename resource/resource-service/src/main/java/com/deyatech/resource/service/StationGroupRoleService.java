@@ -39,4 +39,11 @@ public interface StationGroupRoleService extends BaseService<StationGroupRole> {
      * @param stationGroupIds
      */
     void setRoleStationGroups(String roleId, List<String> stationGroupIds);
+
+    /**
+     * 删除站点角色关联
+     *
+     * @param StationGroupIds
+     */
+    void removeByStationGroupId(List<String> StationGroupIds);
 }

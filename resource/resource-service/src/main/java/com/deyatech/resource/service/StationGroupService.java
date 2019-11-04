@@ -26,10 +26,11 @@ public interface StationGroupService extends BaseService<StationGroup> {
     /**
      * 根据StationGroupClassification对象属性检索的tree对象
      *
-     * @param classification
      * @return
      */
-    Collection<StationGroupClassificationVo> getClassificationStationTree(String userId, StationGroupClassification classification);
+    Collection<StationGroupClassificationVo> getClassificationStationTree(List<StationGroupVo> filterStationGroupList);
+    Collection<StationGroupClassificationVo> getRoleStationCascader(String roleId);
+    Collection<StationGroupClassificationVo> getUserStationCascader(String userId);
 
     /**
      * 单个将对象转换为vo站点

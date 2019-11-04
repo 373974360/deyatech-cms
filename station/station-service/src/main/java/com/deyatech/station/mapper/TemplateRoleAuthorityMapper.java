@@ -23,7 +23,7 @@ public interface TemplateRoleAuthorityMapper extends BaseMapper<TemplateRoleAuth
      * @param roleIds
      * @return
      */
-    Map<String, String> getStationCount(@Param("roleIds") List<String> roleIds);
+    List<Map<String, Object>> getStationCount(@Param("roleIds") List<String> roleIds);
 
     /**
      * 关联栏目个数
@@ -31,7 +31,7 @@ public interface TemplateRoleAuthorityMapper extends BaseMapper<TemplateRoleAuth
      * @param roleIds
      * @return
      */
-    Map<String, String> getCatalogCount(@Param("roleIds") List<String> roleIds);
+    List<Map<String, Object>> getCatalogCount(@Param("roleIds") List<String> roleIds);
 
     /**
      * 关联内容个数
@@ -39,5 +39,5 @@ public interface TemplateRoleAuthorityMapper extends BaseMapper<TemplateRoleAuth
      * @param roleIds
      * @return
      */
-    Map<String, String> getContentCount(@Param("roleIds") List<String> roleIds);
+    List<Map<String, Object>> getContentCount(@Param("roleIds") List<String> roleIds);
 }

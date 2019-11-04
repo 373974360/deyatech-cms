@@ -206,21 +206,6 @@ public class TemplateRoleAuthorityController extends BaseController {
     @ApiOperation(value="获取角色页面上的数量统计结果", notes="获取角色页面上的数量统计结果")
     @ApiImplicitParam(name = "roleIds", value = "角色ID", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
     public RestResult getRoleViewCount(@RequestParam("roleIds[]") List<String> roleIds) {
-        Map<String, String> map = MapUtil.newHashMap();
-        if (CollectionUtil.isNotEmpty(roleIds)) {
-            Map<String, String> stationMap = templateRoleAuthorityService.getStationCount(roleIds);
-            Map<String, String> catalogMap = templateRoleAuthorityService.getCatalogCount(roleIds);
-            Map<String, String> contentMap = templateRoleAuthorityService.getContentCount(roleIds);
-            roleIds.stream().forEach(id -> {
-                StringBuilder count = new StringBuilder();
-                count.append(stationMap.get(id));
-                count.append("_");
-                count.append(catalogMap.get(id));
-                count.append("_");
-                count.append(contentMap.get(id));
-                map.put(id, count.toString());
-            });
-        }
-        return RestResult.ok(map);
+        return RestResult.ok(templateRoleAuthorityService.getRoleViewCount(roleIds));
     }
 }
