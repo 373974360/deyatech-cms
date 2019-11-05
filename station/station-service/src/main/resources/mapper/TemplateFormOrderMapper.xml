@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.station.mapper.TemplateFormOrderMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.deyatech.station.entity.TemplateFormOrder">
+        <result column="id_" property="id" />
+        <result column="collection_id" property="collectionId" />
+        <result column="metadata_id" property="metadataId" />
+        <result column="page_number" property="pageNumber" />
+        <result column="page_name" property="pageName" />
+        <result column="sort_no" property="sortNo" />
+    </resultMap>
+    <resultMap id="BaseResultVoMap" type="com.deyatech.station.vo.TemplateFormOrderVo">
+        <result column="id_" property="id" />
+        <result column="collection_id" property="collectionId" />
+        <result column="metadata_id" property="metadataId" />
+        <result column="metadata_name" property="metadataName" />
+        <result column="page_number" property="pageNumber" />
+        <result column="page_name" property="pageName" />
+        <result column="sort_no" property="sortNo" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id_, collection_id, metadata_id, page_number, page_name, sort_no
+    </sql>
+    <!--获取元数据-->
+    <select id="getMetadataByCollectionId" resultMap="BaseResultVoMap">
+        select
+        #{collectionId} as collection_id,
+        cm.metadata_id,
+        m.name_ as metadata_name
+        from admin_metadata_collection_metadata cm
+        join admin_metadata_collection c on c.id_ = cm.metadata_collection_id and c.enable_ = 1
+        join admin_metadata m on m.id_ = cm.metadata_id and m.enable_ = 1
+        where  cm.metadata_collection_id = #{collectionId}
+    </select>
+    <!--获取排序数据-->
+    <select id="getSortDataByCollectionId" resultMap="BaseResultVoMap">
+        select * from station_template_form_order where collection_id = #{collectionId}
+    </select>
+
+
+
+</mapper>

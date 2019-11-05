@@ -1,5 +1,6 @@
 package com.deyatech.station.entity;
 
+import cn.hutool.core.map.MapUtil;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.deyatech.common.base.BaseEntity;
@@ -11,7 +12,10 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -27,6 +31,35 @@ import java.util.Date;
 @TableName("station_template")
 @ApiModel(value = "内容模板对象", description = "内容模板", parent = BaseEntity.class)
 public class Template extends BaseEntity {
+
+    // name 中文名称
+    // briefName 字段名
+    // dataType 数据类型
+    // controlType 控件类型
+    // controlLength 控件长度
+    // checkModel 校验方式
+    // dataLength 数据长度
+    // dataSource 数据来源
+    // dictionaryId 数据字典
+    // mandatory 选填控制
+    public static Map<String, String> baseFields() {
+        // 控件长度: 半行1 整行2
+        // 数据库字段,字段中文名称,数据类型_数据长度_空间类型_控件长度_必填_校验方式_数据来源
+        Map<String, String> base = MapUtil.newHashMap();
+        base.put("101", "title,标题,string_200_inputElement_2_1_0_0");
+        base.put("102", "source,来源,string_200_inputElement_1_1_0_0");
+        base.put("103", "author,作者姓名,string_30_inputElement_1_1_0_0");
+        base.put("104", "sort_no,权重,int_8_inputElement_1_1_positiveInteger_0");
+        base.put("105", "resource_category,资源分类,string_200_selectElement_1_0_0_resourceCategory");
+        base.put("106", "resource_summary,摘要,text_500_textareaElement_2_0_0_0");
+        base.put("107", "keyword,关键字,string_200_tagElement_2_0_0_0");
+        base.put("108", "thumbnail,缩略图,string_200_imageElement_2_0_0_0");
+        base.put("109", "flag_external,外链,int_1_switchElement_1_0_0_0");
+        base.put("110", "flag_top,置顶,int_1_switchElement_1_0_0_0");
+        base.put("111", "resource_content,正文,string_10000_richTextElement_2_0_0_0");
+        return base;
+    }
+
 
     @ApiModelProperty(value = "站点id", dataType = "String")
     @TableField("site_id")
