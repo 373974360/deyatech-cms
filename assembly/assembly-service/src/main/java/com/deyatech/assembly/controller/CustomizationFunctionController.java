@@ -1,8 +1,6 @@
 package com.deyatech.assembly.controller;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.deyatech.assembly.entity.CustomizationFunction;
 import com.deyatech.assembly.service.CustomizationFunctionService;
 import com.deyatech.assembly.vo.CustomizationFunctionVo;
@@ -19,14 +17,11 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * <p>
@@ -42,7 +37,7 @@ import java.util.Objects;
 public class CustomizationFunctionController extends BaseController {
     @Autowired
     CustomizationFunctionService customizationFunctionService;
-
+    static ObjectMapper mapper = new ObjectMapper();
 //
 //    /**
 //     * 根据CustomizationFunction对象属性逻辑删除
@@ -164,7 +159,6 @@ public class CustomizationFunctionController extends BaseController {
     @ApiOperation(value="批量保存或者更新", notes="根据对象集合批量保存或者更新信息")
     @ApiImplicitParam(name = "customizationFunctions", value = "对象集合", required = true, allowMultiple = true, dataType = "CustomizationFunction", paramType = "query")
     public RestResult<Boolean> saveOrUpdateBatch(String customizationFunctions) {
-        ObjectMapper mapper = new ObjectMapper();
         JavaType javaType = mapper.getTypeFactory().constructParametricType(List.class, CustomizationFunction.class);
         List<CustomizationFunction> customizationFunctionList;
         try {

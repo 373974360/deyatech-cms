@@ -2,9 +2,7 @@ package com.deyatech.station.vo;
 
 import com.deyatech.station.entity.TemplateFormOrder;
 import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 /**

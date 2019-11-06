@@ -38,9 +38,17 @@
     </select>
     <!--获取排序数据-->
     <select id="getSortDataByCollectionId" resultMap="BaseResultVoMap">
-        select * from station_template_form_order where collection_id = #{collectionId}
+        select
+        o.*,
+        m.name_ as metadata_name
+        from station_template_form_order o
+        left join admin_metadata m on m.id_ = o.metadata_id and m.enable_ = 1
+        where collection_id = #{collectionId}
     </select>
-
+    <!--获取元数据集列表-->
+    <select id="getCollectionList" resultType="com.deyatech.admin.entity.MetadataCollection">
+        select * from admin_metadata_collection where en_name = #{enName} and enable_ = 1 order by main_version desc
+    </select>
 
 
 </mapper>

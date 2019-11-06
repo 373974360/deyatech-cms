@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  */
 @Service
 public class CustomizationFunctionServiceImpl extends BaseServiceImpl<CustomizationFunctionMapper, CustomizationFunction> implements CustomizationFunctionService {
-
+    private ObjectMapper mapper = new ObjectMapper();
     /**
      * 单个将对象转换为vo
      *
@@ -78,7 +78,6 @@ public class CustomizationFunctionServiceImpl extends BaseServiceImpl<Customizat
         if (CollectionUtil.isNotEmpty(dbList)) {
             map = dbList.stream().collect(Collectors.toMap(CustomizationFunction::getType, c -> c));
         }
-        ObjectMapper mapper = new ObjectMapper();
         JavaType javaType = mapper.getTypeFactory().constructParametricType(List.class, CustomizationTableHeadVo.class);
         List<CustomizationFunctionVo> list = new ArrayList<>();
         List<CustomizationTableHeadVo> headList = null;
@@ -121,7 +120,6 @@ public class CustomizationFunctionServiceImpl extends BaseServiceImpl<Customizat
         CustomizationFunction customizationFunction = super.getOne(queryWrapper);
         List<CustomizationTableHeadVo> list = null;
         if (Objects.nonNull(customizationFunction)) {
-            ObjectMapper mapper = new ObjectMapper();
             JavaType javaType = mapper.getTypeFactory().constructParametricType(List.class, CustomizationTableHeadVo.class);
             try {
                 list = mapper.readValue(customizationFunction.getData(), javaType);

@@ -1,5 +1,6 @@
 package com.deyatech.station.mapper;
 
+import com.deyatech.admin.entity.MetadataCollection;
 import com.deyatech.station.entity.TemplateFormOrder;
 import com.deyatech.common.base.BaseMapper;
 import com.deyatech.station.vo.TemplateFormOrderVo;
@@ -31,4 +32,12 @@ public interface TemplateFormOrderMapper extends BaseMapper<TemplateFormOrder> {
      * @return
      */
     List<TemplateFormOrderVo>  getSortDataByCollectionId(String collectionId);
+
+    /**
+     * 获取元数据集列表
+     *
+     * @param enName
+     * @return
+     */
+    List<MetadataCollection> getCollectionList(String enName);
 }

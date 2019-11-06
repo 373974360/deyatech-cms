@@ -4,12 +4,14 @@ import com.deyatech.station.entity.TemplateFormOrder;
 import com.deyatech.station.vo.TemplateFormOrderVo;
 import com.deyatech.station.service.TemplateFormOrderService;
 import com.deyatech.common.entity.RestResult;
+import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,6 +44,31 @@ public class TemplateFormOrderController extends BaseController {
     @RequestMapping("/getSortDataByCollectionId")
     public RestResult getSortDataByCollectionId(String collectionId) {
         return RestResult.ok(templateFormOrderService.getSortDataByCollectionId(collectionId));
+    }
+
+    /**
+     * 保存或者更新
+     *
+     * @param json
+     * @return
+     */
+    @RequestMapping("/saveOrUpdateByJson")
+    @ApiOperation(value="保存或者更新", notes="保存或者更新")
+    @ApiImplicitParam(name = "json", value = "数据", required = true, dataType = "json", paramType = "query")
+    public RestResult<Boolean> saveOrUpdateByJson(String collectionId, String json) {
+        return RestResult.ok(templateFormOrderService.saveOrUpdateByJson(collectionId, json));
+    }
+
+    /**
+     * 获取元数据集列表
+     *
+     * @param enName
+     */
+    @RequestMapping("/getCollectionList")
+    @ApiOperation(value="获取元数据集列表", notes="获取元数据集列表")
+    @ApiImplicitParam(name = "enName", value = "数据", required = true, dataType = "String", paramType = "query")
+    public RestResult getCollectionList(String enName) {
+       return RestResult.ok(templateFormOrderService.getCollectionList(enName));
     }
 
     /**

@@ -34,7 +34,7 @@ import java.util.*;
  */
 @Service
 public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implements ModelService {
-
+    private ObjectMapper mapper = new ObjectMapper();
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
@@ -158,7 +158,6 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
     public Boolean operateLiveImage(LiveImageVo liveImageVo) {
         try {
             List<LiveImageVo> imageList;
-            ObjectMapper mapper = new ObjectMapper();
             Model model = super.getById(liveImageVo.getModelId());
             // 取出原来的图片
             if (Objects.nonNull(model) && StrUtil.isNotEmpty(model.getImages())) {
