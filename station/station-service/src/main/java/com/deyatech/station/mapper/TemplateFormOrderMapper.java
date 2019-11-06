@@ -1,0 +1,34 @@
+package com.deyatech.station.mapper;
+
+import com.deyatech.station.entity.TemplateFormOrder;
+import com.deyatech.common.base.BaseMapper;
+import com.deyatech.station.vo.TemplateFormOrderVo;
+
+import java.util.List;
+
+/**
+ * <p>
+ * 内容表单顺 Mapper 接口
+ * </p>
+ *
+ * @Author lee.
+ * @since 2019-11-04
+ */
+public interface TemplateFormOrderMapper extends BaseMapper<TemplateFormOrder> {
+
+    /**
+     * 获取元数据
+     *
+     * @param collectionId
+     * @return
+     */
+    List<TemplateFormOrderVo>  getMetadataByCollectionId(String collectionId);
+
+    /**
+     * 获取排序数据
+     *
+     * @param collectionId
+     * @return
+     */
+    List<TemplateFormOrderVo>  getSortDataByCollectionId(String collectionId);
+}
