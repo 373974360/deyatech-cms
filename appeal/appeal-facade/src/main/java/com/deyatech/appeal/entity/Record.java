@@ -102,13 +102,29 @@ public class Record extends BaseEntity {
     @TableField("reply_dept_id")
     private String replyDeptId;
 
-    @ApiModelProperty(value = "信件状态 1:未处理，2:已受理，3:办理中，4:已办结，5:无效件，6:重复件", dataType = "Integer")
-    @TableField("flag")
-    private Integer flag;
+    @ApiModelProperty(value = "处理截止日期限制 受理后，计时开始，默认值从业务模型中取", dataType = "LocalDateTime")
+    @TableField("time_limit")
+    private Date timeLimit;
 
-    @ApiModelProperty(value = "1:预警件，2：黄牌件，3：红牌件", dataType = "Integer")
-    @TableField("time_flag")
-    private Integer timeFlag;
+    @ApiModelProperty(value = "信件标识 0：正常信件（默认值）-1：无效信件1：重复信件2：不予受理信件", dataType = "Integer")
+    @TableField("sq_flag")
+    private Integer sqFlag;
+
+    @ApiModelProperty(value = "处理状态 0：待处理 1：处理中 2：待审核（发布审核）3：已办结", dataType = "Integer")
+    @TableField("sq_status")
+    private Integer sqStatus;
+
+    @ApiModelProperty(value = "回退标识 0：正常 1：退回", dataType = "Integer")
+    @TableField("is_back")
+    private Integer isBack;
+
+    @ApiModelProperty(value = "延时申请标识 0：正常1：已延时2：申请延时", dataType = "Integer")
+    @TableField("limit_flag")
+    private Integer limitFlag;
+
+    @ApiModelProperty(value = "延期时间", dataType = "LocalDateTime")
+    @TableField("limit_flag_time")
+    private Integer limitFlagTime;
 
 
 }

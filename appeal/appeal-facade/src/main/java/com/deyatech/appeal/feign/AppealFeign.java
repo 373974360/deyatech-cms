@@ -1,7 +1,11 @@
 package com.deyatech.appeal.feign;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.deyatech.admin.vo.DepartmentVo;
+import com.deyatech.appeal.entity.Purpose;
 import com.deyatech.appeal.entity.Record;
+import com.deyatech.appeal.vo.ModelVo;
+import com.deyatech.appeal.vo.PurposeVo;
 import com.deyatech.appeal.vo.RecordVo;
 import com.deyatech.common.entity.RestResult;
 import com.sun.org.apache.xpath.internal.operations.Bool;
@@ -10,6 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -48,5 +55,43 @@ public interface AppealFeign {
      */
     @RequestMapping(value = "/feign/appeal/insertAppeal")
     RestResult insertAppeal(@RequestBody Record record);
+
+    /**
+     * 诉求详情
+     *
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/feign/appeal/getAppealById")
+    RestResult<RecordVo> getAppealById(@RequestParam("id") String id);
+
+    /**
+     * 诉求业务模型
+     *
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/feign/appeal/getModelById")
+    RestResult<ModelVo> getModelById(@RequestParam("id") String id);
+
+
+
+    /**
+     * 获取诉求目的
+     *
+     * @return
+     */
+    @RequestMapping(value = "/feign/appeal/getAllPurpose")
+    RestResult<List<Purpose>> getAllPurpose();
+
+
+
+    /**
+     * 根据模型ID获取参与部门
+     * @param modelId
+     * @return
+     */
+    @RequestMapping(value = "/feign/appeal/getPartDept")
+    RestResult<List<DepartmentVo>> getPartDept(@RequestParam("modelId") String modelId);
 
 }
