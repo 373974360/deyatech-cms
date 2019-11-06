@@ -41,28 +41,33 @@ server {
     }
     location / {
         #搜索页面
-        if ($request_uri ~ "^/search.list\?*(.*)") {
-            proxy_pass ${proxyPass}/manage/cms/q/${siteId}?$1;
+        if ($request_uri ~ "^/search.jhtml\?*(.*)") {
+            proxy_pass ${proxyPass}/manage/cms/search/${siteId}?$1;
             break;
         }
         #首页
-        if ($request_uri ~ "^/index.list") {
-            proxy_pass ${proxyPass}/manage/cms/s/${siteId}?$1;
+        if ($request_uri ~ "^/index.jhtml") {
+            proxy_pass ${proxyPass}/manage/cms/index/${siteId}?$1;
             break;
         }
-        #列表页
-        if ($request_uri ~ "^/(.*_list.*).list\?*(.*)") {
-            proxy_pass ${proxyPass}/manage/cms/c/${siteId}?namePath=$1&$2;
+        #列表页 频道页
+        if ($request_uri ~ "^/(.*_catagory.*).jhtml\?*(.*)") {
+            proxy_pass ${proxyPass}/manage/cms/catagory/${siteId}?namePath=$1&$2;
             break;
         }
-        #频道页
-        if ($request_uri ~ "^/(.*_index).list\?*(.*)") {
-            proxy_pass ${proxyPass}/manage/cms/c/${siteId}?namePath=$1&$2;
+        #内容页 诉求 依申请公开
+        if ($request_uri ~ "^/(.*_info_*).jhtml\?*(.*)") {
+            proxy_pass ${proxyPass}/manage/cms/info/${siteId}?namePath=$1&$2;
             break;
         }
-        #内容页
-        if ($request_uri ~ "^/(.*_info).list\?*(.*)") {
-            proxy_pass ${proxyPass}/manage/cms/m/${siteId}?namePath=$1&$2;
+        #表单页
+        if ($request_uri ~ "^/(.*_form_.*).jhtml\?*(.*)") {
+            proxy_pass ${proxyPass}/manage/cms/form/${siteId}?namePath=$1&$2;
+            break;
+        }
+        #表单提交
+        if ($request_uri ~ "^/submit.jhtml") {
+            proxy_pass ${proxyPass}/manage/cms/submit?$1;
             break;
         }
         root ${siteRootDir};

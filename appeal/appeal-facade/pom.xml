@@ -18,6 +18,11 @@
     <dependencies>
         <dependency>
             <groupId>com.deyatech</groupId>
+            <artifactId>admin-facade</artifactId>
+            <version>${deyatech.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.deyatech</groupId>
             <artifactId>common-facade</artifactId>
             <version>${deyatech.version}</version>
         </dependency>

@@ -179,16 +179,21 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
                     .or().like("card_id",record.getTitle())
             );
         }
-        if(record.getFlag() != null && record.getFlag() > 0){
-            queryWrapper.eq("flag",record.getFlag());
+        if(record.getSqFlag() != null){
+            queryWrapper.eq("sq_flag",record.getSqFlag());
         }
-        if(record.getTimeFlag() != null && record.getTimeFlag() > 0){
-            queryWrapper.eq("time_flag",record.getTimeFlag());
+        if(record.getSqStatus() != null){
+            queryWrapper.eq("sq_status",record.getSqStatus());
         }
-        if(record.getIsPublish() != null && record.getIsPublish() > 0){
+        if(record.getIsBack() != null){
+            queryWrapper.eq("is_back",record.getIsBack());
+        }
+        if(record.getLimitFlag() != null){
+            queryWrapper.eq("limit_flag",record.getLimitFlag());
+        }
+        if(record.getIsPublish() != null){
             queryWrapper.eq("is_publish",record.getIsPublish());
         }
-
         IPage<RecordVo> recordVoIPage = new Page<>(record.getPage(),record.getSize());
         IPage<Record> pages = super.page(getPageByBean(record), queryWrapper);
         recordVoIPage.setRecords(setVoProperties(pages.getRecords()));
@@ -264,18 +269,22 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
     public IPage<RecordVo> getAppealList(Map<String, Object> maps, Integer page, Integer pageSize) {
         QueryWrapper<Record> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("is_publish",1)
-                .eq("is_open",1);
+                .eq("is_open",1)
+                .eq("sq_flag",0);
         if(maps.containsKey("modelId")){
             queryWrapper.in("model_id",maps.get("modelId"));
         }
-        if(maps.containsKey("flag")){
-            queryWrapper.in("flag",maps.get("flag"));
+        if(maps.containsKey("sqStatus")){
+            queryWrapper.in("sq_status",maps.get("sqStatus"));
         }
         if(maps.containsKey("purId")){
             queryWrapper.in("pur_id",maps.get("purId"));
         }
         if(maps.containsKey("title")){
             queryWrapper.like("title",maps.get("title"));
+        }
+        if(maps.containsKey("deptId")){
+            queryWrapper.eq("reply_dept_id",maps.get("deptId"));
         }
         if(maps.containsKey("orderby")){
             queryWrapper.orderByDesc(maps.get("orderby").toString());
@@ -297,6 +306,24 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
         record.setSqCode(sqCode);
         record.setQueryCode(queryCode);
         return setVoProperties(super.getByBean(record));
+    }
+
+    @Override
+    public Record insertAppeal(Record record) {
+        Model model = modelService.getById(record.getModelId());
+        record.setSqCode(getAppealCode(model.getId()));
+        record.setQueryCode(getQueryCode(model.getId()));
+        if(model.getAutoPublish() == 1){
+            record.setIsPublish(1);
+        }else{
+            record.setIsPublish(2);
+        }
+        record.setSqFlag(0);
+        record.setSqStatus(0);
+        record.setIsBack(0);
+        record.setLimitFlag(0);
+        super.save(record);
+        return record;
     }
 
 

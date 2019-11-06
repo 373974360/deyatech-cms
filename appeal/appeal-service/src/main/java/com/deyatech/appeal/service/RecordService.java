@@ -84,4 +84,13 @@ public interface RecordService extends BaseService<Record> {
      * @return Ipage
      */
     RecordVo queryAppeal(String sqCode,String queryCode);
+
+
+    /**
+     * 网站前台提交诉求信息
+     *
+     * @param record
+     * @return Record
+     */
+    Record insertAppeal(Record record);
 }

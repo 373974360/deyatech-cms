@@ -1,18 +1,31 @@
 package com.deyatech.station.view;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.HttpStatus;
+import com.deyatech.appeal.entity.Record;
+import com.deyatech.appeal.feign.AppealFeign;
+import com.deyatech.appeal.vo.ModelVo;
+import com.deyatech.appeal.vo.RecordVo;
+import com.deyatech.assembly.entity.ApplyOpenRecord;
+import com.deyatech.assembly.feign.AssemblyFeign;
+import com.deyatech.assembly.vo.ApplyOpenModelVo;
+import com.deyatech.assembly.vo.ApplyOpenRecordVo;
 import com.deyatech.common.base.BaseController;
+import com.deyatech.common.entity.RestResult;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.entity.Template;
 import com.deyatech.station.service.CatalogService;
 import com.deyatech.station.service.TemplateService;
+import com.deyatech.station.view.utils.ViewUtils;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.template.feign.TemplateFeign;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -39,6 +52,13 @@ public class ViewController extends BaseController {
     CatalogService catalogService;
     @Autowired
     TemplateService templateService;
+    @Autowired
+    AppealFeign appealFeign;
+    @Autowired
+    AssemblyFeign assemblyFeign;
+
+    @Autowired
+    RedisTemplate redisTemplate;
     /**
      * 静态页面后缀
      */
@@ -50,7 +70,7 @@ public class ViewController extends BaseController {
      *
      * @return
      */
-    @GetMapping(value = "/s/{siteId}", produces = {"text/html;charset=utf-8"})
+    @GetMapping(value = "/index/{siteId}", produces = {"text/html;charset=utf-8"})
     @ResponseBody
     public String index(@PathVariable("siteId")String siteId){
         StationGroup site = siteCache.getStationGroupById(siteId);
@@ -69,10 +89,10 @@ public class ViewController extends BaseController {
      * 栏目列表页 和 频道页
      * @return
      */
-    @GetMapping(value = "/c/{siteId}", produces = {"text/html;charset=utf-8"})
+    @GetMapping(value = "/catagory/{siteId}", produces = {"text/html;charset=utf-8"})
     @ResponseBody
     public String list(HttpServletRequest request, @PathVariable("siteId") String siteId, @RequestParam("namePath") String namePath){
-        Map<String,String> map = analysisNamePath(namePath,"catagory");
+        Map<String,String> map = ViewUtils.analysisNamePath(namePath,"catagory");
         Catalog catalog = new Catalog();
         catalog.setSiteId(siteId);
         catalog.setPathName(map.get("pathName"));
@@ -86,12 +106,15 @@ public class ViewController extends BaseController {
         varMap.put("catalog",catalog);
         varMap.put("rootCatalog",getRootCatalog(siteId,catalog.getId()));
         varMap.put("pageNo",map.get("pageNo"));
-        requestParams(varMap,request);
+        ViewUtils.requestParams(varMap,request);
         String template;
         if(map.get("type").equals("index")){
             template = catalog.getIndexTemplate();
         }else{
             template = catalog.getListTemplate();
+        }
+        if(StrUtil.isBlank(template)){
+            return "模板加载失败";
         }
         return templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
     }
@@ -102,26 +125,130 @@ public class ViewController extends BaseController {
      * @param namePath
      * @return
      */
-    @GetMapping(value = "/m/{siteId}", produces = {"text/html;charset=utf-8"})
+    @GetMapping(value = "/info/{siteId}", produces = {"text/html;charset=utf-8"})
     @ResponseBody
     public String contentPage(HttpServletRequest request, @PathVariable("siteId") String siteId,@RequestParam("namePath") String namePath) {
-        Map<String,String> map = analysisNamePath(namePath,"info");
-        Template template = templateService.getById(map.get("infoId"));
-        if (template == null) {
-            return "查询不到 ContentTemplate";
-        }
-        String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(siteId);
-        Catalog catalog = catalogService.getById(template.getCmsCatalogId());
+        Map<String,String> map = ViewUtils.analysisNamePath(namePath,"content");
         Map<String,Object> varMap = new HashMap<>();
-        TemplateVo templateVo = templateService.setVoProperties(template);
+        Catalog catalog = new Catalog();
+        catalog.setSiteId(siteId);
+        catalog.setPathName(map.get("pathName"));
+        catalog = catalogService.getByBean(catalog);
+        String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(siteId);
         varMap.put("site",siteCache.getStationGroupById(siteId));
-        varMap.put("infoData",templateVo);
         varMap.put("catalog",catalog);
         varMap.put("rootCatalog",getRootCatalog(siteId,catalog.getId()));
-        requestParams(varMap,request);
-        return templateFeign.thyToString(siteTemplateRoot,templateVo.getTemplatePath(),varMap).getData();
+        ViewUtils.requestParams(varMap,request);
+        String templatePath = "";
+        //新闻详情
+        if(map.get("type").equals("info")){
+            Template template = templateService.getById(map.get("infoId"));
+            if (template == null) {
+                return "查询不到 ContentTemplate";
+            }
+            TemplateVo templateVo = templateService.setVoProperties(template);
+            templatePath = templateVo.getTemplatePath();
+            varMap.put("infoData",templateVo);
+        }
+        //诉求详情
+        if(map.get("type").equals("appeal")){
+            RecordVo recordVo = appealFeign.getAppealById(map.get("infoId")).getData();
+            if (recordVo == null) {
+                return "查询不到 recordVo";
+            }
+            ModelVo modelVo = appealFeign.getModelById(recordVo.getModelId()).getData();
+            if (modelVo == null) {
+                return "查询不到 modelVo";
+            }
+            varMap.put("appealData",recordVo);
+            templatePath = modelVo.getViewTemplet();
+        }
+        //依申请公开详情
+        if(map.get("type").equals("ysqgk")){
+            ApplyOpenRecordVo applyOpenRecordVo = assemblyFeign.getApplyOpenById(map.get("infoId")).getData();
+            if (applyOpenRecordVo == null) {
+                return "查询不到 applyOpenRecordVo";
+            }
+            ApplyOpenModelVo applyOpenModelVo = assemblyFeign.getApplyOpenModelById(applyOpenRecordVo.getModelId()).getData();
+            if (applyOpenModelVo == null) {
+                return "查询不到 applyOpenModelVo";
+            }
+            varMap.put("ysqgkData",applyOpenRecordVo);
+            templatePath = applyOpenModelVo.getTemplateContent();
+        }
+        if(StrUtil.isBlank(templatePath)){
+            return "模板加载失败";
+        }
+        return templateFeign.thyToString(siteTemplateRoot,templatePath,varMap).getData();
+    }
+    /**
+     * 表单页
+     *
+     * @param siteId
+     * @param namePath
+     * @return
+     */
+    @GetMapping(value = "/form/{siteId}", produces = {"text/html;charset=utf-8"})
+    @ResponseBody
+    public String formPage(HttpServletRequest request, @PathVariable("siteId") String siteId,@RequestParam("namePath") String namePath) {
+        Map<String,String> map = ViewUtils.analysisNamePath(namePath,"form");
+        Map<String,Object> varMap = new HashMap<>();
+        Catalog catalog = new Catalog();
+        catalog.setSiteId(siteId);
+        catalog.setPathName(map.get("pathName"));
+        catalog = catalogService.getByBean(catalog);
+        String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(siteId);
+        varMap.put("site",siteCache.getStationGroupById(siteId));
+        varMap.put("catalog",catalog);
+        varMap.put("rootCatalog",getRootCatalog(siteId,catalog.getId()));
+        ViewUtils.requestParams(varMap,request);
+        String templatePath = "";
+        //诉求表单
+        if(map.get("type").equals("appeal")){
+            ModelVo modelVo = appealFeign.getModelById(map.get("modelId")).getData();
+            varMap.put("modelData",modelVo);
+            templatePath = modelVo.getFormTemplet();
+        }
+        //依申请公开表单
+        if(map.get("type").equals("ysqgk")){
+            ApplyOpenModelVo modelVo = assemblyFeign.getApplyOpenModelById(map.get("modelId")).getData();
+            varMap.put("modelData",modelVo);
+            templatePath = modelVo.getTemplateForm();
+        }
+        if(StrUtil.isBlank(templatePath)){
+            return "模板加载失败";
+        }
+        return templateFeign.thyToString(siteTemplateRoot,templatePath,varMap).getData();
     }
 
+    /**
+     * 表单提交
+     *
+     * @param request
+     * @return
+     */
+    @PostMapping(value = "/submit")
+    public RestResult submit(HttpServletRequest request) {
+        if (!validateVerifyCode(redisTemplate, request.getParameter("verifyCode"), request.getParameter("random"))) {
+            return RestResult.build(HttpStatus.HTTP_INTERNAL_ERROR, "验证码错误", false);
+        }
+        String actionType = request.getParameter("actionType");
+        Map<String,Object> varMap = new HashMap<>();
+        ViewUtils.requestParams(varMap,request);
+        //诉求提交
+        if(actionType.equals("insertAppeal")){
+            Record record = new Record();
+            BeanUtil.copyProperties(varMap,record);
+            return RestResult.ok(appealFeign.insertAppeal(record));
+        }
+        //依申请公开提交
+        if(actionType.equals("insertYsqgk")){
+            ApplyOpenRecord applyOpenRecord = new ApplyOpenRecord();
+            BeanUtil.copyProperties(varMap,applyOpenRecord);
+            return RestResult.ok(assemblyFeign.insertApplyOpen(applyOpenRecord));
+        }
+        return RestResult.ok();
+    }
     /**
      * 根据条件获取当前栏目的顶级栏目信息
      * @param siteId 站点ID
@@ -157,46 +284,6 @@ public class ViewController extends BaseController {
             }
         }
         return catalogVo;
-    }
-
-    /**
-     * namePath 解析
-     * */
-    public static Map<String,String> analysisNamePath(String namePath,String type){
-        Map<String,String> result = new HashMap<>();
-        //栏目页
-        if(type.equals("catagory")){
-            String ext = namePath.substring(namePath.lastIndexOf("_")+1);
-            String pathName = namePath.substring(0,namePath.lastIndexOf("_"));
-            if(ext.equals("index")){
-                result.put("type",ext);
-            }else{
-                //有页码
-                if(!ext.equals("list")){
-                    pathName = pathName.substring(0,pathName.lastIndexOf("_"));
-                    result.put("pageNo",ext);
-                }
-                result.put("type","list");
-            }
-            result.put("pathName",pathName);
-        }
-        if(type.equals("info")){
-            result.put("infoId",namePath.substring(0,namePath.lastIndexOf("_")));
-        }
-        return result;
-    }
-
-    /**
-     * request参数解析
-     * */
-    public static Map<String,Object> requestParams(Map<String,Object> varMap,HttpServletRequest request){
-        for (Enumeration e = request.getParameterNames(); e.hasMoreElements(); ) {
-            Object o = e.nextElement();
-            String arr = (String) o;
-            String value = request.getParameter(arr);
-            varMap.put(arr,value);
-        }
-        return varMap;
     }
 
 }
