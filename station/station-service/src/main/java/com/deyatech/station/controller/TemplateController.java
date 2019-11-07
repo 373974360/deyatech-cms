@@ -43,6 +43,23 @@ public class TemplateController extends BaseController {
     TemplateService templateService;
 
     /**
+     * 获取动态表单
+     *
+     * @param contentModelId
+     * @param templateId
+     * @return
+     */
+    @RequestMapping("/getDynamicForm")
+    @ApiOperation(value="获取动态表单", notes="获取动态表单")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "contentModelId", value = "内容模型ID", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "templateId", value = "内容模板ID", required = true, dataType = "String", paramType = "query")
+    })
+    public RestResult getDynamicForm(String contentModelId, String templateId) {
+        return RestResult.ok(templateService.getDynamicForm(contentModelId, templateId));
+    }
+
+    /**
      * 单个保存或者更新内容模板
      *
      * @param templateVo

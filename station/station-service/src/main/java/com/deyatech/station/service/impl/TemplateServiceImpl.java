@@ -11,6 +11,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.deyatech.admin.entity.Metadata;
 import com.deyatech.admin.entity.User;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.admin.vo.MetadataCollectionVo;
@@ -20,13 +21,13 @@ import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.enums.ContentStatusEnum;
 import com.deyatech.common.enums.TemplateAuthorityEnum;
 import com.deyatech.common.exception.BusinessException;
+import com.deyatech.common.utils.ColumnUtil;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.entity.*;
 import com.deyatech.station.mapper.TemplateMapper;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.service.*;
-import com.deyatech.station.vo.CatalogVo;
-import com.deyatech.station.vo.TemplateVo;
+import com.deyatech.station.vo.*;
 import com.deyatech.workflow.feign.WorkflowFeign;
 import com.deyatech.workflow.vo.ProcessInstanceVo;
 import lombok.extern.slf4j.Slf4j;
@@ -68,6 +69,112 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     CatalogRoleService catalogRoleService;
     @Autowired
     TemplateRoleAuthorityService templateRoleAuthorityService;
+    @Autowired
+    TemplateFormOrderService formOrderService;
+
+    /**
+     * 获取动态表单
+     *
+     * @param contentModelId
+     * @param templateId
+     * @return
+     */
+    @Override
+    public List<TemplateDynamicFormVo> getDynamicForm(String contentModelId, String templateId) {
+        List<TemplateDynamicFormVo> result = new ArrayList<>();
+        // 内容模型
+        Model model = modelService.getById(contentModelId);
+        // 元数据集ID
+        String collectionId = model.getMetaDataCollectionId();
+        // 基础字段的数据
+        Map<String, Object> baseFieldDataMap = null;
+        // 元数据字段的数据
+        Map<String, Object> matedataFieldDataMap = null;
+        if (StrUtil.isNotEmpty(templateId)) {
+            Template template = super.getById(templateId);
+            baseFieldDataMap = ColumnUtil.objectToColumnMap(template);
+            matedataFieldDataMap = adminFeign.getMetadataById(collectionId, template.getContentId()).getData();
+        }
+        // 元数据映射
+        Map<String, Metadata> metadataMap = getMetadatas(collectionId);
+        // 表单顺序映射
+        Map<String, Object> orderMap = formOrderService.getFormOrderByCollectionId(collectionId);
+        // 每一页已排好的顺序
+        List<List<TemplateFormOrderVo>> orders =  (List<List<TemplateFormOrderVo>>) orderMap.get("orders");
+        List<TemplateFormOrderVo> pages = (List<TemplateFormOrderVo>) orderMap.get("pages");
+        for (TemplateFormOrderVo p : pages) {
+            TemplateDynamicFormVo form = new TemplateDynamicFormVo();
+            // 页码
+            form.setPageNumber(p.getPageNumber());
+            // 页名
+            form.setPageName(p.getPageName());
+            // 页表单对象
+            Map<String, Object> pageModel = new HashMap<>();
+            form.setPageModel(pageModel);
+            // 页表单行
+            List<List<Metadata>> rows = new ArrayList<>();
+            form.setRows(rows);
+            // 每页数据
+            List<TemplateFormOrderVo> formOrder = orders.get(p.getPageNumber() - 1);
+            for (int i = 0; i < formOrder.size(); i++) {
+                TemplateFormOrderVo oc = formOrder.get(i);
+                // 获取元数据
+                Metadata mdc = metadataMap.get(oc.getMetadataId());
+                // 每行元素
+                List<Metadata> elements = new ArrayList<>();
+                // 添加表单项目
+                elements.add(mdc);
+                // 设置数据
+                putPageModel(pageModel, oc, mdc, baseFieldDataMap, matedataFieldDataMap);
+
+                // 最后一个元素不处理，现在是半行
+                if (i != formOrder.size() - 1 && mdc.getControlLength() == 1) {
+                    TemplateFormOrderVo on = formOrder.get(i + 1);
+                    Metadata mdn = metadataMap.get(on.getMetadataId());
+                    // 下一个也是半行，则合并一行
+                    if (mdn.getControlLength() == 1) {
+                        // 添加表单项目
+                        elements.add(mdn);
+                        // 设置数据
+                        putPageModel(pageModel, on, mdn, baseFieldDataMap, matedataFieldDataMap);
+                        i = i + 2;
+                    }
+                }
+                // 添加行元素
+                rows.add(elements);
+            }
+            // 添加动态表单
+            result.add(form);
+        }
+        return result;
+    }
+
+    private void putPageModel(Map<String, Object> pageModel, TemplateFormOrderVo o, Metadata md, Map<String, Object> baseFieldDataMap, Map<String, Object> matedataFieldDataMap) {
+        // 页表单对象数据
+        pageModel.put(md.getBriefName(), "");
+        // 元数据字段
+        if (o.getMetadataId().length() > 3) {
+            if (Objects.nonNull(matedataFieldDataMap)) {
+                pageModel.put(md.getBriefName(), matedataFieldDataMap.get(md.getBriefName()));
+            }
+            // 基础字段
+        } else {
+            if (Objects.nonNull(baseFieldDataMap)) {
+                pageModel.put(md.getBriefName(), baseFieldDataMap.get(md.getBriefName()));
+            }
+        }
+    }
+
+    private Map<String, Metadata> getMetadatas(String collectionId) {
+        Map<String, Metadata> metadataMap = Template.baseFields();
+        List<Metadata> metadatas = formOrderService.getAllMetadataByByCollectionId(collectionId);
+        if (CollectionUtil.isNotEmpty(metadatas)) {
+            for (Metadata md : metadatas) {
+                metadataMap.put(md.getId(), md);
+            }
+        }
+        return metadataMap;
+    }
 
     /**
      * 单个将对象转换为vo内容模板

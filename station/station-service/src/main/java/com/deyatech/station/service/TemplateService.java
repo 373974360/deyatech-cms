@@ -2,6 +2,7 @@ package com.deyatech.station.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.station.entity.Template;
+import com.deyatech.station.vo.TemplateDynamicFormVo;
 import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.common.base.BaseService;
 import java.util.Collection;
@@ -17,6 +18,14 @@ import java.util.Map;
  * @since 2019-08-06
  */
 public interface TemplateService extends BaseService<Template> {
+    /**
+     * 获取动态表单
+     *
+     * @param contentModelId
+     * @param templateId
+     * @return
+     */
+    List<TemplateDynamicFormVo> getDynamicForm(String contentModelId, String templateId);
 
     /**
      * 单个将对象转换为vo内容模板

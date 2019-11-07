@@ -1,5 +1,6 @@
 package com.deyatech.station.mapper;
 
+import com.deyatech.admin.entity.Metadata;
 import com.deyatech.admin.entity.MetadataCollection;
 import com.deyatech.station.entity.TemplateFormOrder;
 import com.deyatech.common.base.BaseMapper;
@@ -24,6 +25,7 @@ public interface TemplateFormOrderMapper extends BaseMapper<TemplateFormOrder> {
      * @return
      */
     List<TemplateFormOrderVo>  getMetadataByCollectionId(String collectionId);
+    List<Metadata> getAllMetadataByByCollectionId(String collectionId);
 
     /**
      * 获取排序数据
@@ -40,4 +42,12 @@ public interface TemplateFormOrderMapper extends BaseMapper<TemplateFormOrder> {
      * @return
      */
     List<MetadataCollection> getCollectionList(String enName);
+
+    /**
+     * 获页数和页名
+     *
+     * @param collectionId
+     * @return
+     */
+    List<TemplateFormOrderVo>  getNumberAndNameByCollectionId(String collectionId);
 }

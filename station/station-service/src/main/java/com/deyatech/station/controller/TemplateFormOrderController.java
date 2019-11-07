@@ -36,6 +36,17 @@ public class TemplateFormOrderController extends BaseController {
     TemplateFormOrderService templateFormOrderService;
 
     /**
+     * 获取表单顺序
+     *
+     * @param collectionId
+     * @return
+     */
+    @RequestMapping("/getFormOrderByCollectionId")
+    public RestResult getFormOrderByCollectionId(String collectionId) {
+        return RestResult.ok(templateFormOrderService.getFormOrderByCollectionId(collectionId));
+    }
+
+    /**
      * 获取排序数据
      *
      * @param collectionId

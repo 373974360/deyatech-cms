@@ -1,5 +1,6 @@
 package com.deyatech.station.service;
 
+import com.deyatech.admin.entity.Metadata;
 import com.deyatech.admin.entity.MetadataCollection;
 import com.deyatech.common.base.BaseService;
 import com.deyatech.station.entity.TemplateFormOrder;
@@ -26,7 +27,7 @@ public interface TemplateFormOrderService extends BaseService<TemplateFormOrder>
      * @return
      */
     TemplateFormOrderVo setVoProperties(TemplateFormOrder templateFormOrder);
-
+    List<Metadata> getAllMetadataByByCollectionId(String collectionId);
     /**
      * 批量将对象转换为vo内容表单顺
      *
@@ -59,4 +60,20 @@ public interface TemplateFormOrderService extends BaseService<TemplateFormOrder>
      * @return
      */
     List<MetadataCollection> getCollectionList(String enName);
+
+    /**
+     * 获取表单顺序
+     *
+     * @param collectionId
+     * @return
+     */
+    Map<String, Object> getFormOrderByCollectionId(String collectionId);
+
+    /**
+     * 获页数和页名
+     *
+     * @param collectionId
+     * @return
+     */
+    List<TemplateFormOrderVo>  getNumberAndNameByCollectionId(String collectionId);
 }

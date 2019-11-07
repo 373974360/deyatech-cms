@@ -36,6 +36,15 @@
         join admin_metadata m on m.id_ = cm.metadata_id and m.enable_ = 1
         where  cm.metadata_collection_id = #{collectionId}
     </select>
+    <select id="getAllMetadataByByCollectionId" resultType="com.deyatech.admin.entity.Metadata">
+        select m.* from admin_metadata m
+        where m.enable_ = 1 and m.id_ in (
+            select cm.metadata_id
+            from admin_metadata_collection_metadata cm
+            join admin_metadata_collection c on c.id_ = cm.metadata_collection_id and c.enable_ = 1
+            where cm.metadata_collection_id = #{collectionId}
+        )
+    </select>
     <!--获取排序数据-->
     <select id="getSortDataByCollectionId" resultMap="BaseResultVoMap">
         select
@@ -49,6 +58,15 @@
     <select id="getCollectionList" resultType="com.deyatech.admin.entity.MetadataCollection">
         select * from admin_metadata_collection where en_name = #{enName} and enable_ = 1 order by main_version desc
     </select>
+    <!--获页数和页名-->
+    <select id="getNumberAndNameByCollectionId" resultMap="BaseResultVoMap">
+        select page_number, page_name
+        from station_template_form_order
+        where collection_id = #{collectionId}
+        group by page_number, page_name
+        order by page_number
+    </select>
+
 
 
 </mapper>

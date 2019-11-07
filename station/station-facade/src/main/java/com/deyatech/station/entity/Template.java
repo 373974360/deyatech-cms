@@ -3,6 +3,7 @@ package com.deyatech.station.entity;
 import cn.hutool.core.map.MapUtil;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.deyatech.admin.entity.Metadata;
 import com.deyatech.common.base.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
@@ -42,24 +43,43 @@ public class Template extends BaseEntity {
     // dataSource 数据来源
     // dictionaryId 数据字典
     // mandatory 选填控制
-    public static Map<String, String> baseFields() {
+    public static Map<String, Metadata> baseFields() {
         // 控件长度: 半行1 整行2
-        // 数据库字段,字段中文名称,数据类型_数据长度_空间类型_控件长度_必填_校验方式_数据来源
-        Map<String, String> base = MapUtil.newHashMap();
-        base.put("101", "title,标题,string_200_inputElement_2_1_0_0");
-        base.put("102", "source,来源,string_200_inputElement_1_1_0_0");
-        base.put("103", "author,作者姓名,string_30_inputElement_1_1_0_0");
-        base.put("104", "sort_no,权重,int_8_inputElement_1_1_positiveInteger_0");
-        base.put("105", "resource_category,资源分类,string_200_selectElement_1_0_0_resourceCategory");
-        base.put("106", "resource_summary,摘要,text_500_textareaElement_2_0_0_0");
-        base.put("107", "keyword,关键字,string_200_tagElement_2_0_0_0");
-        base.put("108", "thumbnail,缩略图,string_200_imageElement_2_0_0_0");
-        base.put("109", "flag_external,外链,int_1_switchElement_1_0_0_0");
-        base.put("110", "flag_top,置顶,int_1_switchElement_1_0_0_0");
-        base.put("111", "resource_content,正文,string_10000_richTextElement_2_0_0_0");
+        // 0    1    2       3       4       5      6      7       8
+        // 名称,字段,数据类型,数据长度,空间类型,控件长度,必填,校验方式,数据来源
+        Map<String, Metadata> base = MapUtil.newHashMap();
+        base.put("101", getMetadata("101","标题","title","string","200","inputElement","half",true,null,null));
+        base.put("102", getMetadata("102","来源","source","string","200","inputElement","half",true,null,null));
+        base.put("103", getMetadata("103","作者姓名","author","string","30","inputElement","half",true,null,null));
+        base.put("104", getMetadata("104","权重","sort_no","int","8","inputElement","half",true,"positiveInteger",null));
+        base.put("105", getMetadata("105","资源分类","resource_category","string","200","selectElement","half",false,null, "resourceCategory"));
+        base.put("106", getMetadata("106","摘要","resource_summary","text","500","textareaElement","whole",false,null,null));
+        base.put("107", getMetadata("107","关键字","keyword","string","200","tagElement","whole",false,null,null));
+        base.put("108", getMetadata("108","缩略图","thumbnail","string","200","imageElement","whole",false,null,null));
+        base.put("109", getMetadata("109","外链","flag_external","int","1","switchElement","half",false,null,null));
+        base.put("110", getMetadata("110","置顶","flag_top", "int","1","switchElement","half",false,null,null));
+        base.put("111", getMetadata("111","正文","resource_content","string","10000","richTextElement","whole",false,null,null));
         return base;
     }
 
+    private static Metadata getMetadata(String id, String name, String briefName, String dataType, String dataLength, String controlType, String controlLength, boolean required, String checkModel, String dataSource) {
+        Metadata md = new Metadata();
+        md.setId(id);// ID
+        md.setName(name);// 名称
+        md.setBriefName(briefName);// 字段
+        md.setDataType(dataType);// 数据类型
+        md.setDataLength(dataLength);// 数据长度
+        md.setControlType(controlType);// 空间类型
+        if ("half".equals(controlLength)) {
+            md.setControlLength(1);// 控件长度
+        } else {
+            md.setControlLength(2);// 控件长度
+        }
+        md.setRequired(required);// 必填
+        md.setCheckModel(checkModel);// 校验方式
+        md.setDataSource(dataSource);// 数据来源
+        return md;
+    }
 
     @ApiModelProperty(value = "站点id", dataType = "String")
     @TableField("site_id")

@@ -1,18 +1,18 @@
 package com.deyatech.station.service.impl;
 
-import com.deyatech.admin.entity.MetadataCollection;
-import com.deyatech.station.entity.Template;
-import com.deyatech.station.entity.TemplateFormOrder;
-import com.deyatech.station.vo.TemplateFormOrderVo;
-import com.deyatech.station.mapper.TemplateFormOrderMapper;
-import com.deyatech.station.service.TemplateFormOrderService;
-import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import com.deyatech.admin.entity.Metadata;
+import com.deyatech.admin.entity.MetadataCollection;
+import com.deyatech.common.base.BaseServiceImpl;
+import com.deyatech.station.entity.Template;
+import com.deyatech.station.entity.TemplateFormOrder;
+import com.deyatech.station.mapper.TemplateFormOrderMapper;
+import com.deyatech.station.service.TemplateFormOrderService;
+import com.deyatech.station.vo.TemplateFormOrderVo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonObject;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -98,11 +98,10 @@ public class TemplateFormOrderServiceImpl extends BaseServiceImpl<TemplateFormOr
             }
             // 基础映射
             List<TemplateFormOrderVo> baseSortedDataList = sortedData.stream().filter(t -> t.getMetadataId().length() <= 3).collect(Collectors.toList());
-            Map<String, String> baseFieldsMap = Template.baseFields();
+            Map<String, Metadata> baseFieldsMap = Template.baseFields();
             // 将对象添加到对应的页
             baseSortedDataList.stream().forEach(order -> {
-                String value = baseFieldsMap.get(order.getMetadataId());
-                order.setMetadataName(value.split(",")[1]);
+                order.setMetadataName(baseFieldsMap.get(order.getMetadataId()).getName());
                 sortedList.get(order.getPageNumber() - 1).add(order);
             });
             // 元数据映射
@@ -133,15 +132,14 @@ public class TemplateFormOrderServiceImpl extends BaseServiceImpl<TemplateFormOr
 
     private List<TemplateFormOrderVo> getBaseFieldsList(String collectionId) {
         List<TemplateFormOrderVo> list = new ArrayList<>();
-        Map<String, String> baseFields = Template.baseFields();
+        Map<String, Metadata> baseFields = Template.baseFields();
         Iterator<String> keys = baseFields.keySet().iterator();
         while(keys.hasNext()) {
             String key = keys.next();
-            String value = baseFields.get(key);
             TemplateFormOrderVo item = new TemplateFormOrderVo();
             item.setCollectionId(collectionId);
             item.setMetadataId(key);
-            item.setMetadataName(value.split(",")[1]);
+            item.setMetadataName(baseFields.get(key).getName());
             list.add(item);
         }
         return list.stream().sorted(Comparator.comparing(TemplateFormOrderVo::getMetadataId)).collect(Collectors.toList());
@@ -179,4 +177,45 @@ public class TemplateFormOrderServiceImpl extends BaseServiceImpl<TemplateFormOr
      */
     @Override
     public List<MetadataCollection> getCollectionList(String enName) { return baseMapper.getCollectionList(enName); }
+
+    /**
+     * 获取表单顺序
+     *
+     * @param collectionId
+     * @return
+     */
+    @Override
+    public Map<String, Object> getFormOrderByCollectionId(String collectionId) {
+        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> map = getSortDataByCollectionId(collectionId);
+        List<TemplateFormOrderVo> pages = baseMapper.getNumberAndNameByCollectionId(collectionId);
+        // 有排序
+        if (CollectionUtil.isNotEmpty(pages)) {
+            result.put("pages", pages);
+            result.put("orders", map.get("sorted"));
+        } else {
+            // 没有排序
+            TemplateFormOrderVo form = new TemplateFormOrderVo();
+            form.setPageNumber(1);
+            form.setPageName("系统默认");
+            pages = new ArrayList<>();
+            pages.add(form);
+            result.put("pages", pages);
+            List<Object> base = new ArrayList<>();
+            base.add(map.get("unsorted"));
+            result.put("orders", base);
+        }
+        return result;
+    }
+
+    /**
+     * 获页数和页名
+     *
+     * @param collectionId
+     * @return
+     */
+    @Override
+    public List<TemplateFormOrderVo> getNumberAndNameByCollectionId(String collectionId) { return baseMapper.getNumberAndNameByCollectionId(collectionId); }
+    @Override
+    public List<Metadata> getAllMetadataByByCollectionId(String collectionId) { return baseMapper.getAllMetadataByByCollectionId(collectionId); }
 }
