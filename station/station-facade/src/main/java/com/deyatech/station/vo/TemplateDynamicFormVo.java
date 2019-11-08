@@ -24,6 +24,10 @@ public class TemplateDynamicFormVo {
      */
     private Map<String, Object> pageModel;
     /**
+     * 下拉框、单选框、复选框的数据
+     */
+    private Map<String, Object> pageList;
+    /**
      * 页表单行
      */
     List<List<Metadata>> rows;

@@ -193,7 +193,7 @@ public class MaterialController extends BaseController {
             @ApiImplicitParam(name = "path", value = "路径", required = true, dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "siteId", value = "站点id", required = false, dataType = "String", paramType = "query")
     })
-    public RestResult uploadFile(@RequestParam("file") MultipartFile file, String path, String siteId) {
+    public RestResult uploadFile(@RequestParam("file") MultipartFile file, String path, String siteId, @RequestParam(value = "attach", required = false) String attach) {
         String fileSeparator = System.getProperty("file.separator");
         if (!path.endsWith(fileSeparator)) {
             path += fileSeparator;
@@ -227,6 +227,7 @@ public class MaterialController extends BaseController {
                 result.setTitle(originalFilename);
                 result.setUrl(url);
                 result.setFilePath(path + fileName);
+                result.setAttach(attach);//前台来的参数，原样返回，内容动态表单用
 
                 Material material = new Material();
                 material.setName(originalFilename);

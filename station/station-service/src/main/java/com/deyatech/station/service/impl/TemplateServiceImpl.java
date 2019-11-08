@@ -14,6 +14,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.admin.entity.Metadata;
 import com.deyatech.admin.entity.User;
 import com.deyatech.admin.feign.AdminFeign;
+import com.deyatech.admin.vo.DictionaryVo;
 import com.deyatech.admin.vo.MetadataCollectionVo;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.context.UserContextHelper;
@@ -104,6 +105,8 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         List<TemplateFormOrderVo> pages = (List<TemplateFormOrderVo>) orderMap.get("pages");
         for (TemplateFormOrderVo p : pages) {
             TemplateDynamicFormVo form = new TemplateDynamicFormVo();
+            // 添加动态表单
+            result.add(form);
             // 页码
             form.setPageNumber(p.getPageNumber());
             // 页名
@@ -111,6 +114,9 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             // 页表单对象
             Map<String, Object> pageModel = new HashMap<>();
             form.setPageModel(pageModel);
+            // 下拉框、单选框、复选框的数据
+            Map<String, Object> pageList = new HashMap<>();
+            form.setPageList(pageList);
             // 页表单行
             List<List<Metadata>> rows = new ArrayList<>();
             form.setRows(rows);
@@ -122,10 +128,13 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 Metadata mdc = metadataMap.get(oc.getMetadataId());
                 // 每行元素
                 List<Metadata> elements = new ArrayList<>();
-                // 添加表单项目
-                elements.add(mdc);
+                // 添加行元素
+                rows.add(elements);
                 // 设置数据
                 putPageModel(pageModel, oc, mdc, baseFieldDataMap, matedataFieldDataMap);
+                putPageList(pageList, mdc);
+                // 添加表单项目
+                elements.add(mdc);
 
                 // 最后一个元素不处理，现在是半行
                 if (i != formOrder.size() - 1 && mdc.getControlLength() == 1) {
@@ -133,20 +142,27 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                     Metadata mdn = metadataMap.get(on.getMetadataId());
                     // 下一个也是半行，则合并一行
                     if (mdn.getControlLength() == 1) {
-                        // 添加表单项目
-                        elements.add(mdn);
                         // 设置数据
                         putPageModel(pageModel, on, mdn, baseFieldDataMap, matedataFieldDataMap);
-                        i = i + 2;
+                        putPageList(pageList, mdn);
+                        // 添加表单项目
+                        elements.add(mdn);
+                        // 索引指向当前处理的元素
+                        i = i + 1;
                     }
                 }
-                // 添加行元素
-                rows.add(elements);
-            }
-            // 添加动态表单
-            result.add(form);
-        }
+
+            }// 内for
+        }// 外for
         return result;
+    }
+
+    private void putPageList(Map<String, Object> pageList, Metadata md) {
+        // 下拉框、单选框、复选框
+        if (md.getControlType().equals("selectElement") || md.getControlType().equals("radioElement") || md.getControlType().equals("checkboxElement")) {
+            List<DictionaryVo> list = adminFeign.getDictionaryListByIndexId(md.getDictionaryId()).getData();
+            pageList.put(md.getBriefName(), list);
+        }
     }
 
     private void putPageModel(Map<String, Object> pageModel, TemplateFormOrderVo o, Metadata md, Map<String, Object> baseFieldDataMap, Map<String, Object> matedataFieldDataMap) {
