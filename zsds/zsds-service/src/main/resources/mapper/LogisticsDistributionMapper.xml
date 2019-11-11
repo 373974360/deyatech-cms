@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.zsds.mapper.LogisticsDistributionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.deyatech.zsds.entity.LogisticsDistribution">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="department_id" property="departmentId" />
+        <result column="received_count" property="receivedCount" />
+        <result column="delivered_count" property="deliveredCount" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id_,
+        enable_,
+        remark_,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        version_,
+        department_id, received_count, delivered_count
+    </sql>
+
+    <select id="pageByLogisticsDistributionVo" parameterType="com.deyatech.zsds.vo.LogisticsDistributionVo"
+            resultType="com.deyatech.zsds.vo.LogisticsDistributionVo">
+        select zld.*, ad.name_ as departmentName
+        from zsds_logistics_distribution zld
+        join admin_department ad on zld.department_id = ad.id_
+        where zld.enable_ = 1 and ad.enable_ = 1 and zld.department_id = #{logisticsDistributionVo.departmentId}
+        <if test="logisticsDistributionVo.startDate != null and logisticsDistributionVo.startDate != ''">
+            and to_days(zld.create_time) <![CDATA[ >= ]]> to_days(#{logisticsDistributionVo.startDate})
+        </if>
+        <if test="logisticsDistributionVo.endDate != null and logisticsDistributionVo.endDate != ''">
+            and to_days(zld.create_time) <![CDATA[ <= ]]> to_days(#{logisticsDistributionVo.endDate})
+        </if>
+        order by create_time desc
+    </select>
+
+    <select id="getLogisticsInfoByDate" parameterType="String" resultType="com.deyatech.zsds.vo.LogisticsDistributionVo">
+        select date_format(create_time,'%Y-%m-%d') as createTime, sum(received_count) as receivedCount, sum(delivered_count) as deliveredCount
+        from zsds_logistics_distribution
+        where enable_ = 1
+            and (to_days(create_time) = to_days(#{dateStr})
+                or to_days(create_time) = (select to_days(max(create_time)) from zsds_logistics_distribution where to_days(create_time) <![CDATA[ < ]]> to_days(#{dateStr})))
+        group by createTime
+        order by createTime desc
+    </select>
+
+    <select id="getLogisticsInfoByDateRange" parameterType="String" resultType="com.deyatech.zsds.vo.LogisticsDistributionVo">
+        select date_format(create_time,'%Y-%m-%d') as createTime, sum(received_count) as receivedCount, sum(delivered_count) as deliveredCount
+        from zsds_logistics_distribution
+        where enable_ = 1
+            and to_days(create_time) <![CDATA[ >= ]]> to_days(#{startDate})
+            and to_days(create_time) <![CDATA[ <= ]]> to_days(#{endDate})
+        group by createTime
+        order by createTime desc
+    </select>
+
+    <select id="getTodayLogisticsInfo" resultType="com.deyatech.zsds.vo.LogisticsDistributionVo">
+        select ad.name_ as departmentName, sum(received_count) as receivedCount, sum(delivered_count) as deliveredCount
+        from zsds_logistics_distribution zld
+        join admin_department ad on zld.department_id = ad.id_
+        where zld.enable_ = 1 and ad.enable_ = 1 and to_days(zld.create_time) = to_days(now())
+        group by department_id
+        order by department_id desc
+    </select>
+
+</mapper>

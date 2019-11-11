@@ -39,6 +39,8 @@
         <module>generate</module>
         <module>interview</module>
         <module>assembly</module>
+        <module>zsds</module>
+        <module>api</module>
     </modules>
 
     <build>

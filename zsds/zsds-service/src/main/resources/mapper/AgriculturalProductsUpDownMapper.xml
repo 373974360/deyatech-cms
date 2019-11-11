@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.zsds.mapper.AgriculturalProductsUpDownMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.deyatech.zsds.entity.AgriculturalProductsUpDown">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="department_id" property="departmentId" />
+        <result column="online_sales_quota" property="onlineSalesQuota" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id_,
+        enable_,
+        remark_,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        version_,
+        department_id, online_sales_quota
+    </sql>
+
+    <select id="pageByAgriculturalProductsUpDownVo" parameterType="com.deyatech.zsds.vo.AgriculturalProductsUpDownVo"
+            resultType="com.deyatech.zsds.vo.AgriculturalProductsUpDownVo">
+        select zapud.*, ad.name_ as departmentName
+        from zsds_agricultural_products_up_down zapud
+        join admin_department ad on zapud.department_id = ad.id_
+        where zapud.enable_ = 1 and ad.enable_ = 1 and zapud.department_id = #{agriculturalProductsUpDownVo.departmentId}
+        <if test="agriculturalProductsUpDownVo.startDate != null and agriculturalProductsUpDownVo.startDate != ''">
+            and to_days(zapud.create_time) <![CDATA[ >= ]]> to_days(#{agriculturalProductsUpDownVo.startDate})
+        </if>
+        <if test="agriculturalProductsUpDownVo.endDate != null and agriculturalProductsUpDownVo.endDate != ''">
+            and to_days(zapud.create_time) <![CDATA[ <= ]]> to_days(#{agriculturalProductsUpDownVo.endDate})
+        </if>
+        order by create_time desc
+    </select>
+
+    <select id="getAgriculturalInfoByDate" parameterType="String" resultType="com.deyatech.zsds.vo.AgriculturalProductsUpDownVo">
+        select date_format(create_time,'%Y-%m-%d') as createTime, sum(online_sales_quota) as onlineSalesQuota
+        from zsds_agricultural_products_up_down
+        where enable_ = 1
+            and (to_days(create_time) = to_days(#{dateStr})
+                or to_days(create_time) = (select to_days(max(create_time)) from zsds_agricultural_products_up_down where to_days(create_time) <![CDATA[ < ]]> to_days(#{dateStr})))
+        group by createTime
+        order by createTime desc
+    </select>
+
+    <select id="getAgriculturalInfoByDateRange" parameterType="String" resultType="com.deyatech.zsds.vo.AgriculturalProductsUpDownVo">
+        select date_format(create_time,'%Y-%m-%d') as createTime, sum(online_sales_quota) as onlineSalesQuota
+        from zsds_agricultural_products_up_down
+        where enable_ = 1
+            and to_days(create_time) <![CDATA[ >= ]]> to_days(#{startDate})
+            and to_days(create_time) <![CDATA[ <= ]]> to_days(#{endDate})
+        group by createTime
+        order by createTime desc
+    </select>
+
+    <select id="getTodayAgriculturalInfo" resultType="com.deyatech.zsds.vo.AgriculturalProductsUpDownVo">
+        select ad.name_ as departmentName, sum(online_sales_quota) as onlineSalesQuota
+        from zsds_agricultural_products_up_down zapud
+        join admin_department ad on zapud.department_id = ad.id_
+        where zapud.enable_ = 1 and ad.enable_ = 1 and to_days(zapud.create_time) = to_days(now())
+        group by department_id
+        order by department_id desc
+    </select>
+</mapper>

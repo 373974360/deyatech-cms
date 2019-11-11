@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.zsds.mapper.OnlineTrainingMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.deyatech.zsds.entity.OnlineTraining">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="department_id" property="departmentId" />
+        <result column="period_" property="period" />
+        <result column="number_" property="number" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id_,
+        enable_,
+        remark_,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        version_,
+        department_id, period_, number_
+    </sql>
+
+    <select id="pageByOnlineTrainingVo" parameterType="com.deyatech.zsds.vo.OnlineTrainingVo"
+            resultType="com.deyatech.zsds.vo.OnlineTrainingVo">
+        select zot.*, ad.name_ as departmentName
+        from zsds_online_training zot
+        join admin_department ad on zot.department_id = ad.id_
+        where zot.enable_ = 1 and ad.enable_ = 1 and zot.department_id = #{onlineTrainingVo.departmentId}
+        <if test="onlineTrainingVo.startDate != null and onlineTrainingVo.startDate != ''">
+            and to_days(zot.create_time) <![CDATA[ >= ]]> to_days(#{onlineTrainingVo.startDate})
+        </if>
+        <if test="onlineTrainingVo.endDate != null and onlineTrainingVo.endDate != ''">
+            and to_days(zot.create_time) <![CDATA[ <= ]]> to_days(#{onlineTrainingVo.endDate})
+        </if>
+        order by create_time desc
+    </select>
+
+    <select id="getOnlineInfoByDate" parameterType="String" resultType="com.deyatech.zsds.vo.OnlineTrainingVo">
+        select date_format(create_time,'%Y-%m-%d') as createTime, sum(period_) as period, sum(number_) as number
+        from zsds_online_training
+        where enable_ = 1
+            and (to_days(create_time) = to_days(#{dateStr})
+                or to_days(create_time) = (select to_days(max(create_time)) from zsds_online_training where to_days(create_time) <![CDATA[ < ]]> to_days(#{dateStr})))
+        group by createTime
+        order by createTime desc
+    </select>
+
+    <select id="getOnlineInfoByDateRange" parameterType="String" resultType="com.deyatech.zsds.vo.OnlineTrainingVo">
+        select date_format(create_time,'%Y-%m-%d') as createTime, sum(period_) as period, sum(number_) as number
+        from zsds_online_training
+        where enable_ = 1
+            and to_days(create_time) <![CDATA[ >= ]]> to_days(#{startDate})
+            and to_days(create_time) <![CDATA[ <= ]]> to_days(#{endDate})
+        group by createTime
+        order by createTime desc
+    </select>
+
+    <select id="getTodayOnlineInfo" resultType="com.deyatech.zsds.vo.OnlineTrainingVo">
+        select ad.name_ as departmentName, sum(period_) as period, sum(number_) as number
+        from zsds_online_training zot
+        join admin_department ad on zot.department_id = ad.id_
+        where zot.enable_ = 1 and ad.enable_ = 1 and to_days(zot.create_time) = to_days(now())
+        group by department_id
+        order by department_id desc
+    </select>
+
+</mapper>
