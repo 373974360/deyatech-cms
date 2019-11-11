@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.admin.entity.Metadata;
+import com.deyatech.admin.entity.MetadataCollection;
 import com.deyatech.admin.entity.User;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.admin.vo.DictionaryVo;
@@ -74,6 +75,34 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     TemplateFormOrderService formOrderService;
 
     /**
+     * 获取字段
+     *
+     * @param contentModelId
+     * @return
+     */
+    @Override
+    public Map<String, Object> getBaseAndMetaField(String contentModelId) {
+        Map<String, Object> result = new HashMap<>();
+        Map<String, Metadata> metadataMap = Template.baseFields();
+        List<String> baseFields = metadataMap.values().stream().map(Metadata::getBriefName).collect(Collectors.toList());
+        result.put("baseFields", baseFields);
+
+        List<String> metaFields = new ArrayList<>();
+        // 内容模型
+        Model model = modelService.getById(contentModelId);
+        MetadataCollection collection = formOrderService.getCollectionById(model.getMetaDataCollectionId());
+        List<Metadata> metadatas = formOrderService.getAllMetadataByByCollectionId(model.getMetaDataCollectionId());
+        if (CollectionUtil.isNotEmpty(metadatas)) {
+            for (Metadata md : metadatas) {
+                metaFields.add(collection.getMdPrefix() + md.getBriefName());
+            }
+        }
+        result.put("metaFields", metaFields);
+        result.put("metaDataCollectionId", model.getMetaDataCollectionId());
+        return result;
+    }
+
+    /**
      * 获取动态表单
      *
      * @param contentModelId
@@ -87,6 +116,11 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         Model model = modelService.getById(contentModelId);
         // 元数据集ID
         String collectionId = model.getMetaDataCollectionId();
+        // 元数据映射
+        Map<String, Metadata> metadataMap = getMetadatas(collectionId);
+        // 表单顺序映射
+        Map<String, Object> orderMap = formOrderService.getFormOrderByCollectionId(collectionId);
+
         // 基础字段的数据
         Map<String, Object> baseFieldDataMap = null;
         // 元数据字段的数据
@@ -95,11 +129,24 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             Template template = super.getById(templateId);
             baseFieldDataMap = ColumnUtil.objectToColumnMap(template);
             matedataFieldDataMap = adminFeign.getMetadataById(collectionId, template.getContentId()).getData();
+            if (matedataFieldDataMap == null) {
+                matedataFieldDataMap = new HashMap<>();
+            }
+            // 处理 checkbox 返回数据为数组
+            List<Metadata> checkboxList = metadataMap.values().stream().filter( md -> "checkboxElement".equals(md.getControlType())).collect(Collectors.toList());
+            if (CollectionUtil.isNotEmpty(checkboxList)) {
+                for (Metadata md : checkboxList) {
+                    Object value = matedataFieldDataMap.get(md.getBriefName());
+                    if (Objects.isNull(value)) {
+                        matedataFieldDataMap.put(md.getBriefName(), new ArrayList<>());
+                    } else {
+                        String str = value.toString();
+                        matedataFieldDataMap.put(md.getBriefName(), Arrays.asList(str.split(",")));
+                    }
+                }
+            }
         }
-        // 元数据映射
-        Map<String, Metadata> metadataMap = getMetadatas(collectionId);
-        // 表单顺序映射
-        Map<String, Object> orderMap = formOrderService.getFormOrderByCollectionId(collectionId);
+
         // 每一页已排好的顺序
         List<List<TemplateFormOrderVo>> orders =  (List<List<TemplateFormOrderVo>>) orderMap.get("orders");
         List<TemplateFormOrderVo> pages = (List<TemplateFormOrderVo>) orderMap.get("pages");
@@ -166,9 +213,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     }
 
     private void putPageModel(Map<String, Object> pageModel, TemplateFormOrderVo o, Metadata md, Map<String, Object> baseFieldDataMap, Map<String, Object> matedataFieldDataMap) {
-        // 页表单对象数据
-        pageModel.put(md.getBriefName(), "");
-        // 元数据字段
+                // 元数据字段
         if (o.getMetadataId().length() > 3) {
             if (Objects.nonNull(matedataFieldDataMap)) {
                 pageModel.put(md.getBriefName(), matedataFieldDataMap.get(md.getBriefName()));
@@ -183,9 +228,11 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
 
     private Map<String, Metadata> getMetadatas(String collectionId) {
         Map<String, Metadata> metadataMap = Template.baseFields();
+        MetadataCollection collection = formOrderService.getCollectionById(collectionId);
         List<Metadata> metadatas = formOrderService.getAllMetadataByByCollectionId(collectionId);
         if (CollectionUtil.isNotEmpty(metadatas)) {
             for (Metadata md : metadatas) {
+                md.setBriefName(collection.getMdPrefix() + md.getBriefName());
                 metadataMap.put(md.getId(), md);
             }
         }
@@ -304,6 +351,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
 
         // 保存或更新元数据
         if (BooleanUtil.isFalse(templateVo.getFlagExternal()) && StrUtil.isNotEmpty(templateVo.getContentMapStr())) {
+            // contentMap 数据库字段
             Map contentMap = JSONUtil.toBean(templateVo.getContentMapStr(), Map.class);
             String contentId = adminFeign.saveOrUpdateMetadata(templateVo.getMetaDataCollectionId(), templateVo.getContentId(), contentMap).getData();
             // 如果是插入数据， 回填contentId

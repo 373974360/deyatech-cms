@@ -76,4 +76,5 @@ public interface TemplateFormOrderService extends BaseService<TemplateFormOrder>
      * @return
      */
     List<TemplateFormOrderVo>  getNumberAndNameByCollectionId(String collectionId);
+    MetadataCollection getCollectionById(String id);
 }

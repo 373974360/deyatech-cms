@@ -56,7 +56,7 @@ public class Template extends BaseEntity {
         base.put("106", getMetadata("106","摘要","resource_summary","text","500","textareaElement","whole",false,null,null,null));
         base.put("107", getMetadata("107","关键字","keyword","string","200","tagElement","whole",false,null,null,null));
         base.put("108", getMetadata("108","缩略图","thumbnail","string","200","imageElement","whole",false,null,null,null));
-        base.put("109", getMetadata("109","外链","flag_external","int","1","switchElement","half",false,null,null,null));
+        base.put("109", getMetadata("109","外链","flag_external","int","1","switchElement","half",true,null,null,null));
         base.put("110", getMetadata("110","置顶","flag_top", "int","1","switchElement","half",false,null,null,null));
         base.put("111", getMetadata("111","正文","resource_content","string","10000","richTextElement","whole",false,null,null,null));
         return base;

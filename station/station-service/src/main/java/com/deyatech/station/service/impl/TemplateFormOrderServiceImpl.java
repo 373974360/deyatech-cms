@@ -218,4 +218,6 @@ public class TemplateFormOrderServiceImpl extends BaseServiceImpl<TemplateFormOr
     public List<TemplateFormOrderVo> getNumberAndNameByCollectionId(String collectionId) { return baseMapper.getNumberAndNameByCollectionId(collectionId); }
     @Override
     public List<Metadata> getAllMetadataByByCollectionId(String collectionId) { return baseMapper.getAllMetadataByByCollectionId(collectionId); }
+    @Override
+    public MetadataCollection getCollectionById(String id) { return  baseMapper.getCollectionById(id);}
 }

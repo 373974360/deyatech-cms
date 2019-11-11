@@ -19,6 +19,14 @@ import java.util.Map;
  */
 public interface TemplateService extends BaseService<Template> {
     /**
+     * 获取字段
+     *
+     * @param contentModelId
+     * @return
+     */
+    Map<String, Object> getBaseAndMetaField(String contentModelId);
+
+    /**
      * 获取动态表单
      *
      * @param contentModelId

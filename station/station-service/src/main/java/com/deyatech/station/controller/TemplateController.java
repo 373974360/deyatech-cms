@@ -43,6 +43,19 @@ public class TemplateController extends BaseController {
     TemplateService templateService;
 
     /**
+     * 获取字段
+     *
+     * @param contentModelId
+     * @return
+     */
+    @RequestMapping("/getBaseAndMetaField")
+    @ApiOperation(value="获取字段", notes="获取字段")
+    @ApiImplicitParam(name = "contentModelId", value = "内容模型ID", required = true, dataType = "String", paramType = "query")
+    public RestResult getBaseAndMetaField(String contentModelId) {
+        return RestResult.ok(templateService.getBaseAndMetaField(contentModelId));
+    }
+
+    /**
      * 获取动态表单
      *
      * @param contentModelId

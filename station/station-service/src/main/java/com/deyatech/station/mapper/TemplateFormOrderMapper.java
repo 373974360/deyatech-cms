@@ -42,6 +42,7 @@ public interface TemplateFormOrderMapper extends BaseMapper<TemplateFormOrder> {
      * @return
      */
     List<MetadataCollection> getCollectionList(String enName);
+    MetadataCollection getCollectionById(String id);
 
     /**
      * 获页数和页名
