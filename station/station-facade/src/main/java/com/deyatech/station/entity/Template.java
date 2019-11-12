@@ -48,14 +48,14 @@ public class Template extends BaseEntity {
         // 0    1    2       3       4       5      6      7       8
         // 名称,字段,数据类型,数据长度,空间类型,控件长度,必填,校验方式,数据来源
         Map<String, Metadata> base = MapUtil.newHashMap();
-        base.put("101", getMetadata("101","标题","title","string","100","inputElement","half",true,null,null, null));
-        base.put("102", getMetadata("102","来源","source","string","100","inputElement","half",true,null,null,null));
-        base.put("103", getMetadata("103","作者姓名","author","string","30","inputElement","half",true,null,null,null));
+        base.put("101", getMetadata("101","标题","title_","string","100","inputElement","half",true,null,null, null));
+        base.put("102", getMetadata("102","来源","source_","string","100","inputElement","half",true,null,null,null));
+        base.put("103", getMetadata("103","作者姓名","author_","string","30","inputElement","half",true,null,null,null));
         base.put("104", getMetadata("104","权重","sort_no","int","8","inputElement","half",true,"positiveInteger",null,null));
         base.put("105", getMetadata("105","资源分类","resource_category","string","200","selectElement","half",false,null, "dataItem","resource_category"));
         base.put("106", getMetadata("106","摘要","resource_summary","text","500","textareaElement","whole",false,null,null,null));
-        base.put("107", getMetadata("107","关键字","keyword","string","200","tagElement","whole",false,null,null,null));
-        base.put("108", getMetadata("108","缩略图","thumbnail","string","200","imageElement","whole",false,null,null,null));
+        base.put("107", getMetadata("107","关键字","keyword_","string","200","inputElement","whole",false,null,null,null));
+        base.put("108", getMetadata("108","缩略图","thumbnail_","string","200","imageElement","whole",false,null,null,null));
         base.put("109", getMetadata("109","外链","flag_external","int","1","switchElement","half",true,null,null,null));
         base.put("110", getMetadata("110","置顶","flag_top", "int","1","switchElement","half",false,null,null,null));
         base.put("111", getMetadata("111","正文","resource_content","string","10000","richTextElement","whole",false,null,null,null));
@@ -134,25 +134,25 @@ public class Template extends BaseEntity {
     @TableField("title_")
     private String title;
 
-    @ApiModelProperty(value = "是否允许搜索到", dataType = "Boolean")
+    @ApiModelProperty(value = "是否允许搜索到", dataType = "Integer")
     @TableField("flag_search")
-    private Boolean flagSearch;
+    private Integer flagSearch;
 
     @ApiModelProperty(value = "排序号", dataType = "Integer", example = "1")
     @TableField("sort_no")
     private Integer sortNo;
 
-    @ApiModelProperty(value = "是否置顶", dataType = "Boolean")
+    @ApiModelProperty(value = "是否置顶", dataType = "Integer")
     @TableField("flag_top")
-    private Boolean flagTop;
+    private Integer flagTop;
 
     @ApiModelProperty(value = "浏览次数", dataType = "Integer", example = "1")
     @TableField("views_")
     private Integer views;
 
-    @ApiModelProperty(value = "是否是外链", dataType = "Boolean")
+    @ApiModelProperty(value = "是否是外链", dataType = "Integer")
     @TableField("flag_external")
-    private Boolean flagExternal;
+    private Integer flagExternal;
 
     @ApiModelProperty(value = "资源摘要", dataType = "String")
     @TableField("resource_summary")

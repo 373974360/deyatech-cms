@@ -1,6 +1,7 @@
 package com.deyatech.assembly.controller;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.json.JSONUtil;
 import com.deyatech.assembly.entity.CustomizationFunction;
 import com.deyatech.assembly.service.CustomizationFunctionService;
 import com.deyatech.assembly.vo.CustomizationFunctionVo;
@@ -118,20 +119,7 @@ public class CustomizationFunctionController extends BaseController {
 //        return RestResult.ok(customizationFunctions);
 //    }
 
-//    /**
-//     * 单个保存或者更新
-//     *
-//     * @param customizationFunction
-//     * @return
-//     */
-//    @PostMapping("/saveOrUpdate")
-//    @ApiOperation(value="单个保存或者更新", notes="根据对象保存或者更新信息")
-//    @ApiImplicitParam(name = "customizationFunction", value = "对象", required = true, dataType = "CustomizationFunction", paramType = "query")
-//    public RestResult<Boolean> saveOrUpdate(CustomizationFunction customizationFunction) {
-//        log.info(String.format("保存或者更新: %s ", JSONUtil.toJsonStr(customizationFunction)));
-//        boolean result = customizationFunctionService.saveOrUpdate(customizationFunction);
-//        return RestResult.ok(result);
-//    }
+
 
     //    /**
 //     * 获取定制功能
@@ -148,6 +136,21 @@ public class CustomizationFunctionController extends BaseController {
 //        CustomizationFunction customizationFunction = customizationFunctionService.getOne(queryWrapper);
 //        return RestResult.ok(customizationFunctionService.setVoProperties(customizationFunction));
 //    }
+
+    /**
+     * 单个保存或者更新
+     *
+     * @param customizationFunction
+     * @return
+     */
+    @PostMapping("/saveOrUpdate")
+    @ApiOperation(value="单个保存或者更新", notes="根据对象保存或者更新信息")
+    @ApiImplicitParam(name = "customizationFunction", value = "对象", required = true, dataType = "CustomizationFunction", paramType = "query")
+    public RestResult<Boolean> saveOrUpdate(CustomizationFunction customizationFunction) {
+        log.info(String.format("保存或者更新: %s ", JSONUtil.toJsonStr(customizationFunction)));
+        boolean result = customizationFunctionService.saveOrUpdate(customizationFunction);
+        return RestResult.ok(result);
+    }
 
     /**
      * 批量保存或者更新
@@ -188,11 +191,34 @@ public class CustomizationFunctionController extends BaseController {
     }
 
     /**
+     * 栏目表头定制功能
+     *
+     * @return
+     */
+    @RequestMapping("/getCustomizationFunctionCatalog")
+    @ApiOperation(value="获取所有定制功能", notes="获取所有定制功能")
+    public RestResult<CustomizationFunctionVo> getCustomizationFunctionCatalog() {
+        return RestResult.ok(customizationFunctionService.getCustomizationFunction(CustomizationTypeEnum.TABLE_HEAD_CATALOG.getCode()));
+    }
+
+    /**
+     * 内容表头定制功能
+     *
+     * @return
+     */
+    @RequestMapping("/getCustomizationFunctionContent")
+    @ApiOperation(value="获取所有定制功能", notes="获取所有定制功能")
+    public RestResult<CustomizationFunctionVo> getCustomizationFunctionContent() {
+        return RestResult.ok(customizationFunctionService.getCustomizationFunction(CustomizationTypeEnum.TABLE_HEAD_CONTENT.getCode()));
+    }
+
+    /**
      * 栏目表头
      *
      * @return
      */
     @RequestMapping("/getTableHeadCatalogData")
+    @ApiOperation(value="栏目表头", notes="栏目表头")
     public RestResult<List<CustomizationTableHeadVo>> getTableHeadCatalogData () {
         return RestResult.ok(customizationFunctionService.getTableHeadData(CustomizationTypeEnum.TABLE_HEAD_CATALOG.getCode()));
     }
@@ -203,6 +229,7 @@ public class CustomizationFunctionController extends BaseController {
      * @return
      */
     @RequestMapping("/getTableHeadContentData")
+    @ApiOperation(value="内容表头", notes="内容表头")
     public RestResult<List<CustomizationTableHeadVo>> getTableHeadContentData () {
         return RestResult.ok(customizationFunctionService.getTableHeadData(CustomizationTypeEnum.TABLE_HEAD_CONTENT.getCode()));
 

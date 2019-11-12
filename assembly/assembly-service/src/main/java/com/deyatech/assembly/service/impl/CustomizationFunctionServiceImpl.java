@@ -114,6 +114,16 @@ public class CustomizationFunctionServiceImpl extends BaseServiceImpl<Customizat
      */
     @Override
     public List<CustomizationTableHeadVo> getTableHeadData(String type) {
+        return getCustomizationFunction(type).getHeadList().stream().filter(CustomizationTableHeadVo::isShow).collect(Collectors.toList());
+    }
+
+    /**
+     * 获取定制功能
+     *
+     * @return
+     */
+    @Override
+    public CustomizationFunctionVo getCustomizationFunction(String type) {
         QueryWrapper<CustomizationFunction> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", UserContextHelper.getUserId());
         queryWrapper.eq("type_", type);
@@ -124,11 +134,13 @@ public class CustomizationFunctionServiceImpl extends BaseServiceImpl<Customizat
             try {
                 list = mapper.readValue(customizationFunction.getData(), javaType);
             } catch (IOException e) {
+                list = new ArrayList<>();
             }
-
         } else {
             list = CustomizationTableHeadVo.getDefault(type);
         }
-        return list.stream().filter(CustomizationTableHeadVo::isShow).collect(Collectors.toList());
+        CustomizationFunctionVo customizationFunctionVo = setVoProperties(customizationFunction);
+        customizationFunctionVo.setHeadList(list);
+        return customizationFunctionVo;
     }
 }

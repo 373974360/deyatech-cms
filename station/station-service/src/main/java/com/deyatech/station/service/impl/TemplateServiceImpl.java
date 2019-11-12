@@ -22,6 +22,7 @@ import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.enums.ContentStatusEnum;
 import com.deyatech.common.enums.TemplateAuthorityEnum;
+import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.common.utils.ColumnUtil;
 import com.deyatech.station.cache.SiteCache;
@@ -120,35 +121,19 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         Map<String, Metadata> metadataMap = getMetadatas(collectionId);
         // 表单顺序映射
         Map<String, Object> orderMap = formOrderService.getFormOrderByCollectionId(collectionId);
-
-        // 基础字段的数据
-        Map<String, Object> baseFieldDataMap = null;
-        // 元数据字段的数据
-        Map<String, Object> matedataFieldDataMap = null;
+        // 元数据字段数据映射
+        Map<String, Object> metadataFieldDataMap = new HashMap<>();
+        // 获取数据
         if (StrUtil.isNotEmpty(templateId)) {
             Template template = super.getById(templateId);
-            baseFieldDataMap = ColumnUtil.objectToColumnMap(template);
-            matedataFieldDataMap = adminFeign.getMetadataById(collectionId, template.getContentId()).getData();
-            if (matedataFieldDataMap == null) {
-                matedataFieldDataMap = new HashMap<>();
-            }
-            // 处理 checkbox 返回数据为数组
-            List<Metadata> checkboxList = metadataMap.values().stream().filter( md -> "checkboxElement".equals(md.getControlType())).collect(Collectors.toList());
-            if (CollectionUtil.isNotEmpty(checkboxList)) {
-                for (Metadata md : checkboxList) {
-                    Object value = matedataFieldDataMap.get(md.getBriefName());
-                    if (Objects.isNull(value)) {
-                        matedataFieldDataMap.put(md.getBriefName(), new ArrayList<>());
-                    } else {
-                        String str = value.toString();
-                        matedataFieldDataMap.put(md.getBriefName(), Arrays.asList(str.split(",")));
-                    }
-                }
-            }
+            Map<String, Object> baseMap = ColumnUtil.objectToColumnMap(template);
+            Map<String, Object> metaMap = adminFeign.getMetadataById(collectionId, template.getContentId()).getData();
+            if (Objects.nonNull(baseMap)) metadataFieldDataMap.putAll(baseMap);
+            if (Objects.nonNull(metaMap)) metadataFieldDataMap.putAll(metaMap);
         }
-
         // 每一页已排好的顺序
-        List<List<TemplateFormOrderVo>> orders =  (List<List<TemplateFormOrderVo>>) orderMap.get("orders");
+        List<List<TemplateFormOrderVo>> SortedDatas =  (List<List<TemplateFormOrderVo>>) orderMap.get("orders");
+        // 页码页名列表
         List<TemplateFormOrderVo> pages = (List<TemplateFormOrderVo>) orderMap.get("pages");
         for (TemplateFormOrderVo p : pages) {
             TemplateDynamicFormVo form = new TemplateDynamicFormVo();
@@ -158,42 +143,47 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             form.setPageNumber(p.getPageNumber());
             // 页名
             form.setPageName(p.getPageName());
-            // 页表单对象
+            // 表单对象
             Map<String, Object> pageModel = new HashMap<>();
             form.setPageModel(pageModel);
-            // 下拉框、单选框、复选框的数据
+            // 下拉框、单选框、复选框展示数据
             Map<String, Object> pageList = new HashMap<>();
             form.setPageList(pageList);
-            // 页表单行
+            // 表单行
             List<List<Metadata>> rows = new ArrayList<>();
             form.setRows(rows);
-            // 每页数据
-            List<TemplateFormOrderVo> formOrder = orders.get(p.getPageNumber() - 1);
-            for (int i = 0; i < formOrder.size(); i++) {
-                TemplateFormOrderVo oc = formOrder.get(i);
+            // 取出当前页排好的表单
+            List<TemplateFormOrderVo> formSortedData = SortedDatas.get(p.getPageNumber() - 1);
+            for (int i = 0; i < formSortedData.size(); i++) {
+                // 有序元数据ID对象
+                TemplateFormOrderVo current = formSortedData.get(i);
                 // 获取元数据
-                Metadata mdc = metadataMap.get(oc.getMetadataId());
+                Metadata currentMetadata = metadataMap.get(current.getMetadataId());
                 // 每行元素
                 List<Metadata> elements = new ArrayList<>();
                 // 添加行元素
                 rows.add(elements);
-                // 设置数据
-                putPageModel(pageModel, oc, mdc, baseFieldDataMap, matedataFieldDataMap);
-                putPageList(pageList, mdc);
+                // 设置表单绑定数据
+                putPageModel(pageModel, currentMetadata, metadataFieldDataMap);
+                // 设置下拉框、单选框、复选框展示数据
+                putPageList(pageList, currentMetadata);
                 // 添加表单项目
-                elements.add(mdc);
+                elements.add(currentMetadata);
 
-                // 最后一个元素不处理，现在是半行
-                if (i != formOrder.size() - 1 && mdc.getControlLength() == 1) {
-                    TemplateFormOrderVo on = formOrder.get(i + 1);
-                    Metadata mdn = metadataMap.get(on.getMetadataId());
+                // 不是最后一个元素并且当前元素是半行，需要补成一整行。
+                if (i != formSortedData.size() - 1 && currentMetadata.getControlLength() == 1) {
+                    // 下一个有序元数据ID对象
+                    TemplateFormOrderVo next = formSortedData.get(i + 1);
+                    // 获取下一个元数据
+                    Metadata nextMetadata = metadataMap.get(next.getMetadataId());
                     // 下一个也是半行，则合并一行
-                    if (mdn.getControlLength() == 1) {
-                        // 设置数据
-                        putPageModel(pageModel, on, mdn, baseFieldDataMap, matedataFieldDataMap);
-                        putPageList(pageList, mdn);
+                    if (nextMetadata.getControlLength() == 1) {
+                        // 设置下一个表单绑定数据
+                        putPageModel(pageModel, nextMetadata, metadataFieldDataMap);
+                        // 设置下一个下拉框、单选框、复选框展示数据
+                        putPageList(pageList, nextMetadata);
                         // 添加表单项目
-                        elements.add(mdn);
+                        elements.add(nextMetadata);
                         // 索引指向当前处理的元素
                         i = i + 1;
                     }
@@ -212,23 +202,28 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         }
     }
 
-    private void putPageModel(Map<String, Object> pageModel, TemplateFormOrderVo o, Metadata md, Map<String, Object> baseFieldDataMap, Map<String, Object> matedataFieldDataMap) {
-                // 元数据字段
-        if (o.getMetadataId().length() > 3) {
-            if (Objects.nonNull(matedataFieldDataMap)) {
-                pageModel.put(md.getBriefName(), matedataFieldDataMap.get(md.getBriefName()));
-            }
-            // 基础字段
-        } else {
-            if (Objects.nonNull(baseFieldDataMap)) {
-                pageModel.put(md.getBriefName(), baseFieldDataMap.get(md.getBriefName()));
-            }
+    private void putPageModel(Map<String, Object> pageModel, Metadata md, Map<String, Object> metadataFieldDataMap) {
+        Object value = metadataFieldDataMap.get(md.getBriefName());
+        // 开关switch
+        if ("switchElement".equals(md.getControlType())) {
+            pageModel.put(md.getBriefName(), Objects.isNull(value) ? YesNoEnum.NO.getCode() : value);
+        }
+        // 复选框checkbox
+        else if ("checkboxElement".equals(md.getControlType())) {
+            pageModel.put("checkbox_" + md.getBriefName(), Objects.isNull(value) ? new ArrayList<>() : Arrays.asList(value.toString().split(",")));
+            pageModel.put(md.getBriefName(), Objects.isNull(value) ? "" : value);
+        }
+        else {
+            pageModel.put(md.getBriefName(), Objects.isNull(value) ? "" : value);
         }
     }
 
     private Map<String, Metadata> getMetadatas(String collectionId) {
-        Map<String, Metadata> metadataMap = Template.baseFields();
+        // 元数据集
         MetadataCollection collection = formOrderService.getCollectionById(collectionId);
+        // 基础字段映射
+        Map<String, Metadata> metadataMap = Template.baseFields();
+        // 元数据
         List<Metadata> metadatas = formOrderService.getAllMetadataByByCollectionId(collectionId);
         if (CollectionUtil.isNotEmpty(metadatas)) {
             for (Metadata md : metadatas) {
@@ -336,7 +331,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         }
 
         if (StrUtil.isEmpty(templateVo.getUrl())) {
-            if (BooleanUtil.isTrue(templateVo.getFlagExternal())) {
+            if (YesNoEnum.YES.getCode() == templateVo.getFlagExternal()) {
                 throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "外链内容必须填写URL");
             }
             // 获取栏目信息
@@ -350,7 +345,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         }
 
         // 保存或更新元数据
-        if (BooleanUtil.isFalse(templateVo.getFlagExternal()) && StrUtil.isNotEmpty(templateVo.getContentMapStr())) {
+        if (YesNoEnum.NO.getCode() == templateVo.getFlagExternal() && StrUtil.isNotEmpty(templateVo.getContentMapStr())) {
             // contentMap 数据库字段
             Map contentMap = JSONUtil.toBean(templateVo.getContentMapStr(), Map.class);
             String contentId = adminFeign.saveOrUpdateMetadata(templateVo.getMetaDataCollectionId(), templateVo.getContentId(), contentMap).getData();
@@ -405,9 +400,9 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         boolean res = super.saveOrUpdate(templateVo);
         if (res && ContentStatusEnum.PUBLISH.getCode() == templateVo.getStatus()) {
             // 生成静态页面任务
-            this.addStaticPageTask(templateVo);
+            //this.addStaticPageTask(templateVo);
             // 默认都创建索引, 索引任务
-            this.addIndexTask(templateVo, toUpdate ? RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE : RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
+            //this.addIndexTask(templateVo, toUpdate ? RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE : RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
         }
         return res;
     }
@@ -515,7 +510,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             queryWrapper.in("cms_catalog_id", catalogIds);
         }
         if (StrUtil.isNotEmpty(templateVo.getIds())) {
-            queryWrapper.in("id_", templateVo.getIds().split(","));
+            queryWrapper.in("id_", Arrays.asList(templateVo.getIds().split(",")));
         }
         Collection<Template> templateList = super.list(queryWrapper);
         return templateList;

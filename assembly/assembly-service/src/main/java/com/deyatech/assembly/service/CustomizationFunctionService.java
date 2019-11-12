@@ -39,7 +39,12 @@ public interface CustomizationFunctionService extends BaseService<CustomizationF
      * @return
      */
     List<CustomizationFunctionVo> getAllCustomizationFunction();
-
+    /**
+     * 获取定制功能
+     *
+     * @return
+     */
+    CustomizationFunctionVo getCustomizationFunction(String type);
     /**
      * 获取表头数据
      *
@@ -47,4 +52,6 @@ public interface CustomizationFunctionService extends BaseService<CustomizationF
      * @return
      */
     List<CustomizationTableHeadVo> getTableHeadData(String type);
+
+
 }

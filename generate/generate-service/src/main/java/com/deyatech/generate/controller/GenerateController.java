@@ -2,6 +2,7 @@ package com.deyatech.generate.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.station.feign.StationFeign;
 import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.template.feign.TemplateFeign;
@@ -68,7 +69,7 @@ public class GenerateController {
                 list = stationFeign.getTemplateListView(maps,i,pageSize).getData().getRecords();
                 if(list != null && !list.isEmpty()){
                     for(TemplateVo templateVo:list){
-                        if(!templateVo.getFlagExternal()){
+                        if(YesNoEnum.NO.getCode() == templateVo.getFlagExternal()){
                             templateFeign.generateStaticTemplate(templateVo);
                         }
                     }
