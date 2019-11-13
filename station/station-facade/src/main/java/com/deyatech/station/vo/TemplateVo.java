@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -84,4 +85,24 @@ public class TemplateVo extends Template {
      * 草稿标记
      */
     private String draftFlag;
+
+    /**
+     * 站点名
+     */
+    private String siteName;
+
+    /**
+     * 栏目名
+     */
+    private String cmsCatalogName;
+
+    /**
+     * 资源名
+     */
+    private String resourceCategoryName;
+
+    /**
+     * 资源管理元数据内容
+     */
+    private List<ResourceManagementVo> contentList;
 }
