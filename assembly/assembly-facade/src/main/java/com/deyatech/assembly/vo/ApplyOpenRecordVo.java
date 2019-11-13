@@ -21,7 +21,8 @@ import lombok.experimental.Accessors;
 @ApiModel(value = "扩展对象", description = "扩展对象", parent = ApplyOpenRecord.class)
 public class ApplyOpenRecordVo extends ApplyOpenRecord {
 
-    private String doDeptName;
+    private String deptName;
+    private String proDeptName;
 
     private String modelName;
 

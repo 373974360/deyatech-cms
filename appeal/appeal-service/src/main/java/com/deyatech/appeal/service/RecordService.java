@@ -60,7 +60,7 @@ public interface RecordService extends BaseService<Record> {
      * 根据业务ID得到参与部门
      *
      * @param modelId
-     * @return String
+     * @return List
      */
     List<DepartmentVo> getCompetentDept(String modelId);
 
@@ -81,7 +81,7 @@ public interface RecordService extends BaseService<Record> {
      *
      * @param sqCode
      * @param queryCode
-     * @return Ipage
+     * @return RecordVo
      */
     RecordVo queryAppeal(String sqCode,String queryCode);
 

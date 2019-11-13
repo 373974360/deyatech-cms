@@ -1,6 +1,7 @@
 package com.deyatech.assembly.feign;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.deyatech.admin.vo.DepartmentVo;
 import com.deyatech.assembly.entity.ApplyOpenRecord;
 import com.deyatech.assembly.vo.ApplyOpenModelVo;
 import com.deyatech.assembly.vo.ApplyOpenRecordVo;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -65,4 +67,12 @@ public interface AssemblyFeign {
      */
     @RequestMapping(value = "/feign/assembly/getApplyOpenModelById")
     RestResult<ApplyOpenModelVo> getApplyOpenModelById(@RequestParam("id") String id);
+
+    /**
+     * 根据模型ID获取参与部门
+     * @param modelId
+     * @return
+     */
+    @RequestMapping(value = "/feign/assembly/getPartDept")
+    RestResult<List<DepartmentVo>> getPartDept(@RequestParam("modelId") String modelId);
 }

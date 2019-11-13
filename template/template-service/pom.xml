@@ -17,6 +17,16 @@
     <dependencies>
         <dependency>
             <groupId>com.deyatech</groupId>
+            <artifactId>interview-facade</artifactId>
+            <version>${deyatech.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.deyatech</groupId>
+            <artifactId>assembly-facade</artifactId>
+            <version>${deyatech.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.deyatech</groupId>
             <artifactId>template-facade</artifactId>
             <version>${deyatech.version}</version>
         </dependency>

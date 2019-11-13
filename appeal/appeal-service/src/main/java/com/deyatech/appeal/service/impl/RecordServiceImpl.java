@@ -57,10 +57,13 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
      */
     @Override
     public RecordVo setVoProperties(Record record){
-        RecordVo recordVo = new RecordVo();
-        BeanUtil.copyProperties(record, recordVo);
-        setProperties(recordVo, getDepartmentMap());
-        return recordVo;
+        if(ObjectUtil.isNotNull(record)){
+            RecordVo recordVo = new RecordVo();
+            BeanUtil.copyProperties(record, recordVo);
+            setProperties(recordVo, getDepartmentMap());
+            return recordVo;
+        }
+        return null;
     }
 
     /**
@@ -269,16 +272,18 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
     public IPage<RecordVo> getAppealList(Map<String, Object> maps, Integer page, Integer pageSize) {
         QueryWrapper<Record> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("is_publish",1)
-                .eq("is_open",1)
-                .eq("sq_flag",0);
+                .eq("is_open",1);
         if(maps.containsKey("modelId")){
-            queryWrapper.in("model_id",maps.get("modelId"));
+            queryWrapper.in("model_id",maps.get("modelId").toString().split(","));
+        }
+        if(maps.containsKey("sqFlag")){
+            queryWrapper.in("sq_flag",maps.get("sqFlag").toString().split(","));
         }
         if(maps.containsKey("sqStatus")){
-            queryWrapper.in("sq_status",maps.get("sqStatus"));
+            queryWrapper.in("sq_status",maps.get("sqStatus").toString().split(","));
         }
         if(maps.containsKey("purId")){
-            queryWrapper.in("pur_id",maps.get("purId"));
+            queryWrapper.in("pur_id",maps.get("purId").toString().split(","));
         }
         if(maps.containsKey("title")){
             queryWrapper.like("title",maps.get("title"));
@@ -286,13 +291,22 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
         if(maps.containsKey("deptId")){
             queryWrapper.eq("reply_dept_id",maps.get("deptId"));
         }
+        if(maps.containsKey("sqCode")){
+            queryWrapper.eq("sq_code",maps.get("sqCode"));
+        }
+        if(maps.containsKey("queryCode")){
+            queryWrapper.eq("query_code",maps.get("queryCode"));
+        }
         if(maps.containsKey("orderby")){
             queryWrapper.orderByDesc(maps.get("orderby").toString());
         }else{
             queryWrapper.orderByDesc("reply_time");
         }
         IPage<RecordVo> recordVoIPage = new Page<>(page,pageSize);
-        IPage<Record> pages = super.page(getPageByBean(new Record()), queryWrapper);
+        Record record = new Record();
+        record.setPage(page.longValue());
+        record.setSize(pageSize.longValue());
+        IPage<Record> pages = super.page(getPageByBean(record), queryWrapper);
         recordVoIPage.setRecords(setVoProperties(pages.getRecords()));
         recordVoIPage.setPages(pages.getPages());
         recordVoIPage.setTotal(pages.getTotal());
@@ -311,6 +325,7 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
     @Override
     public Record insertAppeal(Record record) {
         Model model = modelService.getById(record.getModelId());
+        String[] competentDept = model.getCompetentDept().split(",");
         record.setSqCode(getAppealCode(model.getId()));
         record.setQueryCode(getQueryCode(model.getId()));
         if(model.getAutoPublish() == 1){
@@ -322,6 +337,12 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
         record.setSqStatus(0);
         record.setIsBack(0);
         record.setLimitFlag(0);
+        //如果业务模式为转发 或者网民选择了 "我不知道部门" 则处理部门全部为 主管部门，由主管部门转发给办理部门
+        if(model.getBusType() == 1 || record.getDeptId().equals("-1")){
+            record.setDeptId(competentDept[competentDept.length-1]);
+        }
+        // 默认情况下 提交部门就是要处理该信息的部门
+        record.setProDeptId(record.getDeptId());
         super.save(record);
         return record;
     }

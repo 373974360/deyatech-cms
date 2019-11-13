@@ -22,7 +22,9 @@ public class CmsExpressionObjectFactory implements IExpressionObjectFactory {
                 TemplateConstants.TEMPLATE_OBJ_INFO_UTIL,
                 TemplateConstants.TEMPLATE_OBJ_USER_UTIL,
                 TemplateConstants.TEMPLATE_OBJ_SITE_UTIL,
-                TemplateConstants.TEMPLATE_OBJ_APPEAL_UTIL
+                TemplateConstants.TEMPLATE_OBJ_APPEAL_UTIL,
+                TemplateConstants.TEMPLATE_OBJ_APPLYOPEN_UTIL,
+                TemplateConstants.TEMPLATE_OBJ_INTERVIEW_UTIL
         );
     }
 

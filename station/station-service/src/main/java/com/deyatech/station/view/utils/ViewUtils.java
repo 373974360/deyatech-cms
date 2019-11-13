@@ -26,9 +26,14 @@ public class ViewUtils {
             if(ext.equals("index")){
                 result.put("type",ext);
             }else{
-                if(ext.equals("catagory")){
+                if(ext.equals("catagory")||ext.equals("")){
                     result.put("pageNo","1");
                 }else{
+                    try {
+                        int pageNo = Integer.parseInt(ext);
+                    }catch (Exception e){
+                        ext = "1";
+                    }
                     result.put("pageNo",ext);
                 }
                 result.put("type","list");

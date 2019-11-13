@@ -8,6 +8,7 @@ import com.deyatech.interview.vo.ModelVo;
 import com.deyatech.common.base.BaseService;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -59,4 +60,15 @@ public interface ModelService extends BaseService<Model> {
      * @return
      */
     Boolean operateLiveImage(LiveImageVo liveImageVo);
+
+
+    /**
+     * 网站前台根据条件获取访谈列表
+     *
+     * @param maps
+     * @param page
+     * @param pageSize
+     * @return Ipage
+     */
+    IPage<ModelVo> getInterviewList(Map<String, Object> maps, Integer page, Integer pageSize);
 }

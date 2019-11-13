@@ -8,12 +8,14 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.admin.entity.Department;
 import com.deyatech.admin.feign.AdminFeign;
+import com.deyatech.admin.vo.DepartmentVo;
 import com.deyatech.assembly.entity.ApplyOpenModel;
 import com.deyatech.assembly.entity.ApplyOpenRecord;
 import com.deyatech.assembly.service.ApplyOpenModelService;
 import com.deyatech.assembly.vo.ApplyOpenRecordVo;
 import com.deyatech.assembly.mapper.ApplyOpenRecordMapper;
 import com.deyatech.assembly.service.ApplyOpenRecordService;
+import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
@@ -22,9 +24,7 @@ import com.deyatech.common.utils.RandomStrg;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Collection;
+import java.util.*;
 
 /**
  * <p>
@@ -55,10 +55,16 @@ public class ApplyOpenRecordServiceImpl extends BaseServiceImpl<ApplyOpenRecordM
     public ApplyOpenRecordVo setVoProperties(ApplyOpenRecord applyOpenRecord){
         ApplyOpenRecordVo applyOpenRecordVo = new ApplyOpenRecordVo();
         BeanUtil.copyProperties(applyOpenRecord, applyOpenRecordVo);
-        if(StrUtil.isNotBlank(applyOpenRecordVo.getDoDept())){
-            Department department = adminFeign.getDepartmentById(applyOpenRecordVo.getDoDept()).getData();
+        if(StrUtil.isNotBlank(applyOpenRecordVo.getDeptId())){
+            Department department = adminFeign.getDepartmentById(applyOpenRecordVo.getDeptId()).getData();
             if(ObjectUtil.isNotNull(department)){
-                applyOpenRecordVo.setDoDeptName(department.getName());
+                applyOpenRecordVo.setDeptName(department.getName());
+            }
+        }
+        if(StrUtil.isNotBlank(applyOpenRecordVo.getProDeptId())){
+            Department department = adminFeign.getDepartmentById(applyOpenRecordVo.getProDeptId()).getData();
+            if(ObjectUtil.isNotNull(department)){
+                applyOpenRecordVo.setProDeptName(department.getName());
             }
         }
         if(StrUtil.isNotBlank(applyOpenRecordVo.getModelId())){
@@ -89,10 +95,16 @@ public class ApplyOpenRecordServiceImpl extends BaseServiceImpl<ApplyOpenRecordM
             for (Object applyOpenRecord : applyOpenRecords) {
                 ApplyOpenRecordVo applyOpenRecordVo = new ApplyOpenRecordVo();
                 BeanUtil.copyProperties(applyOpenRecord, applyOpenRecordVo);
-                if(StrUtil.isNotBlank(applyOpenRecordVo.getDoDept())){
-                    Department department = adminFeign.getDepartmentById(applyOpenRecordVo.getDoDept()).getData();
+                if(StrUtil.isNotBlank(applyOpenRecordVo.getDeptId())){
+                    Department department = adminFeign.getDepartmentById(applyOpenRecordVo.getDeptId()).getData();
                     if(ObjectUtil.isNotNull(department)){
-                        applyOpenRecordVo.setDoDeptName(department.getName());
+                        applyOpenRecordVo.setDeptName(department.getName());
+                    }
+                }
+                if(StrUtil.isNotBlank(applyOpenRecordVo.getProDeptId())){
+                    Department department = adminFeign.getDepartmentById(applyOpenRecordVo.getProDeptId()).getData();
+                    if(ObjectUtil.isNotNull(department)){
+                        applyOpenRecordVo.setProDeptName(department.getName());
                     }
                 }
                 if(StrUtil.isNotBlank(applyOpenRecordVo.getModelId())){
@@ -125,9 +137,6 @@ public class ApplyOpenRecordServiceImpl extends BaseServiceImpl<ApplyOpenRecordM
         if(StrUtil.isNotBlank(applyOpenRecord.getYsqCode())){
             queryWrapper.eq("ysq_code",applyOpenRecord.getYsqCode());
         }
-        if(applyOpenRecord.getFlag() != null && applyOpenRecord.getFlag() > 0){
-            queryWrapper.eq("flag",applyOpenRecord.getFlag());
-        }
         if(applyOpenRecord.getIsPublish() != null && applyOpenRecord.getIsPublish() > 0){
             queryWrapper.eq("is_publish",applyOpenRecord.getIsPublish());
         }
@@ -141,14 +150,136 @@ public class ApplyOpenRecordServiceImpl extends BaseServiceImpl<ApplyOpenRecordM
 
     @Override
     public String getQueryCode(String ModelId) {
-        ApplyOpenModel Model = applyOpenModelService.getById(ModelId);
-        return RandomStrg.getRandomStr(DEFAULT_RANDON_STR, Model.getQueryNum() + "");
+        ApplyOpenModel model = applyOpenModelService.getById(ModelId);
+        return RandomStrg.getRandomStr(DEFAULT_RANDON_STR, model.getQuerycodeCount() + "");
     }
 
     @Override
     public String getYsqCode(String ModelId) {
-        ApplyOpenModel Model = applyOpenModelService.getById(ModelId);
+        ApplyOpenModel model = applyOpenModelService.getById(ModelId);
         //编码头＋日期＋随机码
-        return Model.getCodePre() + DateUtil.format(new Date(),Model.getCodeRule()) + RandomStrg.getRandomStr(DEFAULT_RANDON_STR, Model.getCodeNum() + "");
+        return model.getBusCode() + DateUtil.format(new Date(),model.getDayCode()) + RandomStrg.getRandomStr(DEFAULT_RANDON_STR, model.getRandomcodeCount() + "");
+    }
+
+    @Override
+    public List<DepartmentVo> getCompetentDept(String modelId) {
+        List<DepartmentVo> rootDepartments = CollectionUtil.newArrayList();
+        List<Department> departments = adminFeign.getAllDepartments().getData();
+        ApplyOpenModel model = applyOpenModelService.getById(modelId);
+        String partDept = model.getPartDept();
+        Map<String,String> deptMaps = new HashMap<>();
+        if(StrUtil.isNotBlank(partDept)){
+            for(String deptIds:partDept.split("&")){
+                for(String deptId:deptIds.split(",")){
+                    deptMaps.put(deptId,deptId);
+                }
+            }
+        }
+        List<DepartmentVo> departmentVos = CollectionUtil.newArrayList();
+        if(CollectionUtil.isNotEmpty(departments)){
+            for(Department dept:departments){
+                if(deptMaps.containsKey(dept.getId())){
+                    DepartmentVo departmentVo = new DepartmentVo();
+                    BeanUtil.copyProperties(dept,departmentVo);
+                    departmentVos.add(departmentVo);
+                }
+            }
+        }
+        for (DepartmentVo departmentVo : departmentVos) {
+            departmentVo.setLabel(departmentVo.getName());
+            if(StrUtil.isNotBlank(departmentVo.getTreePosition())){
+                String[] split = departmentVo.getTreePosition().split(Constants.DEFAULT_TREE_POSITION_SPLIT);
+                departmentVo.setLevel(split.length);
+            }else{
+                departmentVo.setLevel(Constants.DEFAULT_ROOT_LEVEL);
+            }
+            if (ObjectUtil.equal(departmentVo.getParentId(), Constants.ZERO)) {
+                rootDepartments.add(departmentVo);
+            }
+            for (DepartmentVo childVo : departmentVos) {
+                if (ObjectUtil.equal(childVo.getParentId(), departmentVo.getId())) {
+                    if (ObjectUtil.isNull(departmentVo.getChildren())) {
+                        List<DepartmentVo> children = CollectionUtil.newArrayList();
+                        children.add(childVo);
+                        departmentVo.setChildren(children);
+                    } else {
+                        departmentVo.getChildren().add(childVo);
+                    }
+                }
+            }
+        }
+        return rootDepartments;
+    }
+
+    @Override
+    public ApplyOpenRecord insertApplyOpenRecord(ApplyOpenRecord applyOpenRecord) {
+        ApplyOpenModel model = applyOpenModelService.getById(applyOpenRecord.getModelId());
+        String[] competentDept = model.getCompetentDept().split(",");
+        applyOpenRecord.setYsqCode(getYsqCode(model.getId()));
+        applyOpenRecord.setQueryCode(getQueryCode(model.getId()));
+        if(model.getAutoPublish() == 1){
+            applyOpenRecord.setIsPublish(1);
+        }else{
+            applyOpenRecord.setIsPublish(2);
+        }
+        applyOpenRecord.setApplyFlag(0);
+        applyOpenRecord.setApplyStatus(0);
+        applyOpenRecord.setIsBack(0);
+        applyOpenRecord.setLimitFlag(0);
+        //如果业务模式为转发 或者网民选择了 "我不知道部门" 则处理部门全部为 主管部门，由主管部门转发给办理部门
+        if(model.getBusType() == 1 || applyOpenRecord.getDeptId().equals("-1")){
+            applyOpenRecord.setDeptId(competentDept[competentDept.length-1]);
+        }
+        // 默认情况下 提交部门就是要处理该信息的部门
+        applyOpenRecord.setProDeptId(applyOpenRecord.getDeptId());
+        super.save(applyOpenRecord);
+        return applyOpenRecord;
+    }
+
+    @Override
+    public ApplyOpenRecordVo queryApplyOpen(String sqCode, String queryCode) {
+        ApplyOpenRecord record = new ApplyOpenRecord();
+        record.setYsqCode(sqCode);
+        record.setQueryCode(queryCode);
+        return setVoProperties(super.getByBean(record));
+    }
+
+    @Override
+    public IPage<ApplyOpenRecordVo> getApplyOpenList(Map<String, Object> maps, Integer page, Integer pageSize) {
+        QueryWrapper<ApplyOpenRecord> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("is_publish",1);
+        if(maps.containsKey("modelId")){
+            queryWrapper.in("model_id",maps.get("modelId").toString().split(","));
+        }
+        if(maps.containsKey("applyFlag")){
+            queryWrapper.in("apply_flag",maps.get("applyFlag").toString().split(","));
+        }
+        if(maps.containsKey("applyStatus")){
+            queryWrapper.in("apply_status",maps.get("applyStatus").toString().split(","));
+        }
+        if(maps.containsKey("deptId")){
+            queryWrapper.eq("reply_dept_id",maps.get("deptId"));
+        }
+        if(maps.containsKey("ysqCode")){
+            queryWrapper.eq("ysq_code",maps.get("ysqCode"));
+        }
+        if(maps.containsKey("queryCode")){
+            queryWrapper.eq("query_code",maps.get("queryCode"));
+        }
+        if(maps.containsKey("orderby")){
+            queryWrapper.orderByDesc(maps.get("orderby").toString());
+        }else{
+            queryWrapper.orderByDesc("reply_time");
+        }
+        IPage<ApplyOpenRecordVo> recordVoIPage = new Page<>(page,pageSize);
+        ApplyOpenRecord record = new ApplyOpenRecord();
+        record.setPage(page.longValue());
+        record.setSize(pageSize.longValue());
+        IPage<ApplyOpenRecord> pages = super.page(getPageByBean(record), queryWrapper);
+        recordVoIPage.setRecords(setVoProperties(pages.getRecords()));
+        recordVoIPage.setPages(pages.getPages());
+        recordVoIPage.setTotal(pages.getTotal());
+        recordVoIPage.setCurrent(pages.getCurrent());
+        return recordVoIPage;
     }
 }
