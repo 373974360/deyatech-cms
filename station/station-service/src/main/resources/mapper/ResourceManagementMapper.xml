@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.station.mapper.ResourceManagementMapper">
+
+    <resultMap id="BaseResultMap" type="com.deyatech.station.vo.TemplateVo">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="site_id" property="siteId" />
+        <result column="template_path" property="templatePath" />
+        <result column="cms_catalog_id" property="cmsCatalogId" />
+        <result column="content_model_id" property="contentModelId" />
+        <result column="content_id" property="contentId" />
+        <result column="status_" property="status" />
+        <result column="content_model_template_id" property="contentModelTemplateId" />
+        <result column="url_" property="url" />
+        <result column="author_" property="author" />
+        <result column="editor_" property="editor" />
+        <result column="source_" property="source" />
+        <result column="thumbnail_" property="thumbnail" />
+        <result column="title_" property="title" />
+        <result column="flag_search" property="flagSearch" />
+        <result column="sort_no" property="sortNo" />
+        <result column="flag_top" property="flagTop" />
+        <result column="views_" property="views" />
+        <result column="flag_external" property="flagExternal" />
+        <result column="resource_summary" property="resourceSummary" />
+        <result column="resource_content" property="resourceContent" />
+        <result column="resource_category" property="resourceCategory" />
+        <result column="resource_publication_date" property="resourcePublicationDate" />
+        <result column="keyword_" property="keyword" />
+        <result column="index_code" property="indexCode" />
+
+        <result column="site_name" property="siteName" />
+        <result column="cms_catalog_name" property="cmsCatalogName" />
+        <result column="content_model_name" property="contentModelName" />
+        <result column="meta_data_collection_id" property="metaDataCollectionId" />
+        <result column="resource_category_name" property="resourceCategoryName" />
+    </resultMap>
+
+    <!--翻页检索资源-->
+    <select id="pageByResourceManagement" resultMap="BaseResultMap">
+        select
+        s.name_ as site_name,
+        c.name as cms_catalog_name,
+        m.name_ as content_model_name,
+        m.meta_data_collection_id as meta_data_collection_id,
+        d.code_text as resource_category_name,
+        t.*
+        from station_template t
+        join resource_station_group s on s.id_ = t.site_id and s.enable_ = 1
+        join station_catalog c on c.id_ = t.cms_catalog_id and c.enable_ = 1
+        join station_model m on m.id_ = t.content_model_id and m.enable_ = 1
+        join admin_dictionary d on d.id_ = t.resource_category and d.enable_ = 1
+        where t.enable_ = 1
+        order by t.update_time desc
+    </select>
+
+    <!--删除内容资源-->
+    <delete id="deleteBytemplateIds">
+        delete from station_template where id_ in
+        <foreach item="item" index="index" collection="templateIds" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+</mapper>
