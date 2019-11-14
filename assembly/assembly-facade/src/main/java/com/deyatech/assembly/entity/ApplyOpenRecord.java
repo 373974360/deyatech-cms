@@ -37,10 +37,6 @@ public class ApplyOpenRecord extends BaseEntity {
     @TableField("query_code")
     private String queryCode;
 
-    @ApiModelProperty(value = "申请部门", dataType = "String")
-    @TableField("do_dept")
-    private String doDept;
-
     @ApiModelProperty(value = "申请人类型；1=公民，2=法人或者其他组织", dataType = "Integer", example = "1")
     @TableField("ysq_type")
     private Integer ysqType;
@@ -125,9 +121,13 @@ public class ApplyOpenRecord extends BaseEntity {
     @TableField("is_publish")
     private Integer isPublish;
 
-    @ApiModelProperty(value = "申请状态；1=未处理，2=已受理，3=已回复，4=无效", dataType = "Integer", example = "1")
-    @TableField("flag")
-    private Integer flag;
+    @ApiModelProperty(value = "收件部门 网民留言时候提交的部门", dataType = "String")
+    @TableField("dept_id")
+    private String deptId;
+
+    @ApiModelProperty(value = "处理部门 管理员转办时候指定的目标部门", dataType = "String")
+    @TableField("pro_dept_id")
+    private String proDeptId;
 
     @ApiModelProperty(value = "回复内容", dataType = "String")
     @TableField("reply_content")
@@ -140,5 +140,29 @@ public class ApplyOpenRecord extends BaseEntity {
     @ApiModelProperty(value = "回复部门", dataType = "String")
     @TableField("reply_dept_id")
     private String replyDeptId;
+
+    @ApiModelProperty(value = "处理截止日期限制 受理后，计时开始，默认值从业务模型中取", dataType = "LocalDateTime")
+    @TableField("time_limit")
+    private Date timeLimit;
+
+    @ApiModelProperty(value = "信件标识 0：正常信件（默认值）-1：无效信件1：重复信件2：不予受理信件", dataType = "Integer")
+    @TableField("apply_flag")
+    private Integer applyFlag;
+
+    @ApiModelProperty(value = "处理状态 0：待处理 1：处理中 2：待审核（发布审核）3：已办结", dataType = "Integer")
+    @TableField("apply_status")
+    private Integer applyStatus;
+
+    @ApiModelProperty(value = "回退标识 0：正常 1：退回", dataType = "Integer")
+    @TableField("is_back")
+    private Integer isBack;
+
+    @ApiModelProperty(value = "延时申请标识 0：正常1：已延时2：申请延时", dataType = "Integer")
+    @TableField("limit_flag")
+    private Integer limitFlag;
+
+    @ApiModelProperty(value = "延期时间", dataType = "LocalDateTime")
+    @TableField("limit_flag_time")
+    private Integer limitFlagTime;
 
 }

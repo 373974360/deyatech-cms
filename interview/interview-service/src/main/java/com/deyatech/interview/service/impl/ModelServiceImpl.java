@@ -1,9 +1,14 @@
 package com.deyatech.interview.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.interview.config.RabbitMQLiveConfig;
+import com.deyatech.interview.entity.Category;
 import com.deyatech.interview.entity.Model;
+import com.deyatech.interview.service.CategoryService;
+import com.deyatech.interview.vo.CategoryVo;
 import com.deyatech.interview.vo.LiveImageVo;
 import com.deyatech.interview.vo.LiveMessageVo;
 import com.deyatech.interview.vo.ModelVo;
@@ -37,6 +42,9 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
     private ObjectMapper mapper = new ObjectMapper();
     @Autowired
     private RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    private CategoryService categoryService;
 
     /**
      * 单个将对象转换为vo访谈模型
@@ -208,5 +216,45 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @Override
+    public IPage<ModelVo> getInterviewList(Map<String, Object> maps, Integer page, Integer pageSize) {
+        QueryWrapper<Model> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("is_publish",1);
+        if(maps.containsKey("catId")){
+            queryWrapper.in("category_id",maps.get("catId").toString().split(","));
+        }else{
+            if(maps.containsKey("siteId")){
+                Category category = new Category();
+                category.setSiteId(maps.get("siteId").toString());
+                List<CategoryVo> categoryVos = categoryService.listByNameAndSiteId(category);
+                if(!categoryVos.isEmpty()){
+                    List<String> catIdList = new ArrayList<>();
+                    for(CategoryVo categoryVo:categoryVos){
+                        catIdList.add(categoryVo.getId());
+                    }
+                    queryWrapper.in("category_id",catIdList);
+                }
+            }
+        }
+        if(maps.containsKey("status")){
+            queryWrapper.in("status_",maps.get("status").toString().split(","));
+        }
+        if(maps.containsKey("orderby")){
+            queryWrapper.orderByDesc(maps.get("orderby").toString());
+        }else{
+            queryWrapper.orderByDesc("create_time");
+        }
+        IPage<ModelVo> modelVoIPage = new Page<>(page,pageSize);
+        Model model = new Model();
+        model.setPage(page.longValue());
+        model.setSize(pageSize.longValue());
+        IPage<Model> pages = super.page(getPageByBean(model), queryWrapper);
+        modelVoIPage.setRecords(setVoProperties(pages.getRecords()));
+        modelVoIPage.setPages(pages.getPages());
+        modelVoIPage.setTotal(pages.getTotal());
+        modelVoIPage.setCurrent(pages.getCurrent());
+        return modelVoIPage;
     }
 }

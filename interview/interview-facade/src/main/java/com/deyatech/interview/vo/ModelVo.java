@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.util.List;
+
 /**
  * <p>
  * 访谈模型扩展对象
@@ -26,4 +28,9 @@ public class ModelVo extends Model {
      */
     @ApiModelProperty(value = "分类名称", dataType = "String")
     private String categoryName;
+
+    /**
+     * 嘉宾信息
+     * */
+    private List<GuestVo> guestVoList;
 }

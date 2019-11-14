@@ -14,6 +14,8 @@ import com.deyatech.assembly.vo.ApplyOpenModelVo;
 import com.deyatech.assembly.vo.ApplyOpenRecordVo;
 import com.deyatech.common.base.BaseController;
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.interview.entity.Category;
+import com.deyatech.interview.feign.InterviewFeign;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.entity.Catalog;
@@ -30,7 +32,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,6 +57,8 @@ public class ViewController extends BaseController {
     AppealFeign appealFeign;
     @Autowired
     AssemblyFeign assemblyFeign;
+    @Autowired
+    InterviewFeign interviewFeign;
 
     @Autowired
     RedisTemplate redisTemplate;
@@ -97,7 +100,7 @@ public class ViewController extends BaseController {
         catalog.setSiteId(siteId);
         catalog.setPathName(map.get("pathName"));
         catalog = catalogService.getByBean(catalog);
-        if (catalog == null) {
+        if (ObjectUtil.isNull(catalog)) {
             return "栏目不存在";
         }
         String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(siteId);
@@ -143,7 +146,7 @@ public class ViewController extends BaseController {
         //新闻详情
         if(map.get("type").equals("info")){
             Template template = templateService.getById(map.get("infoId"));
-            if (template == null) {
+            if (ObjectUtil.isNull(template)) {
                 return "查询不到 ContentTemplate";
             }
             TemplateVo templateVo = templateService.setVoProperties(template);
@@ -152,29 +155,57 @@ public class ViewController extends BaseController {
         }
         //诉求详情
         if(map.get("type").equals("appeal")){
-            RecordVo recordVo = appealFeign.getAppealById(map.get("infoId")).getData();
-            if (recordVo == null) {
-                return "查询不到 recordVo";
+            String infoId = map.get("infoId");
+            RecordVo recordVo;
+            //infoId为search时 标识根据信件编码和查询码 查询详情
+            if(infoId.equals("search")){
+                recordVo = appealFeign.queryAppeal(varMap.get("sqCode").toString(),varMap.get("queryCode").toString()).getData();
+            }else{
+                recordVo = appealFeign.getAppealById(infoId).getData();
+                if (ObjectUtil.isNull(recordVo)) {
+                    return "查询不到 recordVo";
+                }
             }
             ModelVo modelVo = appealFeign.getModelById(recordVo.getModelId()).getData();
-            if (modelVo == null) {
+            if (ObjectUtil.isNull(modelVo)) {
                 return "查询不到 modelVo";
             }
             varMap.put("appealData",recordVo);
             templatePath = modelVo.getViewTemplet();
         }
         //依申请公开详情
-        if(map.get("type").equals("ysqgk")){
-            ApplyOpenRecordVo applyOpenRecordVo = assemblyFeign.getApplyOpenById(map.get("infoId")).getData();
-            if (applyOpenRecordVo == null) {
-                return "查询不到 applyOpenRecordVo";
+        if(map.get("type").equals("applyopen")){
+            String infoId = map.get("infoId");
+            ApplyOpenRecordVo applyOpenRecordVo;
+            //infoId为search时 标识根据信件编码和查询码 查询详情
+            if(infoId.equals("search")){
+                applyOpenRecordVo = assemblyFeign.queryApplyOpen(varMap.get("ysqCode").toString(),varMap.get("queryCode").toString()).getData();
+            }else{
+                applyOpenRecordVo = assemblyFeign.getApplyOpenById(map.get("infoId")).getData();
+                if (ObjectUtil.isNull(applyOpenRecordVo)) {
+                    return "查询不到 applyOpenRecordVo";
+                }
             }
             ApplyOpenModelVo applyOpenModelVo = assemblyFeign.getApplyOpenModelById(applyOpenRecordVo.getModelId()).getData();
-            if (applyOpenModelVo == null) {
+            if (ObjectUtil.isNull(applyOpenModelVo)) {
                 return "查询不到 applyOpenModelVo";
             }
-            varMap.put("ysqgkData",applyOpenRecordVo);
-            templatePath = applyOpenModelVo.getTemplateContent();
+            varMap.put("applyOpenData",applyOpenRecordVo);
+            templatePath = applyOpenModelVo.getViewTemplet();
+        }
+        //在线访谈详情
+        if(map.get("type").equals("interview")){
+            String infoId = map.get("infoId");
+            com.deyatech.interview.vo.ModelVo interviewVo = interviewFeign.getInterviewById(infoId).getData();
+            if (ObjectUtil.isNull(interviewVo)) {
+                return "查询不到 interviewVo";
+            }
+            Category category = interviewFeign.getInterviewCatagoryById(interviewVo.getCategoryId()).getData();
+            if (ObjectUtil.isNull(category)) {
+                return "查询不到 interviewCategoryVo";
+            }
+            varMap.put("interviewData",interviewVo);
+            templatePath = category.getDetailPageTemplate();
         }
         if(StrUtil.isBlank(templatePath)){
             return "模板加载失败";
@@ -210,10 +241,10 @@ public class ViewController extends BaseController {
             templatePath = modelVo.getFormTemplet();
         }
         //依申请公开表单
-        if(map.get("type").equals("ysqgk")){
+        if(map.get("type").equals("applyopen")){
             ApplyOpenModelVo modelVo = assemblyFeign.getApplyOpenModelById(map.get("modelId")).getData();
             varMap.put("modelData",modelVo);
-            templatePath = modelVo.getTemplateForm();
+            templatePath = modelVo.getFormTemplet();
         }
         if(StrUtil.isBlank(templatePath)){
             return "模板加载失败";
@@ -242,7 +273,7 @@ public class ViewController extends BaseController {
             return RestResult.ok(appealFeign.insertAppeal(record));
         }
         //依申请公开提交
-        if(actionType.equals("insertYsqgk")){
+        if(actionType.equals("insertApplyOpen")){
             ApplyOpenRecord applyOpenRecord = new ApplyOpenRecord();
             BeanUtil.copyProperties(varMap,applyOpenRecord);
             return RestResult.ok(assemblyFeign.insertApplyOpen(applyOpenRecord));

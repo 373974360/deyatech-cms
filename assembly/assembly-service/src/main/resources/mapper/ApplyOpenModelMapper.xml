@@ -13,21 +13,28 @@
         <result column="update_time" property="updateTime" />
         <result column="version_" property="version" />
         <result column="model_name" property="modelName" />
-        <result column="must_member" property="mustMember" />
-        <result column="is_auto_publish" property="isAutoPublish" />
-        <result column="remind_type" property="remindType" />
-        <result column="code_pre" property="codePre" />
-        <result column="code_rule" property="codeRule" />
-        <result column="code_num" property="codeNum" />
-        <result column="time_limit" property="timeLimit" />
-        <result column="query_num" property="queryNum" />
-        <result column="file_url" property="fileUrl" />
-        <result column="template_form" property="templateForm" />
-        <result column="template_list" property="templateList" />
-        <result column="template_content" property="templateContent" />
-        <result column="template_over" property="templateOver" />
-        <result column="template_print" property="templatePrint" />
-        <result column="template_query" property="templateQuery" />
+        <result column="participant" property="participant" />
+        <result column="auto_publish" property="autoPublish" />
+        <result column="limit_day" property="limitDay" />
+        <result column="reminder_day" property="reminderDay" />
+        <result column="yellow_day" property="yellowDay" />
+        <result column="red_day" property="redDay" />
+        <result column="bus_type" property="busType" />
+        <result column="dept_transfer" property="deptTransfer" />
+        <result column="competent_dept" property="competentDept" />
+        <result column="part_dept" property="partDept" />
+        <result column="bus_code" property="busCode" />
+        <result column="spacera" property="spacera" />
+        <result column="day_code" property="dayCode" />
+        <result column="spacerb" property="spacerb" />
+        <result column="randomcode_count" property="randomcodeCount" />
+        <result column="querycode_count" property="querycodeCount" />
+        <result column="workflow_type" property="workflowType" />
+        <result column="workflow_id" property="workflowId" />
+        <result column="form_templet" property="formTemplet" />
+        <result column="list_templet" property="listTemplet" />
+        <result column="view_templet" property="viewTemplet" />
+        <result column="print_templet" property="printTemplet" />
         <result column="site_id" property="siteId" />
     </resultMap>
 
@@ -41,7 +48,7 @@
         update_by,
         update_time,
         version_,
-        model_name,site_id,must_member, is_auto_publish, remind_type, code_pre, code_rule, code_num, time_limit, query_num, file_url, template_form, template_list, template_content, template_over, template_print, template_query
+        site_id,model_name, participant, auto_publish, limit_day, reminder_day, yellow_day, red_day, bus_type, dept_transfer, competent_dept, part_dept, bus_code, spacera, day_code, spacerb, randomcode_count, querycode_count, workflow_type, workflow_id, form_templet, list_templet, view_templet, print_templet
     </sql>
 
 </mapper>

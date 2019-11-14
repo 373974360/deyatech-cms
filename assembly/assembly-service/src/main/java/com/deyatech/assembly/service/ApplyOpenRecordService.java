@@ -1,11 +1,13 @@
 package com.deyatech.assembly.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.admin.vo.DepartmentVo;
 import com.deyatech.assembly.entity.ApplyOpenRecord;
 import com.deyatech.assembly.vo.ApplyOpenRecordVo;
 import com.deyatech.common.base.BaseService;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -51,4 +53,40 @@ public interface ApplyOpenRecordService extends BaseService<ApplyOpenRecord> {
      * @return String
      */
     String getYsqCode(String configId);
+
+    /**
+     * 根据业务ID得到参与部门
+     *
+     * @param modelId
+     * @return String
+     */
+    List<DepartmentVo> getCompetentDept(String modelId);
+
+    /**
+     * 网站前台提交诉求信息
+     *
+     * @param applyOpenRecord
+     * @return ApplyOpenRecord
+     */
+    ApplyOpenRecord insertApplyOpenRecord(ApplyOpenRecord applyOpenRecord);
+
+
+    /**
+     * 网站前台根据诉求编码和查询码查询诉求信息
+     *
+     * @param sqCode
+     * @param queryCode
+     * @return ApplyOpenRecordVo
+     */
+    ApplyOpenRecordVo queryApplyOpen(String sqCode,String queryCode);
+
+    /**
+     * 网站前台根据条件获取诉求列表
+     *
+     * @param maps
+     * @param page
+     * @param pageSize
+     * @return Ipage
+     */
+    IPage<ApplyOpenRecordVo> getApplyOpenList(Map<String, Object> maps, Integer page, Integer pageSize);
 }
