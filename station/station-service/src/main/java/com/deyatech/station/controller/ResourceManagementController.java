@@ -12,9 +12,9 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * <p>
@@ -30,22 +30,6 @@ import java.util.List;
 public class ResourceManagementController extends BaseController {
     @Autowired
     ResourceManagementService resourceManagementService;
-
-    /**
-     * 根据ID批量逻辑删除
-     *
-     * @param ids
-     * @return
-     */
-    @PostMapping("/removeByIds")
-    @ApiOperation(value="根据ID批量逻辑删除", notes="根据对象ID批量逻辑删除信息")
-    @ApiImplicitParam(name = "ids", value = "对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
-    public RestResult<Boolean> removeByIds(@RequestParam("ids[]") List<String> ids) {
-        log.info(String.format("根据id批量删除: %s ", JSONUtil.toJsonStr(ids)));
-        int result = resourceManagementService.deleteBytemplateIds(ids);
-        return RestResult.ok(result > 0 ? true : false);
-    }
-
 
     /**
      * 根据ResourceManagement对象属性分页检索

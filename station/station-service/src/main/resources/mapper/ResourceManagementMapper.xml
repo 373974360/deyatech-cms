@@ -51,21 +51,17 @@
         m.name_ as content_model_name,
         m.meta_data_collection_id as meta_data_collection_id,
         d.code_text as resource_category_name,
+        ui.name_ as inputUserName,
+        uv.name_ as verifyUserName,
         t.*
         from station_template t
-        join resource_station_group s on s.id_ = t.site_id and s.enable_ = 1
-        join station_catalog c on c.id_ = t.cms_catalog_id and c.enable_ = 1
-        join station_model m on m.id_ = t.content_model_id and m.enable_ = 1
-        join admin_dictionary d on d.id_ = t.resource_category and d.enable_ = 1
+        left join resource_station_group s on s.id_ = t.site_id and s.enable_ = 1
+        left join station_catalog c on c.id_ = t.cms_catalog_id and c.enable_ = 1
+        left join station_model m on m.id_ = t.content_model_id and m.enable_ = 1
+        left join admin_dictionary d on d.id_ = t.resource_category and d.enable_ = 1
+        left join admin_user ui on ui.id_ = t.create_by and ui.enable_ = 1
+        left join admin_user uv on uv.id_ = t.update_by and uv.enable_ = 1
         where t.enable_ = 1
         order by t.update_time desc
     </select>
-
-    <!--删除内容资源-->
-    <delete id="deleteBytemplateIds">
-        delete from station_template where id_ in
-        <foreach item="item" index="index" collection="templateIds" open="(" separator="," close=")">
-            #{item}
-        </foreach>
-    </delete>
 </mapper>

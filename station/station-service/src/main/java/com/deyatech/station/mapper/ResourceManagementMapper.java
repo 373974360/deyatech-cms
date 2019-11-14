@@ -6,8 +6,6 @@ import com.deyatech.station.vo.ResourceManagementVo;
 import com.deyatech.station.vo.TemplateVo;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
-
 /**
  * <p>
  *  Mapper 接口
@@ -26,12 +24,4 @@ public interface ResourceManagementMapper extends BaseMapper {
      * @return
      */
     IPage<TemplateVo> pageByResourceManagement(@Param("page") IPage page, ResourceManagementVo resource);
-
-    /**
-     * 删除内容资源
-     *
-     * @param templateIds
-     * @return
-     */
-    int deleteBytemplateIds(List<String> templateIds);
 }

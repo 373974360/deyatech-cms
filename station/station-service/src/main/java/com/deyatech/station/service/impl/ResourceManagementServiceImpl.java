@@ -2,6 +2,7 @@ package com.deyatech.station.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.admin.entity.Metadata;
@@ -65,15 +66,23 @@ public class ResourceManagementServiceImpl implements ResourceManagementService 
         Map<String, Map<String, Metadata>> matedataMapCache = new HashMap<>();
         IPage<TemplateVo> page = resourceManagementMapper.pageByResourceManagement(getPage(resource), resource);
         if (CollectionUtil.isNotEmpty(page.getRecords())) {
+            Map<String, Metadata> metadataMap;
             for (TemplateVo template : page.getRecords()) {
-                Map<String, Metadata> metadataMap;
+                if (StrUtil.isEmpty(template.getMetaDataCollectionId()) || StrUtil.isEmpty(template.getContentId())) {
+                    continue;
+                }
+                // 根据分类检索元数据
                 if (Objects.isNull(matedataMapCache.get(template.getMetaDataCollectionId()))) {
                     metadataMap = getMetadatas(template.getMetaDataCollectionId());
                     matedataMapCache.put(template.getMetaDataCollectionId(), metadataMap);
                 } else {
                     metadataMap = matedataMapCache.get(template.getMetaDataCollectionId());
                 }
+                if (Objects.isNull(metadataMap)) {
+                    continue;
+                }
                 List<ResourceManagementVo> contentList = new ArrayList<>();
+                template.setContentList(contentList);
                 Map<String, Object> dataMap = adminFeign.getMetadataById(template.getMetaDataCollectionId(), template.getContentId()).getData();
                 Iterator<String> keys = dataMap.keySet().iterator();
                 while(keys.hasNext()) {
@@ -83,6 +92,7 @@ public class ResourceManagementServiceImpl implements ResourceManagementService 
                         contentList.add(new ResourceManagementVo(md.getName(), key, objectToString(dataMap.get(key))));
                     }
                 }
+
             }
         }
         return page;
@@ -109,17 +119,5 @@ public class ResourceManagementServiceImpl implements ResourceManagementService 
         }
         return metadataMap;
     }
-
-    /**
-     * 删除内容资源
-     *
-     * @param templateIds
-     * @return
-     */
-    @Override
-    public int deleteBytemplateIds(List<String> templateIds) {
-        return resourceManagementMapper.deleteBytemplateIds(templateIds);
-    }
-
 
 }

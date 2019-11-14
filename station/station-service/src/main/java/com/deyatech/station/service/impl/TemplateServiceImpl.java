@@ -325,7 +325,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean saveOrUpdateTemplateVo(TemplateVo templateVo) {
-        boolean toUpdate = StrUtil.isNotBlank(templateVo.getId());
         if (this.checkTitleExist(templateVo)) {
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "当前栏目中已存在该标题内容");
         }
@@ -400,9 +399,9 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         boolean res = super.saveOrUpdate(templateVo);
         if (res && ContentStatusEnum.PUBLISH.getCode() == templateVo.getStatus()) {
             // 生成静态页面任务
-            //this.addStaticPageTask(templateVo);
+            this.addStaticPageTask(templateVo);
             // 默认都创建索引, 索引任务
-            //this.addIndexTask(templateVo, toUpdate ? RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE : RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
+            this.addIndexTask(templateVo, StrUtil.isNotBlank(templateVo.getId()) ? RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE : RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
         }
         return res;
     }
@@ -412,7 +411,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     public boolean removeByIds(String ids) {
         List<Map> mapList = JSONUtil.toList(JSONUtil.parseArray(ids), Map.class);
         // 删除元数据
-        List<Map> metaDataMapList = mapList.stream().filter(m -> ObjectUtil.isNotNull(m.get("contentId"))).collect(Collectors.toList());
+        List<Map> metaDataMapList = mapList.stream().filter(m -> ObjectUtil.isNotNull(m.get("contentId")) && ObjectUtil.isNotNull(m.get("metaDataCollectionId"))).collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(metaDataMapList)) {
             adminFeign.removeMetadataByIds(metaDataMapList);
         }
