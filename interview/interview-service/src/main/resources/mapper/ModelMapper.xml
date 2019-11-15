@@ -22,6 +22,7 @@
         <result column="images_" property="images" />
         <result column="content_" property="content" />
         <result column="status_" property="status" />
+        <result column="is_publish" property="isPublish" />
     </resultMap>
 
     <resultMap id="ModelVoResultMap" type="com.deyatech.interview.vo.ModelVo">
@@ -42,6 +43,7 @@
         <result column="images_" property="images" />
         <result column="content_" property="content" />
         <result column="status_" property="status" />
+        <result column="is_publish" property="isPublish" />
         <result column="category_id" property="categoryId" />
         <result column="category_name" property="categoryName" />
     </resultMap>
@@ -56,13 +58,13 @@
         update_by,
         update_time,
         version_,
-        category_id, name_, time_, cover_, description_, live_url, video_url, images_, content_, status_
+        category_id, name_, time_, cover_, description_, live_url, video_url, images_, content_, status_, is_publish
     </sql>
     <!-- 检索访谈模型根据分类和名称 -->
     <select id="pageByCategoryAndName" resultMap="ModelVoResultMap">
         select
         m.id_,m.enable_,m.remark_,m.create_by,m.create_time,m.update_by,m.update_time,m.version_,
-        m.name_, m.time_, m.cover_, m.description_, m.live_url, m.video_url, m.images_, m.content_, m.status_,
+        m.name_, m.time_, m.cover_, m.description_, m.live_url, m.video_url, m.images_, m.content_, m.status_, m.is_publish,
         m.category_id, c.name_ as category_name
         from interview_model m
              left join interview_category c on m.category_id = c.id_ and c.enable_ = 1

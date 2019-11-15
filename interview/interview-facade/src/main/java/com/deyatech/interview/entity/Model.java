@@ -64,4 +64,8 @@ public class Model extends BaseEntity {
     @TableField("status_")
     private Integer status;
 
+    @ApiModelProperty(value = "是否发布：1是，2否", dataType = "Integer", example = "1")
+    @TableField("is_publish")
+    private Integer isPublish;
+
 }
