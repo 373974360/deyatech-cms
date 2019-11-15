@@ -297,20 +297,37 @@ public class TemplateController extends BaseController {
     }
 
     /**
-     * 更新内容状态
+     * 发布内容
      *
      * @param template
      * @return
      */
-    @PostMapping("/updateContentStatus")
-    @ApiOperation(value="更新内容状态", notes="更新内容状态")
+    @PostMapping("/updateContentStatusPublish")
+    @ApiOperation(value="发布内容", notes="发布内容")
     @ApiImplicitParam(name = "template", value = "内容模板对象", required = true, dataType = "Template", paramType = "query")
-    public RestResult<Boolean> updateContentStatus(Template template) {
-        log.info(String.format("更新内容状态: %s ", JSONUtil.toJsonStr(template)));
-        // 内容发布状态：1-草稿，2-已发布
-        template.setStatus(2);
+    public RestResult<Boolean> updateContentStatusPublish(Template template) {
+        log.info(String.format("发布内容: %s ", JSONUtil.toJsonStr(template)));
+        // 修改状态为发布
+        template.setStatus(ContentStatusEnum.PUBLISH.getCode());
         // 发布日期
         template.setResourcePublicationDate(new Date());
+        boolean result = templateService.updateById(template);
+        return RestResult.ok(result);
+    }
+
+    /**
+     * 发布内容
+     *
+     * @param template
+     * @return
+     */
+    @PostMapping("/updateContentStatusReject")
+    @ApiOperation(value="发布内容", notes="发布内容")
+    @ApiImplicitParam(name = "template", value = "内容模板对象", required = true, dataType = "Template", paramType = "query")
+    public RestResult<Boolean> updateContentStatusReject(Template template) {
+        log.info(String.format("发布内容: %s ", JSONUtil.toJsonStr(template)));
+        // 修改状态为发布
+        template.setStatus(ContentStatusEnum.REJECT.getCode());
         boolean result = templateService.updateById(template);
         return RestResult.ok(result);
     }
