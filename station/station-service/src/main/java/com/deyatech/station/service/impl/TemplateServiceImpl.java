@@ -325,6 +325,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean saveOrUpdateTemplateVo(TemplateVo templateVo) {
+        boolean hasId = StrUtil.isNotBlank(templateVo.getId());
         if (this.checkTitleExist(templateVo)) {
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "当前栏目中已存在该标题内容");
         }
@@ -401,7 +402,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             // 生成静态页面任务
             this.addStaticPageTask(templateVo);
             // 默认都创建索引, 索引任务
-            this.addIndexTask(templateVo, StrUtil.isNotBlank(templateVo.getId()) ? RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE : RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
+            this.addIndexTask(templateVo, hasId ? RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE : RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
         }
         return res;
     }

@@ -219,4 +219,19 @@ public class ModelController extends BaseController {
     public RestResult<Map<String, Long>> countModelByCollectionIds(@RequestParam("collectionIds[]") List<String> collectionIds) {
         return RestResult.ok(modelService.getStationModelCountByCollectionIds(collectionIds));
     }
+
+    /**
+     * 索引
+     *
+     * @param ids
+     * @return
+     */
+    @PostMapping("/index")
+    @ApiOperation(value="索引", notes="索引")
+    @ApiImplicitParam(name = "ids", value = "内容模型对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
+    public RestResult<Boolean> indexByIds(@RequestParam(value = "ids[]", required = false) List<String> ids) {
+        log.info(String.format("索引: %s ", JSONUtil.toJsonStr(ids)));
+        boolean result = modelService.indexByIds(ids);
+        return RestResult.ok(result);
+    }
 }

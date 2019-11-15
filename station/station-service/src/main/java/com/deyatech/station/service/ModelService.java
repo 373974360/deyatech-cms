@@ -80,4 +80,12 @@ public interface ModelService extends BaseService<Model> {
      * @return
      */
     Map<String, Long> getStationModelCountByCollectionIds(List<String> collectionIds);
+
+    /**
+     * 索引
+     *
+     * @param ids
+     * @return
+     */
+    boolean indexByIds(List<String> ids);
 }

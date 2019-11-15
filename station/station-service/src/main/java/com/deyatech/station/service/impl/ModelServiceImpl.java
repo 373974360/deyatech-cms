@@ -222,4 +222,28 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
         }
         return null;
     }
+
+    /**
+     * 索引
+     *
+     * @param ids
+     * @return
+     */
+    @Override
+    public boolean indexByIds(List<String> ids) {
+        List<Model> models;
+        if (CollectionUtil.isEmpty(ids)) {
+            models= super.list();
+        } else {
+            QueryWrapper<Model> queryWrapper = new QueryWrapper<>();
+            queryWrapper.in("id_", ids);
+            models = super.list(queryWrapper);
+        }
+        if (CollectionUtil.isNotEmpty(models)) {
+            for (Model model : models) {
+                indexService.createIndex(this.getIndexByModelId(model.getId()), true, model.getId(), model.getMetaDataCollectionId());
+            }
+        }
+        return true;
+    }
 }

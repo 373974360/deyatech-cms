@@ -186,23 +186,8 @@ public class IndexServiceImpl implements IndexService {
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("创建索引失败，查询元数据集错误，元数据集 id =  %s", mcId));
         }
         try {
-            boolean indexExists;
-            // 检索有关索引的信息的请求
-            GetIndexRequest getIndexRequest = new GetIndexRequest();
-            // 设置操作与之关联的索引
-            getIndexRequest.indices(index);
-            // 设置“include_defaults”的值
-            getIndexRequest.includeDefaults(true);
-            try {
-                // 检查索引（索引）是否存在, client.indices()返回IndicesClient提供了访问Indices API的方法
-                // RequestOptions: Elasticsearch的HTTP请求部分，可以在不改变Elasticsearch行为的情况下进行操作
-                indexExists = client.indices().exists(getIndexRequest, RequestOptions.DEFAULT);
-            } catch (IOException e) {
-                log.error(String.format("判断索引是否存在失败 %s", index), e);
-                throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("判断索引是否存在失败 %s", index));
-            }
             // 存在索引
-            if (indexExists) {
+            if (indexExists(index)) {
                 // 不覆盖，抛出异常
                 if (!override) {
                     throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("创建索引失败，%s，可以尝试删除后重新建立", index));
@@ -267,6 +252,31 @@ public class IndexServiceImpl implements IndexService {
             log.error(String.format("创建或更新失败 %s", e.getMessage()), e);
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("创建或更新失败，%s", index));
         }
+    }
+
+    /**
+     * 判断索引是否存在
+     *
+     * @param index
+     * @return
+     */
+    private boolean indexExists(String index) {
+        boolean indexExists;
+        // 检索有关索引的信息的请求
+        GetIndexRequest getIndexRequest = new GetIndexRequest();
+        // 设置操作与之关联的索引
+        getIndexRequest.indices(index);
+        // 设置“include_defaults”的值
+        getIndexRequest.includeDefaults(true);
+        try {
+            // 检查索引（索引）是否存在, client.indices()返回IndicesClient提供了访问Indices API的方法
+            // RequestOptions: Elasticsearch的HTTP请求部分，可以在不改变Elasticsearch行为的情况下进行操作
+            indexExists = client.indices().exists(getIndexRequest, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            log.error(String.format("判断索引是否存在失败 %s", index), e);
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("判断索引是否存在失败 %s", index));
+        }
+        return indexExists;
     }
 
     /**
@@ -423,8 +433,11 @@ public class IndexServiceImpl implements IndexService {
      */
     @Override
     public String deleteIndex(String index) {
-
         try {
+            // 索引不存在
+            if (!indexExists(index)) {
+                return String.format("索引不存在 %s", index);
+            }
             // 为指定的索引构造一个新的删除索引请求
             DeleteIndexRequest request = Requests.deleteIndexRequest(index);
             // 设置超时时间为-1
@@ -457,7 +470,10 @@ public class IndexServiceImpl implements IndexService {
      */
     @Override
     public String addData(String index, String id, Map data) {
-
+        // 索引不存在
+        if (!indexExists(index)) {
+            return String.format("索引不存在 %s", index);
+        }
         // 根据特定索引和类型构造新的索引请求
         IndexRequest request = new IndexRequest(index, indexType);
         // 同步调用
@@ -492,7 +508,10 @@ public class IndexServiceImpl implements IndexService {
      */
     @Override
     public String updateData(String index, String id, Map data) {
-
+        // 索引不存在
+        if (!indexExists(index)) {
+            return String.format("索引不存在 %s", index);
+        }
         if (StrUtil.isBlank(id)) {
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "修改索引数据失败,id 不能为空");
         }
@@ -522,7 +541,10 @@ public class IndexServiceImpl implements IndexService {
      */
     @Override
     public String deleteData(String index, String id) {
-
+        // 索引不存在
+        if (!indexExists(index)) {
+            return String.format("索引不存在 %s", index);
+        }
         DeleteRequest deleteRequest = new DeleteRequest(index, indexType, id);
         //同步调用
         try {
