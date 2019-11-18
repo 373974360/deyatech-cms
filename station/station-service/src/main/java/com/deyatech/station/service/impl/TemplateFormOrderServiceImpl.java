@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.deyatech.admin.entity.Metadata;
 import com.deyatech.admin.entity.MetadataCollection;
 import com.deyatech.common.base.BaseServiceImpl;
+import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.station.entity.Template;
 import com.deyatech.station.entity.TemplateFormOrder;
 import com.deyatech.station.mapper.TemplateFormOrderMapper;
@@ -72,6 +73,7 @@ public class TemplateFormOrderServiceImpl extends BaseServiceImpl<TemplateFormOr
      */
     @Override
     public Map<String, Object> getSortDataByCollectionId(String collectionId) {
+        String userId = UserContextHelper.getUserId();
         Map<String, Object> result = new HashMap<>();
         // 未排序
         List<TemplateFormOrderVo> unsortedList = new ArrayList<>();
@@ -79,12 +81,15 @@ public class TemplateFormOrderServiceImpl extends BaseServiceImpl<TemplateFormOr
         List<List<TemplateFormOrderVo>> sortedList = new ArrayList<>();
         // 元数据
         List<TemplateFormOrderVo> metadata = baseMapper.getMetadataByCollectionId(collectionId);
+        metadata.stream().forEach(m -> m.setUserId(userId));
         // 排序数据
-        List<TemplateFormOrderVo> sortedData = baseMapper.getSortDataByCollectionId(collectionId);
+        List<TemplateFormOrderVo> sortedData = baseMapper.getSortDataByCollectionId(userId, collectionId);
         // 没有
         if (CollectionUtil.isEmpty(sortedData)) {
+            // 未排序添加-基础字段
             getBaseFieldsList(collectionId).stream().forEach(t -> unsortedList.add(t));
             if (CollectionUtil.isNotEmpty(metadata)) {
+                // 未排序添加-元数据字段
                 metadata.stream().forEach(t -> unsortedList.add(t));
             }
             result.put("maxPageNumber", 0);
@@ -121,7 +126,6 @@ public class TemplateFormOrderServiceImpl extends BaseServiceImpl<TemplateFormOr
                 });
             }
             for (int i = 0; i < sortedList.size(); i++) {
-                //sortedList.set(i, sortedList.get(i).stream().sorted((t1,t2)-> t1.getSortNo() > t2.getSortNo() ? 1 : -1).collect(Collectors.toList()));
                 sortedList.set(i, sortedList.get(i).stream().sorted(Comparator.comparing(TemplateFormOrderVo::getSortNo)).collect(Collectors.toList()));
             }
         }
@@ -130,13 +134,21 @@ public class TemplateFormOrderServiceImpl extends BaseServiceImpl<TemplateFormOr
         return result;
     }
 
+    /**
+     * 默认排序数据
+     *
+     * @param collectionId
+     * @return
+     */
     private List<TemplateFormOrderVo> getBaseFieldsList(String collectionId) {
+        String userId = UserContextHelper.getUserId();
         List<TemplateFormOrderVo> list = new ArrayList<>();
         Map<String, Metadata> baseFields = Template.baseFields();
         Iterator<String> keys = baseFields.keySet().iterator();
         while(keys.hasNext()) {
             String key = keys.next();
             TemplateFormOrderVo item = new TemplateFormOrderVo();
+            item.setUserId(userId);
             item.setCollectionId(collectionId);
             item.setMetadataId(key);
             item.setMetadataName(baseFields.get(key).getName());
@@ -155,13 +167,18 @@ public class TemplateFormOrderServiceImpl extends BaseServiceImpl<TemplateFormOr
     @Override
     public boolean saveOrUpdateByJson(String collectionId, String json) {
         try {
+            String userId = UserContextHelper.getUserId();
             TemplateFormOrder entity = new TemplateFormOrder();
+            entity.setUserId(userId);
             entity.setCollectionId(collectionId);
             super.removeByBean(entity);
-
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             JavaType javaType = mapper.getTypeFactory().constructParametricType(List.class, TemplateFormOrder.class);
             List<TemplateFormOrder> list = mapper.readValue(json, javaType);
+            list.stream().forEach(o -> {
+                o.setUserId(userId);
+                o.setCollectionId(collectionId);
+            });
             return super.saveOrUpdateBatch(list);
         } catch (IOException e) {
            e.printStackTrace();

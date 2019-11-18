@@ -1,5 +1,6 @@
 package com.deyatech.station.controller;
 
+import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baidu.aip.nlp.AipNlp;
 import com.deyatech.common.enums.ContentStatusEnum;
@@ -17,7 +18,9 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.web.bind.annotation.RestController;
 import com.deyatech.common.base.BaseController;
@@ -347,6 +350,8 @@ public class TemplateController extends BaseController {
         return RestResult.ok(result);
     }
 
+    private static long startKeyword = 0L;
+
     /**
      * 关键字
      *
@@ -360,13 +365,27 @@ public class TemplateController extends BaseController {
             @ApiImplicitParam(name = "title", value = "标题", required = false, dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "content", value = "正文", required = false, dataType = "String", paramType = "query")
     })
-    public RestResult keyword(String title, String content) {
+    public synchronized RestResult keyword(String title, String content) {
         if (StrUtil.isEmpty(title) || StrUtil.isEmpty(content)) {
             return RestResult.error("标题和内容不能为空");
         }
+        if (content.length() > 32767) {
+            content = content.substring(0, 32767);
+        }
+        if (title.length() > 40) {
+            title = title.substring(0, 40);
+        }
         List<String> keywords = new ArrayList<>();
-        AipNlp aipNlp = this.aipNlpConfig.getInstance();
-        JSONObject res = aipNlp.keyword(title, content, new HashMap<>());
+        // 调用前计算时差
+        long waitTime = (1000 / 2) - (System.currentTimeMillis() - startKeyword);
+        try {
+            if (waitTime > 0) {
+                Thread.sleep(waitTime);
+            }
+        } catch (Exception e) {}
+        JSONObject res = this.aipNlpConfig.getInstance().keyword(title, content, new HashMap<>());
+        // 调用完成记录时间
+        startKeyword = System.currentTimeMillis();
         if (res.has("error_code")) {
             return RestResult.error(res.getString("error_msg"));
         }
@@ -378,32 +397,47 @@ public class TemplateController extends BaseController {
         }
         return RestResult.ok(keywords);
     }
-
+    private static long startSummary = 0L;
     /**
      * 摘要
      *
-     * @param title
      * @param content
-     * @param maxSummaryLen
+     * @param title
      * @return
      */
     @RequestMapping("/summary")
     @ApiOperation(value="摘要", notes="摘要")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "title", value = "标题", required = false, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "content", value = "正文", required = false, dataType = "String", paramType = "query")
+            @ApiImplicitParam(name = "content", value = "正文", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "title", value = "标题", required = false, dataType = "String", paramType = "query")
     })
-    public RestResult summary(String title, String content, int maxSummaryLen) {
-        if (StrUtil.isEmpty(title) || StrUtil.isEmpty(content)) {
-            return RestResult.error("标题和内容不能为空");
+    public synchronized RestResult summary(String content, @RequestParam(value="title", required = false) String title) {
+        if (StrUtil.isEmpty(content)) {
+            return RestResult.error("正文不能为空");
         }
-        if (maxSummaryLen <= 0) {
-            maxSummaryLen = 100;
+        if (content.length() > 3000) {
+            content = content.substring(0, 3000);
         }
-        AipNlp aipNlp = this.aipNlpConfig.getInstance();
+        if (StrUtil.isNotEmpty(title)) {
+            if (title.length() > 200) {
+                title = title.substring(0, 200);
+            }
+        } else {
+            title = "";
+        }
         HashMap<String, Object> options = new HashMap<>();
         options.put("title", title);
-        JSONObject res = aipNlp.newsSummary(content, maxSummaryLen, options);
+        int maxSummaryLen = 300;
+        // 调用前计算时差
+        long waitTime = (1000 / 2) - (System.currentTimeMillis() - startSummary);
+        try {
+            if (waitTime > 0) {
+                Thread.sleep(waitTime);
+            }
+        } catch (Exception e) {}
+        JSONObject res = this.aipNlpConfig.getInstance().newsSummary(content, maxSummaryLen, options);
+        // 调用完成记录时间
+        startSummary = System.currentTimeMillis();
         if (res.has("error_code")) {
             return RestResult.error(res.getString("error_msg"));
         }

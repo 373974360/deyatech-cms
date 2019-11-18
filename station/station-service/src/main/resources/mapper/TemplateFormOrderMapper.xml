@@ -30,14 +30,43 @@
         select
         #{collectionId} as collection_id,
         cm.metadata_id,
-        m.name_ as metadata_name
+        case when cm.label_ is null then m.name_ when cm.label_ = '' then m.name_ else cm.label_ end as metadata_name
         from admin_metadata_collection_metadata cm
         join admin_metadata_collection c on c.id_ = cm.metadata_collection_id and c.enable_ = 1
         join admin_metadata m on m.id_ = cm.metadata_id and m.enable_ = 1
         where  cm.metadata_collection_id = #{collectionId}
     </select>
     <select id="getAllMetadataByByCollectionId" resultType="com.deyatech.admin.entity.Metadata">
-        select m.* from admin_metadata m
+        select
+        m.id_ as id,
+        case when mcm.label_ is null then m.name_ when mcm.label_ = '' then m.name_ else mcm.label_ end as name,
+        m.brief_name as briefName,
+        m.en_name as enName,
+        m.type_ as type,
+        m.data_type as dataType,
+        m.data_length as dataLength,
+        m.control_type as controlType,
+        m.control_length as controlLength,
+        case when mcm.check_model is null then m.check_model when mcm.check_model = '' then m.check_model else mcm.check_model end as checkModel,
+        m.data_source as dataSource,
+        m.dictionary_id as dictionaryId,
+        m.definition_ as definition,
+        m.field_ as field,
+        m.required_ as required,
+        m.mandatory_ as mandatory,
+        m.multi_flag as multiFlag,
+        m.annotation_count as annotationCount,
+        m.category_id as categoryId,
+        m.relation_id as relationId,
+        m.enable_ as enable,
+        m.remark_ as remark,
+        m.create_by as createBy,
+        m.create_time as createTime,
+        m.update_by as updateBy,
+        m.update_time as updateTime,
+        m.version_ as version
+        from admin_metadata m
+        join admin_metadata_collection_metadata mcm on mcm.metadata_id = m.id_
         where m.enable_ = 1 and m.id_ in (
             select cm.metadata_id
             from admin_metadata_collection_metadata cm
@@ -52,7 +81,7 @@
         m.name_ as metadata_name
         from station_template_form_order o
         left join admin_metadata m on m.id_ = o.metadata_id and m.enable_ = 1
-        where collection_id = #{collectionId}
+        where user_id = #{userId} and collection_id = #{collectionId}
     </select>
     <!--获取元数据集列表-->
     <select id="getCollectionList" resultType="com.deyatech.admin.entity.MetadataCollection">

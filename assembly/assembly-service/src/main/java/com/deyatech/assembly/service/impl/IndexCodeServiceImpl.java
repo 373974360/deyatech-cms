@@ -2,7 +2,6 @@ package com.deyatech.assembly.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.deyatech.admin.entity.Department;
 import com.deyatech.admin.feign.AdminFeign;
@@ -16,7 +15,6 @@ import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.feign.ResourceFeign;
 import com.deyatech.station.feign.StationFeign;
-import com.deyatech.station.vo.TemplateVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +43,25 @@ public class IndexCodeServiceImpl extends BaseServiceImpl<IndexCodeMapper, Index
     AdminFeign adminFeign;
 
     /**
+     * 获取下一个索引码根据站点ID
+     *
+     * @param siteId
+     * @return
+     */
+    @Override
+    public synchronized String getNextIndexCodeBySiteId(String siteId) {
+        QueryWrapper<IndexCode> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("site_id", siteId);
+        IndexCode indexCode = getOne(queryWrapper);
+        String nextIndexCode = getFixedPart(siteId, indexCode) + indexCode.getNextSerial();
+        int value = Integer.parseInt(indexCode.getNextSerial());
+        value += 1;
+        indexCode.setNextSerial(String.format("%0" + indexCode.getNumber() + "d", value));
+        updateById(indexCode);
+        return nextIndexCode;
+    }
+
+    /**
      * 索引码重置
      *
      * @param siteId
@@ -54,10 +71,24 @@ public class IndexCodeServiceImpl extends BaseServiceImpl<IndexCodeMapper, Index
      */
     @Override
     public boolean reset(String siteId, String start, String end) {
-        StringBuilder part = new StringBuilder();
         QueryWrapper<IndexCode> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("site_id", siteId);
         IndexCode indexCode = getOne(queryWrapper);
+        // 信息流水号位数
+        RestResult<Integer> result = stationFeign.resetTemplateIndex(siteId, start, end, getFixedPart(siteId, indexCode), indexCode.getNumber());
+        if (Objects.nonNull(result) && result.getData() > 0) {
+            int value = result.getData();
+            value += 1;
+            indexCode.setNextSerial(String.format("%0" + indexCode.getNumber() + "d", value));
+            updateById(indexCode);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private String getFixedPart(String siteId, IndexCode indexCode) {
+        StringBuilder part = new StringBuilder();
         // 部门社会信用码
         if (YesNoEnum.YES.getCode() == indexCode.getCodeChecked()) {
             RestResult<StationGroup> resultStation = resourceFeign.getStationGroupById(siteId);
@@ -82,20 +113,7 @@ public class IndexCodeServiceImpl extends BaseServiceImpl<IndexCodeMapper, Index
             part.append(format.format(new Date()));
             part.append(indexCode.getFormatDelimiter());
         }
-        // 信息流水号位数
-        RestResult<Integer> result = stationFeign.resetTemplateIndex(siteId, start, end, part.toString(), indexCode.getNumber());
-        if (Objects.nonNull(result) && result.getData() > 0) {
-            int value = result.getData();
-            value += 1;
-            QueryWrapper<IndexCode> query = new QueryWrapper<>();
-            query.eq("site_id", siteId);
-            IndexCode ic = getOne(query);
-            ic.setNextSerial(String.format("%0" + indexCode.getNumber() + "d", value));
-            updateById(ic);
-            return true;
-        } else {
-            return false;
-        }
+        return part.toString();
     }
 
     /**

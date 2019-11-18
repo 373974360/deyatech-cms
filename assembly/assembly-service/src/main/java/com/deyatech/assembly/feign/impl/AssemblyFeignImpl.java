@@ -8,6 +8,7 @@ import com.deyatech.assembly.entity.ApplyOpenRecord;
 import com.deyatech.assembly.feign.AssemblyFeign;
 import com.deyatech.assembly.service.ApplyOpenModelService;
 import com.deyatech.assembly.service.ApplyOpenRecordService;
+import com.deyatech.assembly.service.IndexCodeService;
 import com.deyatech.assembly.vo.ApplyOpenModelVo;
 import com.deyatech.assembly.vo.ApplyOpenRecordVo;
 import com.deyatech.common.entity.RestResult;
@@ -30,6 +31,8 @@ public class AssemblyFeignImpl implements AssemblyFeign {
     ApplyOpenRecordService applyOpenRecordService;
     @Autowired
     ApplyOpenModelService applyOpenModelService;
+    @Autowired
+    IndexCodeService indexCodeService;
 
     @Override
     public RestResult<Page<ApplyOpenRecordVo>> getApplyOpenList(Map<String, Object> maps, Integer page, Integer pageSize) {
@@ -63,5 +66,10 @@ public class AssemblyFeignImpl implements AssemblyFeign {
     @Override
     public RestResult<List<DepartmentVo>> getPartDept(String modelId) {
         return RestResult.ok(applyOpenRecordService.getCompetentDept(modelId));
+    }
+
+    @Override
+    public RestResult<String> getNextIndexCodeBySiteId(String siteId) {
+        return RestResult.ok(indexCodeService.getNextIndexCodeBySiteId(siteId));
     }
 }

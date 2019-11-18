@@ -75,4 +75,13 @@ public interface AssemblyFeign {
      */
     @RequestMapping(value = "/feign/assembly/getPartDept")
     RestResult<List<DepartmentVo>> getPartDept(@RequestParam("modelId") String modelId);
+
+    /**
+     * 获取下一个索引码根据站点ID
+     *
+     * @param siteId
+     * @return
+     */
+    @RequestMapping(value = "/feign/assembly/indexCode/getPartDept")
+    RestResult<String> getNextIndexCodeBySiteId(@RequestParam("siteId") String siteId);
 }

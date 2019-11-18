@@ -23,6 +23,9 @@ import java.util.Date;
 @TableName("station_template_form_order")
 @ApiModel(value = "内容表单顺对象", description = "内容表单顺", parent = BaseEntity.class)
 public class TemplateFormOrder extends BaseEntity {
+    @ApiModelProperty(value = "用户编号", dataType = "String")
+    @TableField("user_id")
+    private String userId;
 
     @ApiModelProperty(value = "元数据集编号", dataType = "String")
     @TableField("collection_id")

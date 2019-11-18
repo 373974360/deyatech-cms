@@ -42,4 +42,12 @@ public interface IndexCodeService extends BaseService<IndexCode> {
      * @return
      */
     boolean reset(String siteId, String start, String end);
+
+    /**
+     * 获取下一个索引码根据站点ID
+     *
+     * @param siteId
+     * @return
+     */
+    String getNextIndexCodeBySiteId(String siteId);
 }

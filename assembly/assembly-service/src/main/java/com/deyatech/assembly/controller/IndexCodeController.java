@@ -36,7 +36,6 @@ public class IndexCodeController extends BaseController {
     @Autowired
     IndexCodeService indexCodeService;
 
-
     /**
      * 索引码重置
      *

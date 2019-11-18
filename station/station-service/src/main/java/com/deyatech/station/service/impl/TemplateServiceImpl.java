@@ -2,7 +2,6 @@ package com.deyatech.station.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.PinyinUtil;
 import cn.hutool.core.util.StrUtil;
@@ -17,6 +16,7 @@ import com.deyatech.admin.entity.User;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.admin.vo.DictionaryVo;
 import com.deyatech.admin.vo.MetadataCollectionVo;
+import com.deyatech.assembly.feign.AssemblyFeign;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.entity.RestResult;
@@ -30,7 +30,10 @@ import com.deyatech.station.entity.*;
 import com.deyatech.station.mapper.TemplateMapper;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.service.*;
-import com.deyatech.station.vo.*;
+import com.deyatech.station.vo.CatalogVo;
+import com.deyatech.station.vo.TemplateDynamicFormVo;
+import com.deyatech.station.vo.TemplateFormOrderVo;
+import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.workflow.feign.WorkflowFeign;
 import com.deyatech.workflow.vo.ProcessInstanceVo;
 import lombok.extern.slf4j.Slf4j;
@@ -74,6 +77,8 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     TemplateRoleAuthorityService templateRoleAuthorityService;
     @Autowired
     TemplateFormOrderService formOrderService;
+    @Autowired
+    AssemblyFeign assemblyFeign;
 
     /**
      * 获取字段
@@ -396,6 +401,12 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
 
         // 发布时间
         templateVo.setResourcePublicationDate(new Date());
+        // 新建生成索引码
+        if (!hasId) {
+            RestResult<String> resultIndexCode = assemblyFeign.getNextIndexCodeBySiteId(templateVo.getSiteId());
+            // 索引编码
+            templateVo.setIndexCode(resultIndexCode.getData());
+        }
         // 保存内容
         boolean res = super.saveOrUpdate(templateVo);
         if (res && ContentStatusEnum.PUBLISH.getCode() == templateVo.getStatus()) {
@@ -745,7 +756,8 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
      * @return
      */
     @Override
-    public Integer resetTemplateIndex(String siteId, String start, String end, String part, int number) {
+    @Transactional(rollbackFor = Exception.class)
+    public Integer resetTemplateIndexCode(String siteId, String start, String end, String part, int number) {
         QueryWrapper<Template> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("id_");
         queryWrapper.eq("site_id", siteId);

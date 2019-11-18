@@ -30,10 +30,11 @@ public interface TemplateFormOrderMapper extends BaseMapper<TemplateFormOrder> {
     /**
      * 获取排序数据
      *
+     * @param userId
      * @param collectionId
      * @return
      */
-    List<TemplateFormOrderVo>  getSortDataByCollectionId(String collectionId);
+    List<TemplateFormOrderVo>  getSortDataByCollectionId(String userId, String collectionId);
 
     /**
      * 获取元数据集列表
