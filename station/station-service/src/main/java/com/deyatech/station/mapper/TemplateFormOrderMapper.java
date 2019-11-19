@@ -27,14 +27,7 @@ public interface TemplateFormOrderMapper extends BaseMapper<TemplateFormOrder> {
     List<TemplateFormOrderVo>  getMetadataByCollectionId(String collectionId);
     List<Metadata> getAllMetadataByByCollectionId(String collectionId);
 
-    /**
-     * 获取排序数据
-     *
-     * @param userId
-     * @param collectionId
-     * @return
-     */
-    List<TemplateFormOrderVo>  getSortDataByCollectionId(String userId, String collectionId);
+
 
     /**
      * 获取元数据集列表
@@ -46,10 +39,19 @@ public interface TemplateFormOrderMapper extends BaseMapper<TemplateFormOrder> {
     MetadataCollection getCollectionById(String id);
 
     /**
+     * 获取排序数据
+     *
+     * @param userId
+     * @param collectionId
+     * @return
+     */
+    List<TemplateFormOrderVo>  getSortDataByCollectionId(String userId, String collectionId);
+
+    /**
      * 获页数和页名
      *
      * @param collectionId
      * @return
      */
-    List<TemplateFormOrderVo>  getNumberAndNameByCollectionId(String collectionId);
+    List<TemplateFormOrderVo>  getNumberAndNameByCollectionId(String userId, String collectionId);
 }

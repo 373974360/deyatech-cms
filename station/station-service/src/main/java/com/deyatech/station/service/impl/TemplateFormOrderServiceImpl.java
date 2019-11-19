@@ -203,23 +203,39 @@ public class TemplateFormOrderServiceImpl extends BaseServiceImpl<TemplateFormOr
      */
     @Override
     public Map<String, Object> getFormOrderByCollectionId(String collectionId) {
+        String userId = UserContextHelper.getUserId();
         Map<String, Object> result = new HashMap<>();
         Map<String, Object> map = getSortDataByCollectionId(collectionId);
-        List<TemplateFormOrderVo> pages = baseMapper.getNumberAndNameByCollectionId(collectionId);
+        // 未排序
+        List<TemplateFormOrderVo> unsortedList = (List<TemplateFormOrderVo>) map.get("unsorted");
+        // 已排序
+        List<List<TemplateFormOrderVo>> sortedList = (List<List<TemplateFormOrderVo>>) map.get("sorted");
+        // 页码
+        List<TemplateFormOrderVo> pages = baseMapper.getNumberAndNameByCollectionId(userId, collectionId);
         // 有排序
         if (CollectionUtil.isNotEmpty(pages)) {
+            // 有新增未排序的
+            if (CollectionUtil.isNotEmpty(unsortedList)) {
+                // 没有排序
+                TemplateFormOrderVo form = new TemplateFormOrderVo();
+                form.setPageNumber(pages.size() + 1);
+                form.setPageName("未排序表单");
+                pages.add(form);
+                sortedList.add(unsortedList);
+            }
             result.put("pages", pages);
-            result.put("orders", map.get("sorted"));
+            result.put("orders", sortedList);
         } else {
             // 没有排序
             TemplateFormOrderVo form = new TemplateFormOrderVo();
             form.setPageNumber(1);
-            form.setPageName("系统默认");
+            form.setPageName("未排序表单");
             pages = new ArrayList<>();
             pages.add(form);
             result.put("pages", pages);
+
             List<Object> base = new ArrayList<>();
-            base.add(map.get("unsorted"));
+            base.add(unsortedList);
             result.put("orders", base);
         }
         return result;
@@ -232,9 +248,17 @@ public class TemplateFormOrderServiceImpl extends BaseServiceImpl<TemplateFormOr
      * @return
      */
     @Override
-    public List<TemplateFormOrderVo> getNumberAndNameByCollectionId(String collectionId) { return baseMapper.getNumberAndNameByCollectionId(collectionId); }
+    public List<TemplateFormOrderVo> getNumberAndNameByCollectionId(String collectionId) {
+        return baseMapper.getNumberAndNameByCollectionId(UserContextHelper.getUserId(), collectionId);
+    }
+
     @Override
-    public List<Metadata> getAllMetadataByByCollectionId(String collectionId) { return baseMapper.getAllMetadataByByCollectionId(collectionId); }
+    public List<Metadata> getAllMetadataByByCollectionId(String collectionId) {
+        return baseMapper.getAllMetadataByByCollectionId(collectionId);
+    }
+
     @Override
-    public MetadataCollection getCollectionById(String id) { return  baseMapper.getCollectionById(id);}
+    public MetadataCollection getCollectionById(String id) {
+        return  baseMapper.getCollectionById(id);
+    }
 }

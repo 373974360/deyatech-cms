@@ -75,7 +75,7 @@ public class IndexCodeServiceImpl extends BaseServiceImpl<IndexCodeMapper, Index
         queryWrapper.eq("site_id", siteId);
         IndexCode indexCode = getOne(queryWrapper);
         // 信息流水号位数
-        RestResult<Integer> result = stationFeign.resetTemplateIndex(siteId, start, end, getFixedPart(siteId, indexCode), indexCode.getNumber());
+        RestResult<Integer> result = stationFeign.resetTemplateIndexCode(siteId, start, end, getFixedPart(siteId, indexCode), indexCode.getNumber());
         if (Objects.nonNull(result) && result.getData() > 0) {
             int value = result.getData();
             value += 1;

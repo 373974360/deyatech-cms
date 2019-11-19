@@ -74,30 +74,37 @@
             where cm.metadata_collection_id = #{collectionId}
         )
     </select>
-    <!--获取排序数据-->
-    <select id="getSortDataByCollectionId" resultMap="BaseResultVoMap">
-        select
-        o.*,
-        m.name_ as metadata_name
-        from station_template_form_order o
-        left join admin_metadata m on m.id_ = o.metadata_id and m.enable_ = 1
-        where user_id = #{userId} and collection_id = #{collectionId}
-    </select>
     <!--获取元数据集列表-->
     <select id="getCollectionList" resultType="com.deyatech.admin.entity.MetadataCollection">
         select * from admin_metadata_collection where en_name = #{enName} and enable_ = 1 order by main_version desc
-    </select>
-    <!--获页数和页名-->
-    <select id="getNumberAndNameByCollectionId" resultMap="BaseResultVoMap">
-        select page_number, page_name
-        from station_template_form_order
-        where collection_id = #{collectionId}
-        group by page_number, page_name
-        order by page_number
     </select>
     <select id="getCollectionById" resultType="com.deyatech.admin.entity.MetadataCollection">
         select * from admin_metadata_collection where id_ = #{id}
     </select>
 
-
+    <!--获取排序数据-->
+    <select id="getSortDataByCollectionId" resultMap="BaseResultVoMap">
+        select
+        o.*,
+        tmp.metadata_name
+        from station_template_form_order o,
+        (
+            select
+            m.id_ as metadata_id,
+            case when cm.label_ is null then m.name_ when cm.label_ = '' then m.name_ else cm.label_ end as metadata_name
+            from
+            admin_metadata_collection_metadata cm
+            join admin_metadata m on m.id_ = cm.metadata_id and m.enable_ = 1
+            where cm.metadata_collection_id = #{collectionId}
+        ) tmp
+        where o.user_id = #{userId} and o.collection_id = #{collectionId} and tmp.metadata_id = o.metadata_id
+    </select>
+    <!--获页数和页名-->
+    <select id="getNumberAndNameByCollectionId" resultMap="BaseResultVoMap">
+        select page_number, page_name
+        from station_template_form_order
+        where user_id = #{userId} and collection_id = #{collectionId}
+        group by page_number, page_name
+        order by page_number
+    </select>
 </mapper>
