@@ -3,7 +3,7 @@
 <mapper namespace="com.deyatech.assembly.mapper.CustomizationFunctionMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.deyatech.assembly.entity.CustomizationFunction">
+    <resultMap id="BaseResultMap" type="com.deyatech.assembly.entity.CustomizationTableHead">
         <result column="id_" property="id" />
         <result column="enable_" property="enable" />
         <result column="remark_" property="remark" />

@@ -51,17 +51,39 @@
         m.name_ as content_model_name,
         m.meta_data_collection_id as meta_data_collection_id,
         d.code_text as resource_category_name,
-        ui.name_ as inputUserName,
-        uv.name_ as verifyUserName,
+        auc.name_ as createUserName,
+        auc.department_name as createUserDepartmentName,
+        auu.name_ as updateUserName,
+        auu.department_name as updateUserDepartmentName,
         t.*
         from station_template t
         left join resource_station_group s on s.id_ = t.site_id and s.enable_ = 1
         left join station_catalog c on c.id_ = t.cms_catalog_id and c.enable_ = 1
         left join station_model m on m.id_ = t.content_model_id and m.enable_ = 1
         left join admin_dictionary d on d.id_ = t.resource_category and d.enable_ = 1
-        left join admin_user ui on ui.id_ = t.create_by and ui.enable_ = 1
-        left join admin_user uv on uv.id_ = t.update_by and uv.enable_ = 1
-        where t.enable_ = 1
+        left join (
+            select
+            au.id_,
+            au.name_,
+            ad.id_ as department_id,
+            ad.name_ as department_name
+            from
+            admin_user au
+            left join admin_department ad on au.department_id = ad.id_ and ad.enable_ = 1
+            where au.enable_ = 1
+        ) auc on auc.id_ = t.create_by
+        left join (
+            select
+            au.id_,
+            au.name_,
+            ad.id_ as department_id,
+            ad.name_ as department_name
+            from
+            admin_user au
+            left join admin_department ad on au.department_id = ad.id_ and ad.enable_ = 1
+            where au.enable_ = 1
+        ) auu on auu.id_ = t.update_by
+        where t.enable_ = 1 and t.site_id = #{resource.siteId}
         order by t.update_time desc
     </select>
 </mapper>

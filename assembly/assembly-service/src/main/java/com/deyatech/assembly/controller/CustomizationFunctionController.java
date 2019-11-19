@@ -2,10 +2,10 @@ package com.deyatech.assembly.controller;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
-import com.deyatech.assembly.entity.CustomizationFunction;
+import com.deyatech.assembly.entity.CustomizationTableHead;
 import com.deyatech.assembly.service.CustomizationFunctionService;
-import com.deyatech.assembly.vo.CustomizationFunctionVo;
 import com.deyatech.assembly.vo.CustomizationTableHeadVo;
+import com.deyatech.assembly.vo.CustomizationTableHeadItemVo;
 import com.deyatech.common.base.BaseController;
 import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.entity.RestResult;
@@ -48,8 +48,8 @@ public class CustomizationFunctionController extends BaseController {
 //     */
 //    @PostMapping("/removeByCustomizationFunction")
 //    @ApiOperation(value="根据CustomizationFunction对象属性逻辑删除", notes="根据对象逻辑删除信息")
-//    @ApiImplicitParam(name = "customizationFunction", value = "对象", required = true, dataType = "CustomizationFunction", paramType = "query")
-//    public RestResult<Boolean> removeByCustomizationFunction(CustomizationFunction customizationFunction) {
+//    @ApiImplicitParam(name = "customizationFunction", value = "对象", required = true, dataType = "CustomizationTableHead", paramType = "query")
+//    public RestResult<Boolean> removeByCustomizationFunction(CustomizationTableHead customizationFunction) {
 //        log.info(String.format("根据CustomizationFunction对象属性逻辑删除: %s ", customizationFunction));
 //        boolean result = customizationFunctionService.removeByBean(customizationFunction);
 //        return RestResult.ok(result);
@@ -79,10 +79,10 @@ public class CustomizationFunctionController extends BaseController {
 //     */
 //    @GetMapping("/getByCustomizationFunction")
 //    @ApiOperation(value="根据CustomizationFunction对象属性获取", notes="根据对象属性获取信息")
-//    @ApiImplicitParam(name = "customizationFunction", value = "对象", required = false, dataType = "CustomizationFunction", paramType = "query")
-//    public RestResult<CustomizationFunctionVo> getByCustomizationFunction(CustomizationFunction customizationFunction) {
+//    @ApiImplicitParam(name = "customizationFunction", value = "对象", required = false, dataType = "CustomizationTableHead", paramType = "query")
+//    public RestResult<CustomizationTableHeadVo> getByCustomizationFunction(CustomizationTableHead customizationFunction) {
 //        customizationFunction = customizationFunctionService.getByBean(customizationFunction);
-//        CustomizationFunctionVo customizationFunctionVo = customizationFunctionService.setVoProperties(customizationFunction);
+//        CustomizationTableHeadVo customizationFunctionVo = customizationFunctionService.setVoProperties(customizationFunction);
 //        log.info(String.format("根据id获取：%s", JSONUtil.toJsonStr(customizationFunctionVo)));
 //        return RestResult.ok(customizationFunctionVo);
 //    }
@@ -95,10 +95,10 @@ public class CustomizationFunctionController extends BaseController {
 //     */
 //    @GetMapping("/listByCustomizationFunction")
 //    @ApiOperation(value="根据CustomizationFunction对象属性检索所有", notes="根据CustomizationFunction对象属性检索所有信息")
-//    @ApiImplicitParam(name = "customizationFunction", value = "对象", required = false, dataType = "CustomizationFunction", paramType = "query")
-//    public RestResult<Collection<CustomizationFunctionVo>> listByCustomizationFunction(CustomizationFunction customizationFunction) {
-//        Collection<CustomizationFunction> customizationFunctions = customizationFunctionService.listByBean(customizationFunction);
-//        Collection<CustomizationFunctionVo> customizationFunctionVos = customizationFunctionService.setVoProperties(customizationFunctions);
+//    @ApiImplicitParam(name = "customizationFunction", value = "对象", required = false, dataType = "CustomizationTableHead", paramType = "query")
+//    public RestResult<Collection<CustomizationTableHeadVo>> listByCustomizationFunction(CustomizationTableHead customizationFunction) {
+//        Collection<CustomizationTableHead> customizationFunctions = customizationFunctionService.listByBean(customizationFunction);
+//        Collection<CustomizationTableHeadVo> customizationFunctionVos = customizationFunctionService.setVoProperties(customizationFunctions);
 //        log.info(String.format("根据CustomizationFunction对象属性检索所有: %s ",JSONUtil.toJsonStr(customizationFunctionVos)));
 //        return RestResult.ok(customizationFunctionVos);
 //    }
@@ -111,9 +111,9 @@ public class CustomizationFunctionController extends BaseController {
 //     */
 //    @GetMapping("/pageByCustomizationFunction")
 //    @ApiOperation(value="根据CustomizationFunction对象属性分页检索", notes="根据CustomizationFunction对象属性分页检索信息")
-//    @ApiImplicitParam(name = "customizationFunction", value = "对象", required = false, dataType = "CustomizationFunction", paramType = "query")
-//    public RestResult<IPage<CustomizationFunctionVo>> pageByCustomizationFunction(CustomizationFunction customizationFunction) {
-//        IPage<CustomizationFunctionVo> customizationFunctions = customizationFunctionService.pageByBean(customizationFunction);
+//    @ApiImplicitParam(name = "customizationFunction", value = "对象", required = false, dataType = "CustomizationTableHead", paramType = "query")
+//    public RestResult<IPage<CustomizationTableHeadVo>> pageByCustomizationFunction(CustomizationTableHead customizationFunction) {
+//        IPage<CustomizationTableHeadVo> customizationFunctions = customizationFunctionService.pageByBean(customizationFunction);
 //        customizationFunctions.setRecords(customizationFunctionService.setVoProperties(customizationFunctions.getRecords()));
 //        log.info(String.format("根据CustomizationFunction对象属性分页检索: %s ",JSONUtil.toJsonStr(customizationFunctions)));
 //        return RestResult.ok(customizationFunctions);
@@ -130,10 +130,10 @@ public class CustomizationFunctionController extends BaseController {
 //    @ApiOperation(value="获取定制功能", notes="获取定制功能")
 //    @ApiImplicitParam(name = "type", value = "定制功能类型", required = true, dataType = "String", paramType = "query")
 //    public RestResult getCustomizationFunction(String type) {
-//        QueryWrapper<CustomizationFunction> queryWrapper = new QueryWrapper<>();
+//        QueryWrapper<CustomizationTableHead> queryWrapper = new QueryWrapper<>();
 //        queryWrapper.eq("user_id", UserContextHelper.getUserId());
 //        queryWrapper.eq("type_", type);
-//        CustomizationFunction customizationFunction = customizationFunctionService.getOne(queryWrapper);
+//        CustomizationTableHead customizationFunction = customizationFunctionService.getOne(queryWrapper);
 //        return RestResult.ok(customizationFunctionService.setVoProperties(customizationFunction));
 //    }
 
@@ -145,8 +145,8 @@ public class CustomizationFunctionController extends BaseController {
      */
     @PostMapping("/saveOrUpdate")
     @ApiOperation(value="单个保存或者更新", notes="根据对象保存或者更新信息")
-    @ApiImplicitParam(name = "customizationFunction", value = "对象", required = true, dataType = "CustomizationFunction", paramType = "query")
-    public RestResult<Boolean> saveOrUpdate(CustomizationFunction customizationFunction) {
+    @ApiImplicitParam(name = "customizationFunction", value = "对象", required = true, dataType = "CustomizationTableHead", paramType = "query")
+    public RestResult<Boolean> saveOrUpdate(CustomizationTableHead customizationFunction) {
         log.info(String.format("保存或者更新: %s ", JSONUtil.toJsonStr(customizationFunction)));
         boolean result = customizationFunctionService.saveOrUpdate(customizationFunction);
         return RestResult.ok(result);
@@ -160,10 +160,10 @@ public class CustomizationFunctionController extends BaseController {
      */
     @PostMapping("/saveOrUpdateBatch")
     @ApiOperation(value="批量保存或者更新", notes="根据对象集合批量保存或者更新信息")
-    @ApiImplicitParam(name = "customizationFunctions", value = "对象集合", required = true, allowMultiple = true, dataType = "CustomizationFunction", paramType = "query")
+    @ApiImplicitParam(name = "customizationFunctions", value = "对象集合", required = true, allowMultiple = true, dataType = "CustomizationTableHead", paramType = "query")
     public RestResult<Boolean> saveOrUpdateBatch(String customizationFunctions) {
-        JavaType javaType = mapper.getTypeFactory().constructParametricType(List.class, CustomizationFunction.class);
-        List<CustomizationFunction> customizationFunctionList;
+        JavaType javaType = mapper.getTypeFactory().constructParametricType(List.class, CustomizationTableHead.class);
+        List<CustomizationTableHead> customizationFunctionList;
         try {
             customizationFunctionList = mapper.readValue(customizationFunctions, javaType);
         } catch (IOException e) {
@@ -171,7 +171,7 @@ public class CustomizationFunctionController extends BaseController {
         }
         if (CollectionUtil.isNotEmpty(customizationFunctionList)) {
             String userId = UserContextHelper.getUserId();
-            for (CustomizationFunction cf : customizationFunctionList) {
+            for (CustomizationTableHead cf : customizationFunctionList) {
                 cf.setUserId(userId);
             }
         }
@@ -186,7 +186,7 @@ public class CustomizationFunctionController extends BaseController {
      */
     @RequestMapping("/getAllCustomizationFunction")
     @ApiOperation(value="获取所有定制功能", notes="获取所有定制功能")
-    public RestResult<List<CustomizationFunctionVo>> getAllCustomizationFunction() {
+    public RestResult<List<CustomizationTableHeadVo>> getAllCustomizationFunction() {
         return RestResult.ok(customizationFunctionService.getAllCustomizationFunction());
     }
 
@@ -197,8 +197,8 @@ public class CustomizationFunctionController extends BaseController {
      */
     @RequestMapping("/getCustomizationFunctionCatalog")
     @ApiOperation(value="获取所有定制功能", notes="获取所有定制功能")
-    public RestResult<CustomizationFunctionVo> getCustomizationFunctionCatalog() {
-        return RestResult.ok(customizationFunctionService.getCustomizationFunction(CustomizationTypeEnum.TABLE_HEAD_CATALOG.getCode()));
+    public RestResult<CustomizationTableHeadVo> getCustomizationFunctionCatalog() {
+        return RestResult.ok(customizationFunctionService.getCustomizationFunction(CustomizationTypeEnum.TABLE_HEAD_CATALOG.getValue(), CustomizationTypeEnum.TABLE_HEAD_CATALOG.getCode()));
     }
 
     /**
@@ -208,8 +208,8 @@ public class CustomizationFunctionController extends BaseController {
      */
     @RequestMapping("/getCustomizationFunctionContent")
     @ApiOperation(value="获取所有定制功能", notes="获取所有定制功能")
-    public RestResult<CustomizationFunctionVo> getCustomizationFunctionContent() {
-        return RestResult.ok(customizationFunctionService.getCustomizationFunction(CustomizationTypeEnum.TABLE_HEAD_CONTENT.getCode()));
+    public RestResult<CustomizationTableHeadVo> getCustomizationFunctionContent() {
+        return RestResult.ok(customizationFunctionService.getCustomizationFunction(CustomizationTypeEnum.TABLE_HEAD_CONTENT.getValue(), CustomizationTypeEnum.TABLE_HEAD_CONTENT.getCode()));
     }
 
     /**
@@ -219,8 +219,8 @@ public class CustomizationFunctionController extends BaseController {
      */
     @RequestMapping("/getTableHeadCatalogData")
     @ApiOperation(value="栏目表头", notes="栏目表头")
-    public RestResult<List<CustomizationTableHeadVo>> getTableHeadCatalogData () {
-        return RestResult.ok(customizationFunctionService.getTableHeadData(CustomizationTypeEnum.TABLE_HEAD_CATALOG.getCode()));
+    public RestResult<List<CustomizationTableHeadItemVo>> getTableHeadCatalogData () {
+        return RestResult.ok(customizationFunctionService.getTableHeadData(CustomizationTypeEnum.TABLE_HEAD_CATALOG.getValue(), CustomizationTypeEnum.TABLE_HEAD_CATALOG.getCode()));
     }
 
     /**
@@ -230,8 +230,8 @@ public class CustomizationFunctionController extends BaseController {
      */
     @RequestMapping("/getTableHeadContentData")
     @ApiOperation(value="内容表头", notes="内容表头")
-    public RestResult<List<CustomizationTableHeadVo>> getTableHeadContentData () {
-        return RestResult.ok(customizationFunctionService.getTableHeadData(CustomizationTypeEnum.TABLE_HEAD_CONTENT.getCode()));
+    public RestResult<List<CustomizationTableHeadItemVo>> getTableHeadContentData () {
+        return RestResult.ok(customizationFunctionService.getTableHeadData(CustomizationTypeEnum.TABLE_HEAD_CONTENT.getValue(), CustomizationTypeEnum.TABLE_HEAD_CONTENT.getCode()));
 
     }
 }

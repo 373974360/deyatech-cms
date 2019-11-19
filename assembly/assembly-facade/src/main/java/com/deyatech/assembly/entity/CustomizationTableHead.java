@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 /**
  * <p>
- * 定制功能
+ * 定制表头
  * </p>
  *
  * @author lee.
@@ -19,9 +19,9 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-@TableName("customization_function")
-@ApiModel(value = "定制功能", description = "定制功能", parent = BaseEntity.class)
-public class CustomizationFunction extends BaseEntity {
+@TableName("customization_table_head")
+@ApiModel(value = "定制表头", description = "定制表头", parent = BaseEntity.class)
+public class CustomizationTableHead extends BaseEntity {
 
     @ApiModelProperty(value = "用户编号", dataType = "String")
     @TableField("user_id")

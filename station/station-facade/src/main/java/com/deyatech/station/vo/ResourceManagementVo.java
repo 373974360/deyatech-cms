@@ -38,6 +38,12 @@ public class ResourceManagementVo {
     private Long size;
 
     /**
+     * 站点编号
+     */
+    @ApiModelProperty(value = "站点编号", dataType = "String")
+    private String siteId;
+
+    /**
      * 字段标签
      */
     @ApiModelProperty(value = "字段标签", dataType = "String")

@@ -54,17 +54,40 @@
     </sql>
 
     <select id="pageByTemplate" parameterType="com.deyatech.station.entity.Template" resultType="com.deyatech.station.vo.TemplateVo">
-        select st.*,
+        select
             sm.name_ as contentModelName,
             sm.meta_data_collection_id as metaDataCollectionId,
             smt.url_ as thumbnailUrl,
-            aui.name_ as inputUserName,
-            auv.name_ as verifyUserName
+            auc.name_ as createUserName,
+            auc.department_name as createUserDepartmentName,
+            auu.name_ as updateUserName,
+            auu.department_name as updateUserDepartmentName,
+            st.*
         from station_template st
         left join station_model sm on st.content_model_id = sm.id_ and sm.enable_ = 1
         left join station_material smt on st.thumbnail_ = smt.id_ and smt.enable_ = 1
-        left join admin_user aui on aui.id_ = st.create_by and aui.enable_ = 1
-        left join admin_user auv on auv.id_ = st.update_by and auv.enable_ = 1
+        left join (
+            select
+            au.id_,
+            au.name_,
+            ad.id_ as department_id,
+            ad.name_ as department_name
+            from
+            admin_user au
+            left join admin_department ad on au.department_id = ad.id_ and ad.enable_ = 1
+            where au.enable_ = 1
+        ) auc on auc.id_ = st.create_by
+        left join (
+            select
+            au.id_,
+            au.name_,
+            ad.id_ as department_id,
+            ad.name_ as department_name
+            from
+            admin_user au
+            left join admin_department ad on au.department_id = ad.id_ and ad.enable_ = 1
+            where au.enable_ = 1
+        ) auu on auu.id_ = st.update_by
         where st.enable_ = 1
         <if test="template.title != null">
             and (

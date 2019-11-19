@@ -87,8 +87,8 @@
         select
         o.*,
         tmp.metadata_name
-        from station_template_form_order o,
-        (
+        from station_template_form_order o
+        left join (
             select
             m.id_ as metadata_id,
             case when cm.label_ is null then m.name_ when cm.label_ = '' then m.name_ else cm.label_ end as metadata_name
@@ -96,8 +96,8 @@
             admin_metadata_collection_metadata cm
             join admin_metadata m on m.id_ = cm.metadata_id and m.enable_ = 1
             where cm.metadata_collection_id = #{collectionId}
-        ) tmp
-        where o.user_id = #{userId} and o.collection_id = #{collectionId} and tmp.metadata_id = o.metadata_id
+        ) tmp on tmp.metadata_id = o.metadata_id
+        where o.user_id = #{userId} and o.collection_id = #{collectionId}
     </select>
     <!--获页数和页名-->
     <select id="getNumberAndNameByCollectionId" resultMap="BaseResultVoMap">

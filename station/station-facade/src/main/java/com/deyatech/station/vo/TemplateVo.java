@@ -72,16 +72,6 @@ public class TemplateVo extends Template {
     private String thumbnailUrl;
 
     /**
-     * 录入人姓名
-     */
-    private String inputUserName;
-
-    /**
-     * 审核人姓名
-     */
-    private String verifyUserName;
-
-    /**
      * 草稿标记
      */
     private String draftFlag;
@@ -105,4 +95,25 @@ public class TemplateVo extends Template {
      * 资源管理元数据内容
      */
     private List<ResourceManagementVo> contentList;
+
+    /**
+     * 创建者姓名
+     */
+    private String createUserName;
+
+    /**
+     * 创建者部门
+     */
+    private String createUserDepartmentName;
+
+    /**
+     * 更新者姓名
+     */
+    private String updateUserName;
+
+    /**
+     * 更新者部门
+     */
+    private String updateUserDepartmentName;
+
 }

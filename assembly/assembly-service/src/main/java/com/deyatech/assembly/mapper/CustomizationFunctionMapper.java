@@ -1,6 +1,6 @@
 package com.deyatech.assembly.mapper;
 
-import com.deyatech.assembly.entity.CustomizationFunction;
+import com.deyatech.assembly.entity.CustomizationTableHead;
 import com.deyatech.common.base.BaseMapper;
 
 /**
@@ -11,6 +11,6 @@ import com.deyatech.common.base.BaseMapper;
  * @Author lee.
  * @since 2019-10-30
  */
-public interface CustomizationFunctionMapper extends BaseMapper<CustomizationFunction> {
+public interface CustomizationFunctionMapper extends BaseMapper<CustomizationTableHead> {
 
 }

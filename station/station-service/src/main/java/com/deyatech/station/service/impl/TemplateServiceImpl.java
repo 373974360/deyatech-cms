@@ -25,6 +25,7 @@ import com.deyatech.common.enums.TemplateAuthorityEnum;
 import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.common.utils.ColumnUtil;
+import com.deyatech.common.utils.DateUtils;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.entity.*;
 import com.deyatech.station.mapper.TemplateMapper;
@@ -42,6 +43,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -249,10 +252,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     public TemplateVo setVoProperties(Template template){
         TemplateVo templateVo = baseMapper.queryTemplateById(template.getId());
         BeanUtil.copyProperties(template, templateVo);
-        // 查询元数据结构及数据
-        this.queryMetadata(templateVo);
-        // 查询模型模板
-        this.queryModelTemplate(templateVo);
         return templateVo;
     }
 
@@ -269,10 +268,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             for (Object template : templates) {
                 TemplateVo templateVo = new TemplateVo();
                 BeanUtil.copyProperties(template, templateVo);
-                // 查询元数据结构及数据
-                this.queryMetadata(templateVo);
-                // 查询模型模板
-                this.queryModelTemplate(templateVo);
                 templateVos.add(templateVo);
             }
         }
@@ -352,7 +347,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         // 保存或更新元数据
         if (YesNoEnum.NO.getCode() == templateVo.getFlagExternal() && StrUtil.isNotEmpty(templateVo.getContentMapStr())) {
             // contentMap 数据库字段
-            Map contentMap = JSONUtil.toBean(templateVo.getContentMapStr(), Map.class);
+            Map<String, Object> contentMap = dataConvert(templateVo.getMetaDataCollectionId(), templateVo.getContentMapStr());
             String contentId = adminFeign.saveOrUpdateMetadata(templateVo.getMetaDataCollectionId(), templateVo.getContentId(), contentMap).getData();
             // 如果是插入数据， 回填contentId
             if (StrUtil.isEmpty(templateVo.getContentId())) {
@@ -416,6 +411,89 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             this.addIndexTask(templateVo, hasId ? RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE : RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
         }
         return res;
+    }
+
+    /**
+     * 元数据转换
+     *
+     * @param collectionId
+     * @param contentMapStr
+     * @return
+     */
+    private Map<String, Object> dataConvert(String collectionId, String contentMapStr) {
+        Map<String, Object> data = new HashMap<>();
+        // 元数据映射
+        Map<String, Metadata> metadataMap = getMetadataMapByField(collectionId);
+        Map<String, Object> viewDataMap = JSONUtil.toBean(contentMapStr, Map.class);
+        if (Objects.nonNull(viewDataMap)) {
+            Iterator<String> keys = viewDataMap.keySet().iterator();
+            while(keys.hasNext()) {
+                String key = keys.next();
+                Metadata md = metadataMap.get(key);
+                String dataType = md.getDataType();
+                switch (dataType) {
+                    case "int":
+                        data.put(key, Integer.parseInt(viewDataMap.get(key).toString()));
+                        break;
+                    case "float":
+                        data.put(key, Float.parseFloat(viewDataMap.get(key).toString()));
+                        break;
+                    case "date":
+                        String controlType = md.getControlType();
+                        switch (controlType) {
+                            case "dateElement":
+                                data.put(key, parseDate(viewDataMap.get(key), "yyyy-MM-dd"));
+                                break;
+                            case "timeElement":
+                                data.put(key, parseDate(viewDataMap.get(key), "HH:mm:ss"));
+                                break;
+                            case "datetimeElement":
+                                data.put(key, parseDate(viewDataMap.get(key), "yyyy-MM-dd HH:mm:ss"));
+                                break;
+                            default:
+                        }
+                        break;
+                    default:
+                        data.put(key, viewDataMap.get(key));
+                }
+
+            }
+        }
+        return data;
+    }
+
+    private Date parseDate(Object date, String pattern) {
+        if (Objects.isNull(date))
+            return null;
+        try {
+            String value = date.toString();
+            if ("HH:mm:ss".equals(pattern)) {
+                pattern = "yyyy-MM-dd HH:mm:ss";
+                SimpleDateFormat tmp = new SimpleDateFormat("yyyy-MM-dd");
+                value = tmp.format(new Date()) + " " + date.toString();
+            }
+            SimpleDateFormat format = new SimpleDateFormat(pattern);
+            return format.parse(value);
+        } catch (ParseException e) {
+            return null;
+        }
+    }
+
+    private Map<String, Metadata> getMetadataMapByField(String collectionId) {
+        // 元数据集
+        MetadataCollection collection = formOrderService.getCollectionById(collectionId);
+        // 基础字段映射
+        Map<String, Metadata> metadataMap = new HashMap<>();
+        // 元数据
+        List<Metadata> metadatas = formOrderService.getAllMetadataByByCollectionId(collectionId);
+        if (CollectionUtil.isNotEmpty(metadatas)) {
+            for (Metadata md : metadatas) {
+                String key = collection.getMdPrefix() + md.getBriefName();
+                md.setBriefName(key);
+                metadataMap.put(key, md);
+            }
+        }
+        return metadataMap;
     }
 
     @Override
@@ -579,9 +657,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     public IPage<TemplateVo> pageByTemplate(Template entity) {
         // 检索栏目ID
         List<String> catalogIdList = new ArrayList<>();
-
         String userId = UserContextHelper.getUserId();
-
         RestResult<List<String>> roleResult =  adminFeign.getRoleIdsByUserId(userId);
         List<String> roleIds = roleResult.getData();
         if (CollectionUtil.isEmpty(roleIds)) {
@@ -607,7 +683,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             }
         }
         catalogIdList.add(entity.getCmsCatalogId());
-
 
         // 检索用户ID
         List<String> userIdList = new ArrayList<>();

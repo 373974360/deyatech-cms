@@ -23,5 +23,5 @@ public interface ResourceManagementMapper extends BaseMapper {
      * @param resource
      * @return
      */
-    IPage<TemplateVo> pageByResourceManagement(@Param("page") IPage page, ResourceManagementVo resource);
+    IPage<TemplateVo> pageByResourceManagement(@Param("page") IPage page, @Param("resource") ResourceManagementVo resource);
 }

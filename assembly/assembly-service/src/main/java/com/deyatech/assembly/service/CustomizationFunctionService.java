@@ -1,8 +1,8 @@
 package com.deyatech.assembly.service;
 
-import com.deyatech.assembly.entity.CustomizationFunction;
-import com.deyatech.assembly.vo.CustomizationFunctionVo;
+import com.deyatech.assembly.entity.CustomizationTableHead;
 import com.deyatech.assembly.vo.CustomizationTableHeadVo;
+import com.deyatech.assembly.vo.CustomizationTableHeadItemVo;
 import com.deyatech.common.base.BaseService;
 import java.util.Collection;
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.List;
  * @Author lee.
  * @since 2019-10-30
  */
-public interface CustomizationFunctionService extends BaseService<CustomizationFunction> {
+public interface CustomizationFunctionService extends BaseService<CustomizationTableHead> {
 
     /**
      * 单个将对象转换为vo
@@ -23,7 +23,7 @@ public interface CustomizationFunctionService extends BaseService<CustomizationF
      * @param customizationFunction
      * @return
      */
-    CustomizationFunctionVo setVoProperties(CustomizationFunction customizationFunction);
+    CustomizationTableHeadVo setVoProperties(CustomizationTableHead customizationFunction);
 
     /**
      * 批量将对象转换为vo
@@ -31,27 +31,27 @@ public interface CustomizationFunctionService extends BaseService<CustomizationF
      * @param customizationFunctions
      * @return
      */
-    List<CustomizationFunctionVo> setVoProperties(Collection customizationFunctions);
+    List<CustomizationTableHeadVo> setVoProperties(Collection customizationFunctions);
 
     /**
      * 获取所有定制功能
      *
      * @return
      */
-    List<CustomizationFunctionVo> getAllCustomizationFunction();
+    List<CustomizationTableHeadVo> getAllCustomizationFunction();
     /**
      * 获取定制功能
      *
      * @return
      */
-    CustomizationFunctionVo getCustomizationFunction(String type);
+    CustomizationTableHeadVo getCustomizationFunction(String name, String type);
     /**
      * 获取表头数据
      *
      * @param type
      * @return
      */
-    List<CustomizationTableHeadVo> getTableHeadData(String type);
+    List<CustomizationTableHeadItemVo> getTableHeadData(String name, String type);
 
 
 }

@@ -43,6 +43,11 @@ public class Template extends BaseEntity {
     // dataSource 数据来源
     // dictionaryId 数据字典
     // mandatory 选填控制
+
+    /**
+     * 内容管理动态表单基础字段
+     * @return
+     */
     public static Map<String, Metadata> baseFields() {
         // 控件长度: 半行1 整行2
         // 0    1    2       3       4       5      6      7       8
