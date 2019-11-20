@@ -451,6 +451,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                                 data.put(key, parseDate(viewDataMap.get(key), "yyyy-MM-dd HH:mm:ss"));
                                 break;
                             default:
+                                data.put(key, viewDataMap.get(key));
                         }
                         break;
                     default:

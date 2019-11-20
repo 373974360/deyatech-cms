@@ -1,5 +1,6 @@
 package com.deyatech.assembly.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.deyatech.assembly.entity.CustomizationTableHead;
@@ -11,6 +12,7 @@ import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import com.deyatech.common.context.UserContextHelper;
+import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.enums.CustomizationTypeEnum;
 import com.deyatech.common.exception.BusinessException;
 import com.fasterxml.jackson.databind.JavaType;
@@ -151,5 +153,63 @@ public class CustomizationFunctionServiceImpl extends BaseServiceImpl<Customizat
     @Override
     public List<CustomizationTableHeadItemVo> getTableHeadData(String name, String type) {
         return getCustomizationFunction(name, type).getHeadList().stream().filter(CustomizationTableHeadItemVo::isShow).collect(Collectors.toList());
+    }
+
+    /**
+     * 删除所有数据
+     */
+    @Override
+    public boolean removeAllData() {
+        QueryWrapper<CustomizationTableHead> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", UserContextHelper.getUserId());
+        return super.remove(queryWrapper);
+    }
+
+    /**
+     * 删除数据
+     */
+    @Override
+    public boolean removeData(String type) {
+        QueryWrapper<CustomizationTableHead> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", UserContextHelper.getUserId());
+        queryWrapper.eq("type_", type);
+        return super.remove(queryWrapper);
+    }
+
+    /**
+     * 保存所有数据
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean saveOrUpdateAllData(String customizationFunctions) {
+        if (StrUtil.isEmpty(customizationFunctions))
+            return false;
+        JavaType javaType = mapper.getTypeFactory().constructParametricType(List.class, CustomizationTableHead.class);
+        List<CustomizationTableHead> customizationFunctionList;
+        try {
+            customizationFunctionList = mapper.readValue(customizationFunctions, javaType);
+        } catch (IOException e) {
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "json转换错误");
+        }
+        if (CollectionUtil.isNotEmpty(customizationFunctionList)) {
+            removeAllData();
+            String userId = UserContextHelper.getUserId();
+            for (CustomizationTableHead cf : customizationFunctionList) {
+                cf.setUserId(userId);
+            }
+        }
+        return super.saveOrUpdateBatch(customizationFunctionList);
+    }
+
+    /**
+     * 保存数据
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean saveOrUpdateData(CustomizationTableHead customizationFunction) {
+        if(Objects.isNull(customizationFunction))
+            return false;
+        removeData(customizationFunction.getType());
+        return saveOrUpdate(customizationFunction);
     }
 }

@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.*;
@@ -165,6 +166,7 @@ public class TemplateFormOrderServiceImpl extends BaseServiceImpl<TemplateFormOr
      * @return
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean saveOrUpdateByJson(String collectionId, String json) {
         try {
             String userId = UserContextHelper.getUserId();

@@ -53,5 +53,23 @@ public interface CustomizationFunctionService extends BaseService<CustomizationT
      */
     List<CustomizationTableHeadItemVo> getTableHeadData(String name, String type);
 
+    /**
+     * 删除所有数据
+     */
+    boolean removeAllData();
 
+    /**
+     * 删除数据
+     */
+    boolean removeData(String type);
+
+    /**
+     * 保存所有数据
+     */
+    boolean saveOrUpdateAllData(String customizationFunctions);
+
+    /**
+     * 保存数据
+     */
+    boolean saveOrUpdateData(CustomizationTableHead customizationFunction);
 }
