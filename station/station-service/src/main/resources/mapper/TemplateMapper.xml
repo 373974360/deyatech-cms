@@ -140,6 +140,9 @@
         left join station_model sm on st.content_model_id = sm.id_
         left join station_material smt on st.thumbnail_ = smt.id_
         where st.enable_ = 1 and st.status_ = 2
+        <if test="map.startTime != null and map.endTime != null  ">
+            and st.resource_publication_date between #{map.startTime} and #{map.endTime}
+        </if>
         <if test="map.title != null">
             and (st.title_ like concat('%', #{map.title}, '%') or st.keyword_ like concat('%', #{map.title}, '%'))
         </if>
