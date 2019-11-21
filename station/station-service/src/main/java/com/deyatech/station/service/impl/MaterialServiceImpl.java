@@ -1,5 +1,7 @@
 package com.deyatech.station.service.impl;
 
+import com.deyatech.common.Constants;
+import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.entity.Material;
 import com.deyatech.station.vo.MaterialVo;
 import com.deyatech.station.mapper.MaterialMapper;
@@ -7,6 +9,8 @@ import com.deyatech.station.service.MaterialService;
 import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -23,7 +27,11 @@ import java.util.Collection;
  * @since 2019-08-28
  */
 @Service
+@Slf4j
 public class MaterialServiceImpl extends BaseServiceImpl<MaterialMapper, Material> implements MaterialService {
+
+    @Autowired
+    SiteCache siteCache;
 
     /**
      * 单个将对象转换为vo
@@ -67,5 +75,18 @@ public class MaterialServiceImpl extends BaseServiceImpl<MaterialMapper, Materia
             }
         }
         return true;
+    }
+
+    /**
+     * 获取站点上传文件路径
+     *
+     * @param siteId
+     * @return
+     */
+    @Override
+    public String getSiteUploadPath(String siteId) {
+        String path =  new File(siteCache.getStationGroupRootPath(siteId), Constants.UPLOAD_DEFAULT_PREFIX_URL).getAbsolutePath();
+        log.info("站点材料上传路径：" + path);
+        return path;
     }
 }

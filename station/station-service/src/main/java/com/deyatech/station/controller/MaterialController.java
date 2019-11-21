@@ -53,9 +53,6 @@ public class MaterialController extends BaseController {
     @Autowired
     MaterialService materialService;
 
-    @Autowired
-    SiteCache siteCache;
-
     /**
      * 单个保存或者更新
      *
@@ -174,31 +171,33 @@ public class MaterialController extends BaseController {
     @GetMapping("/getSiteUploadPath")
     @ApiImplicitParam(name = "siteId", value = "站点id", required = true, dataType = "String", paramType = "query")
     public RestResult getSiteUploadPath(String siteId) {
-        String siteRootPath = siteCache.getStationGroupRootPath(siteId);
-        String uploadPath = new File(siteRootPath, Constants.UPLOAD_DEFAULT_PREFIX_URL).getAbsolutePath();
-        return RestResult.ok(uploadPath);
+        return RestResult.ok(materialService.getSiteUploadPath(siteId));
     }
 
     /**
      * 上传文件
      *
-     * @param file
-     * @param path
+     * @param file 上传文件
+     * @param siteId 站点编号
+     * @param attach 回传附加参数
      * @return
      */
     @PostMapping("/uploadFile")
     @ApiOperation(value = "上传文件", notes = "上传文件")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "file", value = "文件", required = true, dataType = "MultipartFile", paramType = "query"),
-            @ApiImplicitParam(name = "path", value = "路径", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "siteId", value = "站点id", required = false, dataType = "String", paramType = "query")
+            @ApiImplicitParam(name = "siteId", value = "站点编号", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "attach", value = "回传附加参数", required = true, dataType = "String", paramType = "query")
     })
-    public RestResult uploadFile(@RequestParam("file") MultipartFile file, String path, String siteId, @RequestParam(value = "attach", required = false) String attach) {
-        String fileSeparator = System.getProperty("file.separator");
-        if (!path.endsWith(fileSeparator)) {
-            path += fileSeparator;
+    public RestResult uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("siteId") String siteId, @RequestParam(value = "attach", required = false) String attach) {
+        if (StrUtil.isEmpty(siteId)) {
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "站点编号不存在");
         }
-
+        String sitePath = materialService.getSiteUploadPath(siteId);
+        String fileSeparator = System.getProperty("file.separator");
+        if (!sitePath.endsWith(fileSeparator)) {
+            sitePath += fileSeparator;
+        }
         FileUploadResult result = new FileUploadResult();
         //判断图片是否为空
         if (file.isEmpty()) {
@@ -218,7 +217,7 @@ public class MaterialController extends BaseController {
             }
             String fileName = DateUtil.format(new Date(), DatePattern.PURE_DATETIME_FORMAT) + RandomUtil.randomNumbers(4) + extName;
             //调用文件处理类FileUtil，处理文件，将文件写入指定位置
-            uploadFile(file.getBytes(), path, fileName);
+            uploadFile(file.getBytes(), sitePath, fileName);
             String url = Constants.UPLOAD_DEFAULT_PREFIX_URL.concat(fileName);
             if (StrUtil.isNotBlank(url)) {
                 //转存文件
@@ -226,7 +225,7 @@ public class MaterialController extends BaseController {
                 result.setOriginal(originalFilename);
                 result.setTitle(originalFilename);
                 result.setUrl(url);
-                result.setFilePath(path + fileName);
+                result.setFilePath(sitePath + fileName);// 文件存储的物理绝对地址
                 result.setAttach(attach);//前台来的参数，原样返回，内容动态表单用
 
                 Material material = new Material();
@@ -255,22 +254,48 @@ public class MaterialController extends BaseController {
     /**
      * 查看图片
      *
-     * @param filePath
+     * @param siteId 站点编号
+     * @param url 上传返回的url地址
      * @param response
      */
-    @GetMapping("/showPicImg")
+    @GetMapping("/showImageBySiteIdAndUrl")
     @ApiOperation(value = "查看图片", notes = "查看图片")
-    @ApiImplicitParam(name = "filePath", value = "图片路径", required = true, dataType = "String", paramType = "query")
-    public void showPicImg(String basePath, String filePath, HttpServletResponse response) {
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "siteId", value = "站点编号", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "url", value = "图片URL", required = true, dataType = "String", paramType = "query")
+    })
+    public void showImageBySiteIdAndUrl(String siteId, String url, HttpServletResponse response) {
+        String sitePath = materialService.getSiteUploadPath(siteId);
         String fileSeparator = System.getProperty("file.separator");
-        if (!basePath.endsWith(fileSeparator)) {
-            basePath += fileSeparator;
+        if (!sitePath.endsWith(fileSeparator)) {
+            sitePath += fileSeparator;
         }
+        String filePath = sitePath + url.replaceAll(Constants.UPLOAD_DEFAULT_PREFIX_URL,"");
+        showImage(filePath, response);
+    }
+
+    /**
+     * 查看图片
+     *
+     * @param filePath 图片绝对路径地址
+     * @param response
+     */
+    @GetMapping("/showImageByFilePath")
+    @ApiOperation(value = "查看图片", notes = "查看图片")
+    @ApiImplicitParam(name = "filePath", value = "图片绝对路径地址", required = true, dataType = "String", paramType = "query")
+    public void showImageByFilePath(String filePath, HttpServletResponse response) {
+        if (StrUtil.isEmpty(filePath)) {
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "图片地址错误");
+        }
+        showImage(filePath, response);
+    }
+
+    private void showImage(String filePath, HttpServletResponse response) {
         FileInputStream in = null;
         OutputStream out = null;
         try {
             response.setContentType("image/jpeg");
-            in = new FileInputStream(basePath + filePath.replaceAll(Constants.UPLOAD_DEFAULT_PREFIX_URL,""));
+            in = new FileInputStream(filePath);
             out = response.getOutputStream();
             IOUtils.copy(in, out);
         } catch (IOException e) {
@@ -281,4 +306,7 @@ public class MaterialController extends BaseController {
             close(out);
         }
     }
+
+
+
 }

@@ -31,4 +31,12 @@ public interface MaterialService extends BaseService<Material> {
      * @return
      */
     List<MaterialVo> setVoProperties(Collection files);
+
+    /**
+     * 获取站点上传文件路径
+     *
+     * @param siteId
+     * @return
+     */
+    String getSiteUploadPath(String siteId);
 }
