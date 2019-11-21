@@ -272,7 +272,7 @@ public class DomainServiceImpl extends BaseServiceImpl<DomainMapper, Domain> imp
     private void createNginxConf(StationGroup stationGroup, Domain domain) {
         SiteProperties site = stationFeign.getSiteProperties().getData();
         String hostRoot = site.getHostsRoot();
-        hostRoot = hostRoot.replace("\\\\", "/");
+        hostRoot = hostRoot.replace("\\", "/");
         if (!hostRoot.endsWith("/")) {
             hostRoot += "/";
         }

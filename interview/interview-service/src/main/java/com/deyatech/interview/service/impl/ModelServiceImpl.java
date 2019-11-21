@@ -90,7 +90,7 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
     }
 
     private String generateKey() {
-        return UUID.randomUUID().toString().replaceAll("-", "");
+        return UUID.randomUUID().toString().replace("-", "");
     }
 
     /**

@@ -35,11 +35,11 @@ public class FileResource {
         JSONArray files = new JSONArray();
         File file = new File(path);
         File[] tempList = file.listFiles();
-        path = path.replaceAll("\\\\", "/");
+        path = path.replace("\\", "/");
         if (path.lastIndexOf('/') != path.length() - 1) {
             path = path + '/';
         }
-        rootDir = rootDir.replaceAll("\\\\", "/");
+        rootDir = rootDir.replace("\\", "/");
         if (rootDir.lastIndexOf('/') != rootDir.length() - 1) {
             rootDir = rootDir + '/';
         }
@@ -205,7 +205,7 @@ public class FileResource {
      */
     public static String getAllFiles(String path,String type) {
         JSONArray files = new JSONArray();
-        path = path.replaceAll("\\\\", "/");
+        path = path.replace("\\", "/");
         String dir = path.substring(path.lastIndexOf("/")+1);
         if(dir.equals("images") || dir.equals("js") || dir.equals("styles")){
             return null;

@@ -86,6 +86,10 @@ public class MaterialServiceImpl extends BaseServiceImpl<MaterialMapper, Materia
     @Override
     public String getSiteUploadPath(String siteId) {
         String path =  new File(siteCache.getStationGroupRootPath(siteId), Constants.UPLOAD_DEFAULT_PREFIX_URL).getAbsolutePath();
+        path = path.replace("\\", "/");
+        if (!path.endsWith("/")) {
+            path += "/";
+        }
         log.info("站点材料上传路径：" + path);
         return path;
     }

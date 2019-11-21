@@ -194,10 +194,7 @@ public class MaterialController extends BaseController {
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "站点编号不存在");
         }
         String sitePath = materialService.getSiteUploadPath(siteId);
-        String fileSeparator = System.getProperty("file.separator");
-        if (!sitePath.endsWith(fileSeparator)) {
-            sitePath += fileSeparator;
-        }
+        sitePath += DateUtil.format(new Date(), "yyyy/MM/dd") + "/";
         FileUploadResult result = new FileUploadResult();
         //判断图片是否为空
         if (file.isEmpty()) {
@@ -266,12 +263,16 @@ public class MaterialController extends BaseController {
     })
     public void showImageBySiteIdAndUrl(String siteId, String url, HttpServletResponse response) {
         String sitePath = materialService.getSiteUploadPath(siteId);
-        String fileSeparator = System.getProperty("file.separator");
-        if (!sitePath.endsWith(fileSeparator)) {
-            sitePath += fileSeparator;
-        }
-        String filePath = sitePath + url.replaceAll(Constants.UPLOAD_DEFAULT_PREFIX_URL,"");
-        showImage(filePath, response);
+        String fileName = url.replace(Constants.UPLOAD_DEFAULT_PREFIX_URL,"");
+        StringBuilder filePath = new StringBuilder(sitePath);
+        filePath.append(fileName.substring(0, 4));
+        filePath.append("/");
+        filePath.append(fileName.substring(4, 6));
+        filePath.append("/");
+        filePath.append(fileName.substring(6, 8));
+        filePath.append("/");
+        filePath.append(fileName);
+        showImage(filePath.toString(), response);
     }
 
     /**
@@ -291,6 +292,10 @@ public class MaterialController extends BaseController {
     }
 
     private void showImage(String filePath, HttpServletResponse response) {
+        if (StrUtil.isEmpty(filePath)) {
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "文件路径空");
+        }
+        filePath = filePath.replace("\\","/");
         FileInputStream in = null;
         OutputStream out = null;
         try {

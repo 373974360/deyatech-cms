@@ -364,7 +364,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
 
     private String getHostsRootDir() {
         String hostRoot = stationFeign.getSiteProperties().getData().getHostsRoot();
-        hostRoot = hostRoot.replace("\\\\", "/");
+        hostRoot = hostRoot.replace("\\", "/");
         if (!hostRoot.endsWith("/")) {
             hostRoot += "/";
         }
