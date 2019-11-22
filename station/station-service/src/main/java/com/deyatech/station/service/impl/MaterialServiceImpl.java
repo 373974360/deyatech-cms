@@ -1,22 +1,25 @@
 package com.deyatech.station.service.impl;
 
-import com.deyatech.common.Constants;
-import com.deyatech.station.cache.SiteCache;
-import com.deyatech.station.entity.Material;
-import com.deyatech.station.vo.MaterialVo;
-import com.deyatech.station.mapper.MaterialMapper;
-import com.deyatech.station.service.MaterialService;
-import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
+import com.deyatech.common.Constants;
+import com.deyatech.common.base.BaseServiceImpl;
+import com.deyatech.station.cache.SiteCache;
+import com.deyatech.station.entity.Material;
+import com.deyatech.station.mapper.MaterialMapper;
+import com.deyatech.station.service.MaterialService;
+import com.deyatech.station.vo.MaterialVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * <p>
@@ -92,5 +95,18 @@ public class MaterialServiceImpl extends BaseServiceImpl<MaterialMapper, Materia
         }
         log.info("站点材料上传路径：" + path);
         return path;
+    }
+
+    /**
+     * 根据url获取材料
+     *
+     * @param url
+     * @return
+     */
+    @Override
+    public List<MaterialVo> getDownloadMaterialsByUrl(String url) {
+        if (StrUtil.isEmpty(url))
+            return new ArrayList<>();
+        return baseMapper.getDownloadMaterialsByUrl(Arrays.asList(url.split(",")));
     }
 }

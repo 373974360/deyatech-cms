@@ -1,8 +1,9 @@
 package com.deyatech.station.service;
 
+import com.deyatech.common.base.BaseService;
 import com.deyatech.station.entity.Material;
 import com.deyatech.station.vo.MaterialVo;
-import com.deyatech.common.base.BaseService;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -39,4 +40,12 @@ public interface MaterialService extends BaseService<Material> {
      * @return
      */
     String getSiteUploadPath(String siteId);
+
+    /**
+     * 根据url获取材料
+     *
+     * @param url
+     * @return
+     */
+    List<MaterialVo> getDownloadMaterialsByUrl(String url);
 }

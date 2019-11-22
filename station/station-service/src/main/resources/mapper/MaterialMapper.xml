@@ -31,5 +31,27 @@
         version_,
         name_, type_, url_, path_, site_id
     </sql>
+    <select id="getDownloadMaterialsByUrl" resultType="com.deyatech.station.vo.MaterialVo">
+        select
+        id_,
+        remark_,
+        enable_,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        version_,
+        name_,
+        type_,
+        concat('/manage/station/material/downloadFileBySiteIdAndUrl?siteId=', site_id, '&amp;url=', url_) as url_,
+        url_ as value,
+        path_,
+        site_id
+        from station_material
+        where enable_ = 1 and url_ in
+        <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
 
 </mapper>

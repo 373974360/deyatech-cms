@@ -5,37 +5,34 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
-import com.deyatech.common.Constants;
-import com.deyatech.common.entity.FileUploadResult;
-import com.deyatech.common.exception.BusinessException;
-import com.deyatech.station.cache.SiteCache;
-import com.deyatech.station.entity.Material;
-import com.deyatech.station.vo.MaterialVo;
-import com.deyatech.station.service.MaterialService;
-import com.deyatech.common.entity.RestResult;
-import io.swagger.annotations.ApiImplicitParams;
-import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.common.Constants;
+import com.deyatech.common.base.BaseController;
+import com.deyatech.common.entity.FileUploadResult;
+import com.deyatech.common.entity.RestResult;
+import com.deyatech.common.exception.BusinessException;
+import com.deyatech.station.entity.Material;
+import com.deyatech.station.service.MaterialService;
+import com.deyatech.station.vo.MaterialVo;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import org.springframework.web.bind.annotation.RestController;
-import com.deyatech.common.base.BaseController;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiOperation;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
@@ -52,6 +49,19 @@ public class MaterialController extends BaseController {
 
     @Autowired
     MaterialService materialService;
+
+    /**
+     * 根据url获取材料
+     *
+     * @param url
+     * @return
+     */
+    @GetMapping("/getDownloadMaterialsByUrl")
+    @ApiOperation(value="根据url获取材料", notes="根据url获取材料")
+    @ApiImplicitParam(name = "url", value = "url", required = false, dataType = "String", paramType = "query")
+    public RestResult getDownloadMaterialsByUrl(String url) {
+        return RestResult.ok(materialService.getDownloadMaterialsByUrl(url));
+    }
 
     /**
      * 单个保存或者更新
@@ -225,14 +235,14 @@ public class MaterialController extends BaseController {
                 result.setFilePath(sitePath + fileName);// 文件存储的物理绝对地址
                 result.setAttach(attach);//前台来的参数，原样返回，内容动态表单用
 
-                Material material = new Material();
+                MaterialVo material = new MaterialVo();
                 material.setName(originalFilename);
                 material.setType(extName);
                 material.setUrl(url);
                 material.setPath(result.getFilePath());
                 material.setSiteId(siteId);
                 materialService.saveOrUpdate(material);
-
+                material.setValue(url);
                 result.setCustomData(material);
 
                 return RestResult.build(HttpStatus.HTTP_OK, "上传成功", result);
@@ -262,17 +272,7 @@ public class MaterialController extends BaseController {
             @ApiImplicitParam(name = "url", value = "图片URL", required = true, dataType = "String", paramType = "query")
     })
     public void showImageBySiteIdAndUrl(String siteId, String url, HttpServletResponse response) {
-        String sitePath = materialService.getSiteUploadPath(siteId);
-        String fileName = url.replace(Constants.UPLOAD_DEFAULT_PREFIX_URL,"");
-        StringBuilder filePath = new StringBuilder(sitePath);
-        filePath.append(fileName.substring(0, 4));
-        filePath.append("/");
-        filePath.append(fileName.substring(4, 6));
-        filePath.append("/");
-        filePath.append(fileName.substring(6, 8));
-        filePath.append("/");
-        filePath.append(fileName);
-        showImage(filePath.toString(), response);
+        showImage(getFilePath(siteId, url), response);
     }
 
     /**
@@ -285,12 +285,66 @@ public class MaterialController extends BaseController {
     @ApiOperation(value = "查看图片", notes = "查看图片")
     @ApiImplicitParam(name = "filePath", value = "图片绝对路径地址", required = true, dataType = "String", paramType = "query")
     public void showImageByFilePath(String filePath, HttpServletResponse response) {
-        if (StrUtil.isEmpty(filePath)) {
-            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "图片地址错误");
-        }
         showImage(filePath, response);
     }
 
+    /**
+     * 下载文件
+     *
+     * @param siteId
+     * @param url
+     * @param response
+     */
+    @GetMapping("/downloadFileBySiteIdAndUrl")
+    @ApiOperation(value = "下载文件", notes = "下载文件")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "siteId", value = "站点编号", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "url", value = "图片URL", required = true, dataType = "String", paramType = "query")
+    })
+    public void downloadFileBySiteIdAndUrl(String siteId, String url, HttpServletRequest request, HttpServletResponse response) {
+        downloadFile(getFilePath(siteId, url), request, response);
+    }
+
+    /**
+     * 下载文件
+     *
+     * @param filePath
+     * @param response
+     */
+    @GetMapping("/downloadFileByFilePath")
+    @ApiOperation(value = "下载文件", notes = "下载文件")
+    @ApiImplicitParam(name = "filePath", value = "图片绝对路径地址", required = true, dataType = "String", paramType = "query")
+    public void downloadFileByFilePath(String filePath, HttpServletRequest request, HttpServletResponse response) {
+        downloadFile(filePath, request, response);
+    }
+
+    /**
+     * 获取文件物理路径
+     *
+     * @param siteId
+     * @param url
+     * @return
+     */
+    private String getFilePath(String siteId, String url) {
+        String sitePath = materialService.getSiteUploadPath(siteId);
+        String fileName = url.replace(Constants.UPLOAD_DEFAULT_PREFIX_URL,"");
+        StringBuilder filePath = new StringBuilder(sitePath);
+        filePath.append(fileName.substring(0, 4));
+        filePath.append("/");
+        filePath.append(fileName.substring(4, 6));
+        filePath.append("/");
+        filePath.append(fileName.substring(6, 8));
+        filePath.append("/");
+        filePath.append(fileName);
+        return  filePath.toString();
+    }
+
+    /**
+     * 查看图片
+     *
+     * @param filePath
+     * @param response
+     */
     private void showImage(String filePath, HttpServletResponse response) {
         if (StrUtil.isEmpty(filePath)) {
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "文件路径空");
@@ -312,6 +366,30 @@ public class MaterialController extends BaseController {
         }
     }
 
-
+    /**
+     * 下载文件
+     *
+     * @param filePath
+     * @param request
+     * @param response
+     */
+    private void downloadFile(String filePath, HttpServletRequest request, HttpServletResponse response) {
+        FileInputStream in = null;
+        OutputStream out = null;
+        try {
+            String fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
+            response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
+            response.setContentType(request.getServletContext().getMimeType(filePath));
+            in = new FileInputStream(filePath);
+            out = response.getOutputStream();
+            IOUtils.copy(in, out);
+        } catch (IOException e) {
+            log.error("读取文件失败", e);
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "读取文件失败");
+        } finally {
+            close(in);
+            close(out);
+        }
+    }
 
 }

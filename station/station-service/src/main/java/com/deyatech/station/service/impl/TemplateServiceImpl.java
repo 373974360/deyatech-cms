@@ -31,10 +31,7 @@ import com.deyatech.station.entity.*;
 import com.deyatech.station.mapper.TemplateMapper;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.service.*;
-import com.deyatech.station.vo.CatalogVo;
-import com.deyatech.station.vo.TemplateDynamicFormVo;
-import com.deyatech.station.vo.TemplateFormOrderVo;
-import com.deyatech.station.vo.TemplateVo;
+import com.deyatech.station.vo.*;
 import com.deyatech.workflow.feign.WorkflowFeign;
 import com.deyatech.workflow.vo.ProcessInstanceVo;
 import lombok.extern.slf4j.Slf4j;
@@ -82,6 +79,8 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     TemplateFormOrderService formOrderService;
     @Autowired
     AssemblyFeign assemblyFeign;
+    @Autowired
+    MaterialService materialService;
 
     /**
      * 获取字段
@@ -218,9 +217,45 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         }
         // 复选框checkbox
         else if ("checkboxElement".equals(md.getControlType())) {
-            pageModel.put("checkbox_" + md.getBriefName(), Objects.isNull(value) ? new ArrayList<>() : Arrays.asList(value.toString().split(",")));
+            // 绑定数组
+            pageModel.put("checkbox_" + md.getBriefName(), Objects.isNull(value) ? new ArrayList<String>() : Arrays.asList(value.toString().split(",")));
             pageModel.put(md.getBriefName(), Objects.isNull(value) ? "" : value);
         }
+        // 图片image
+        else if ("imageElement".equals(md.getControlType())) {
+            if (Objects.isNull(value)) {
+                pageModel.put(md.getBriefName(), "");
+                pageModel.put("image_" + md.getBriefName(), new ArrayList<>());
+            } else {
+                pageModel.put(md.getBriefName(), value);
+                Material materail = new Material();
+                materail.setUrl(value.toString());
+                materail = materialService.getByBean(materail);
+                MaterialVo materailVo = materialService.setVoProperties(materail);
+                if (Objects.isNull(materail)) {
+                    pageModel.put("image_" + md.getBriefName(), new ArrayList<>());
+                } else {
+                    StringBuilder url = new StringBuilder("/manage/station/material/showImageBySiteIdAndUrl?siteId=");
+                    url.append(materail.getSiteId());
+                    url.append("&url=");
+                    url.append(materail.getUrl());
+                    materailVo.setUrl(url.toString());
+                    materailVo.setValue(materail.getUrl());
+                    pageModel.put("image_" + md.getBriefName(), Arrays.asList(materailVo));
+                }
+            }
+        }
+        // 附件file
+        else if ("fileElement".equals(md.getControlType())) {
+            pageModel.put(md.getBriefName(), Objects.isNull(value) ? "" : value);
+            // 绑定数组
+            if (Objects.isNull(value)) {
+                pageModel.put("file_" + md.getBriefName(), new ArrayList<Material>());
+            } else {
+                pageModel.put("file_" + md.getBriefName(), materialService.getDownloadMaterialsByUrl(value.toString()));
+            }
+        }
+        // 其他
         else {
             pageModel.put(md.getBriefName(), Objects.isNull(value) ? "" : value);
         }

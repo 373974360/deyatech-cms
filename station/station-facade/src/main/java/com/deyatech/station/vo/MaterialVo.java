@@ -19,4 +19,8 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @ApiModel(value = "上传文件信息扩展对象", description = "上传文件信息扩展对象", parent = Material.class)
 public class MaterialVo extends Material {
+    /**
+     * url值
+     */
+    private String value;
 }
