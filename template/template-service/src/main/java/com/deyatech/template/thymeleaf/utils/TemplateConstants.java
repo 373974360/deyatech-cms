@@ -6,6 +6,18 @@ public class TemplateConstants {
      */
     public static final String PAGE_SUFFIX = ".html";
     /**
+     * 默认首页模板
+     */
+    public static final String TEMPLATE_DEFAULT_INDEX = "/index/index.html";
+    /**
+     * 默认搜索模板
+     */
+    public static final String TEMPLATE_DEFAULT_SEARCH = "/search/searchResult.html";
+    /**
+     * 默认错误模板
+     */
+    public static final String TEMPLATE_DEFAULT_ERROR = "/error/error.html";
+    /**
      * 模板自定义内置对象-栏目工具
      */
     public static final String TEMPLATE_OBJ_CATALOG_UTIL = "CataData";

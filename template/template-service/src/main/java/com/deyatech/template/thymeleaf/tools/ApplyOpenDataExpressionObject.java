@@ -28,6 +28,15 @@ public class ApplyOpenDataExpressionObject {
     @Autowired
     AssemblyFeign assemblyFeign;
 
+    /**
+     * 获取依申请公开列表
+     *
+     * @param maps 搜索条件
+     * @param page 页码
+     * @param pageSize 每页条数
+     *
+     * @return IPage<ApplyOpenRecordVo>
+     * */
     public IPage<ApplyOpenRecordVo> getApplyOpenlList(Map<String,Object> maps, Integer page, Integer pageSize){
         if (page == null || page < 0) {
             page = 1;
@@ -39,16 +48,39 @@ public class ApplyOpenDataExpressionObject {
         return result;
     }
 
+    /**
+     * 根据申请编码和查询码查询申请详情
+     *
+     * @param ysqCode 搜索条件
+     * @param queryCode 页码
+     *
+     * @return ApplyOpenRecordVo
+     * */
     public ApplyOpenRecordVo queryApplyOpen(String ysqCode,String queryCode){
         return assemblyFeign.queryApplyOpen(ysqCode,queryCode).getData();
     }
 
+    /**
+     * 根据业务模型ID查询参与部门---列表模式
+     *
+     * @param modelId 诉求业务模型ID
+     *
+     * @return List<DepartmentVo>
+     * */
     public List<DepartmentVo> getPartDept(String modelId){
         List<DepartmentVo> resultList = new ArrayList<>();
         List<DepartmentVo> departmentVos = assemblyFeign.getPartDept(modelId).getData();
         resultList = getAllPartDept(departmentVos,resultList);
         return resultList;
     }
+
+    /**
+     * 根据业务模型ID查询参与部门---树结构
+     *
+     * @param modelId 诉求业务模型ID
+     *
+     * @return List<DepartmentVo>
+     * */
     public List<DepartmentVo> getTreePartDept(String modelId){
         return assemblyFeign.getPartDept(modelId).getData();
     }

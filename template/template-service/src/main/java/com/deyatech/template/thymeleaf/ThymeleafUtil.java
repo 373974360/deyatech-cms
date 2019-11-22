@@ -142,8 +142,9 @@ public class ThymeleafUtil {
      */
     public String thyToString(String siteTemplateRoot, String templatePath, Map<String, Object> varMap) {
         if (StringUtils.isBlank(templatePath)) {
-            log.error("模板文件路径为为空");
-            return "";
+            varMap.put("message","模板路径为空！");
+            context.setVariables(varMap);
+            return templateEngine.process(TemplateConstants.TEMPLATE_DEFAULT_ERROR, context);
         } else if (!templatePath.endsWith(TemplateConstants.PAGE_SUFFIX)) {
             templatePath += TemplateConstants.PAGE_SUFFIX;
         }
@@ -154,11 +155,13 @@ public class ThymeleafUtil {
             process = templateEngine.process(templatePath, context);
             return process;
         } catch (Exception e) {
-            log.error("模板渲染错误", e);
-            if (isDebug) {
-                return ExceptionUtils.getStackTrace(e);
-            }
+//            log.error("模板渲染错误", e);
+//            if (isDebug) {
+//                return ExceptionUtils.getStackTrace(e);
+//            }
+            varMap.put("message",ExceptionUtils.getStackTrace(e));
+            context.setVariables(varMap);
+            return templateEngine.process(TemplateConstants.TEMPLATE_DEFAULT_ERROR, context);
         }
-        return "";
     }
 }
