@@ -39,6 +39,27 @@ public interface TemplateFeign {
      */
     @RequestMapping(value = "/feign/template/getPageSuffix", method = RequestMethod.GET)
     RestResult<String> getPageSuffix();
+    /**
+     * 默认首页模板
+     *
+     * @return
+     */
+    @RequestMapping(value = "/feign/template/getTemplateDefaultIndex", method = RequestMethod.GET)
+    RestResult<String> getTemplateDefaultIndex();
+    /**
+     * 默认搜索页模板
+     *
+     * @return
+     */
+    @RequestMapping(value = "/feign/template/getTemplateDefaultSearch", method = RequestMethod.GET)
+    RestResult<String> getTemplateDefaultSearch();
+    /**
+     * 默认错误页模板
+     *
+     * @return
+     */
+    @RequestMapping(value = "/feign/template/getTemplateDefaultError", method = RequestMethod.GET)
+    RestResult<String> getTemplateDefaultError();
 
     /**
      * 生成静态页面

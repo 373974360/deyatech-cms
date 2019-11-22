@@ -4,8 +4,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.admin.vo.DepartmentVo;
 import com.deyatech.appeal.entity.Purpose;
 import com.deyatech.appeal.entity.Record;
+import com.deyatech.appeal.entity.RecordSatisfaction;
+import com.deyatech.appeal.entity.Satisfaction;
 import com.deyatech.appeal.vo.ModelVo;
 import com.deyatech.appeal.vo.PurposeVo;
+import com.deyatech.appeal.vo.RecordSatisfactionVo;
 import com.deyatech.appeal.vo.RecordVo;
 import com.deyatech.common.entity.RestResult;
 import com.sun.org.apache.xpath.internal.operations.Bool;
@@ -93,5 +96,29 @@ public interface AppealFeign {
      */
     @RequestMapping(value = "/feign/appeal/getPartDept")
     RestResult<List<DepartmentVo>> getPartDept(@RequestParam("modelId") String modelId);
+
+    /**
+     * 获取满意度指标
+     *
+     * @return
+     */
+    @RequestMapping(value = "/feign/appeal/getAllSatisfaction")
+    RestResult<List<Satisfaction>> getAllSatisfaction();
+
+    /**
+     * 满意度评价提交
+     * @param recordSatisfaction
+     * @return
+     */
+    @RequestMapping(value = "/feign/appeal/insertAppealSatis")
+    RestResult insertAppealSatis(@RequestBody RecordSatisfaction recordSatisfaction);
+
+    /**
+     * 根据信件ID获取满意度评价结果
+     * @param appealId
+     * @return
+     */
+    @RequestMapping(value = "/feign/appeal/getAppealSatisCountByAppealId")
+    RestResult<List<RecordSatisfactionVo>> getAppealSatisCountByAppealId(@RequestParam("appealId") String appealId);
 
 }

@@ -25,6 +25,16 @@ public class InfoDataExpressionObject {
     @Autowired
     StationFeign stationFeign;
 
+
+    /**
+     * 获取新闻列表
+     *
+     * @param maps 搜索条件
+     * @param page 页码
+     * @param pageSize 每页条数
+     *
+     * @return IPage<TemplateVo>
+     * */
     public IPage<TemplateVo> getInfoList(Map<String,Object> maps, Integer page, Integer pageSize){
         if (page == null || page < 0) {
             page = 1;

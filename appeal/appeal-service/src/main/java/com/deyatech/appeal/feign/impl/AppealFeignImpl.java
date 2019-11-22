@@ -3,14 +3,11 @@ package com.deyatech.appeal.feign.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.admin.vo.DepartmentVo;
-import com.deyatech.appeal.entity.Model;
-import com.deyatech.appeal.entity.Purpose;
-import com.deyatech.appeal.entity.Record;
+import com.deyatech.appeal.entity.*;
 import com.deyatech.appeal.feign.AppealFeign;
-import com.deyatech.appeal.service.ModelService;
-import com.deyatech.appeal.service.PurposeService;
-import com.deyatech.appeal.service.RecordService;
+import com.deyatech.appeal.service.*;
 import com.deyatech.appeal.vo.ModelVo;
+import com.deyatech.appeal.vo.RecordSatisfactionVo;
 import com.deyatech.appeal.vo.RecordVo;
 import com.deyatech.common.entity.RestResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +31,10 @@ public class AppealFeignImpl implements AppealFeign {
     ModelService modelService;
     @Autowired
     PurposeService purposeService;
+    @Autowired
+    SatisfactionService satisfactionService;
+    @Autowired
+    RecordSatisfactionService recordSatisfactionService;
 
     @Override
     public RestResult<Page<RecordVo>> getAppealList(Map<String, Object> maps, Integer page, Integer pageSize) {
@@ -72,5 +73,20 @@ public class AppealFeignImpl implements AppealFeign {
     @Override
     public RestResult<List<DepartmentVo>> getPartDept(String modelId) {
         return RestResult.ok(recordService.getCompetentDept(modelId));
+    }
+
+    @Override
+    public RestResult<List<Satisfaction>> getAllSatisfaction() {
+        return RestResult.ok(satisfactionService.list());
+    }
+
+    @Override
+    public RestResult insertAppealSatis(RecordSatisfaction recordSatisfaction) {
+        return RestResult.ok(recordSatisfactionService.save(recordSatisfaction));
+    }
+
+    @Override
+    public RestResult<List<RecordSatisfactionVo>> getAppealSatisCountByAppealId(String appealId) {
+        return RestResult.ok(recordSatisfactionService.getAppealSatisCountByAppealId(appealId));
     }
 }

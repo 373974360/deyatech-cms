@@ -5,6 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
 import com.deyatech.appeal.entity.Record;
+import com.deyatech.appeal.entity.RecordSatisfaction;
 import com.deyatech.appeal.feign.AppealFeign;
 import com.deyatech.appeal.vo.ModelVo;
 import com.deyatech.appeal.vo.RecordVo;
@@ -62,10 +63,6 @@ public class ViewController extends BaseController {
 
     @Autowired
     RedisTemplate redisTemplate;
-    /**
-     * 静态页面后缀
-     */
-    public static final String TEMPLATE_DEFAULT_INDEX = "/index/index.html";
 
 
     /**
@@ -76,15 +73,26 @@ public class ViewController extends BaseController {
     @GetMapping(value = "/index/{siteId}", produces = {"text/html;charset=utf-8"})
     @ResponseBody
     public String index(@PathVariable("siteId")String siteId){
+        String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(siteId);
+        Map<String,Object> varMap = new HashMap<>();
         StationGroup site = siteCache.getStationGroupById(siteId);
-        if(ObjectUtil.isNotNull(site)){
-            String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(siteId);
-            Map<String,Object> varMap = new HashMap<>();
-            varMap.put("site",site);
-            return templateFeign.thyToString(siteTemplateRoot,TEMPLATE_DEFAULT_INDEX,varMap).getData();
-        }else{
-            return "站点不存在";
-        }
+        varMap.put("site",site);
+        return templateFeign.thyToString(siteTemplateRoot,templateFeign.getTemplateDefaultIndex().getData(),varMap).getData();
+    }
+
+    /**
+     * 自定义模板目录展示
+     * @return
+     */
+    @GetMapping(value = "/template/{siteId}", produces = {"text/html;charset=utf-8"})
+    @ResponseBody
+    public String template(HttpServletRequest request, @PathVariable("siteId") String siteId, @RequestParam("namePath") String namePath){
+        String template = namePath.substring(namePath.indexOf("/"))+templateFeign.getPageSuffix().getData();
+        String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(siteId);
+        Map<String,Object> varMap = new HashMap<>();
+        StationGroup site = siteCache.getStationGroupById(siteId);
+        varMap.put("site",site);
+        return templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
     }
 
 
@@ -95,17 +103,18 @@ public class ViewController extends BaseController {
     @GetMapping(value = "/catagory/{siteId}", produces = {"text/html;charset=utf-8"})
     @ResponseBody
     public String list(HttpServletRequest request, @PathVariable("siteId") String siteId, @RequestParam("namePath") String namePath){
+        String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(siteId);
+        Map<String,Object> varMap = new HashMap<>();
         Map<String,String> map = ViewUtils.analysisNamePath(namePath,"catagory");
         Catalog catalog = new Catalog();
         catalog.setSiteId(siteId);
         catalog.setPathName(map.get("pathName"));
         catalog = catalogService.getByBean(catalog);
-        if (ObjectUtil.isNull(catalog)) {
-            return "栏目不存在";
-        }
-        String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(siteId);
-        Map<String,Object> varMap = new HashMap<>();
         varMap.put("site",siteCache.getStationGroupById(siteId));
+        if (ObjectUtil.isNull(catalog)) {
+            varMap.put("message","栏目信息不存在!");
+            return errorPage(siteTemplateRoot,varMap);
+        }
         varMap.put("catalog",catalog);
         varMap.put("rootCatalog",getRootCatalog(siteId,catalog.getId()));
         varMap.put("pageNo",map.get("pageNo"));
@@ -117,7 +126,8 @@ public class ViewController extends BaseController {
             template = catalog.getListTemplate();
         }
         if(StrUtil.isBlank(template)){
-            return "模板加载失败";
+            varMap.put("message","模板读取失败!");
+            return errorPage(siteTemplateRoot,varMap);
         }
         return templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
     }
@@ -147,7 +157,8 @@ public class ViewController extends BaseController {
         if(map.get("type").equals("info")){
             Template template = templateService.getById(map.get("infoId"));
             if (ObjectUtil.isNull(template)) {
-                return "查询不到 ContentTemplate";
+                varMap.put("message","内容详情不存在!");
+                return errorPage(siteTemplateRoot,varMap);
             }
             TemplateVo templateVo = templateService.setVoProperties(template);
             templatePath = templateVo.getTemplatePath();
@@ -163,12 +174,14 @@ public class ViewController extends BaseController {
             }else{
                 recordVo = appealFeign.getAppealById(infoId).getData();
                 if (ObjectUtil.isNull(recordVo)) {
-                    return "查询不到 recordVo";
+                    varMap.put("message","诉求详情不存在!");
+                    return errorPage(siteTemplateRoot,varMap);
                 }
             }
             ModelVo modelVo = appealFeign.getModelById(recordVo.getModelId()).getData();
             if (ObjectUtil.isNull(modelVo)) {
-                return "查询不到 modelVo";
+                varMap.put("message","诉求业务模型不存在!");
+                return errorPage(siteTemplateRoot,varMap);
             }
             varMap.put("appealData",recordVo);
             templatePath = modelVo.getViewTemplet();
@@ -183,12 +196,14 @@ public class ViewController extends BaseController {
             }else{
                 applyOpenRecordVo = assemblyFeign.getApplyOpenById(map.get("infoId")).getData();
                 if (ObjectUtil.isNull(applyOpenRecordVo)) {
-                    return "查询不到 applyOpenRecordVo";
+                    varMap.put("message","依申请公开详情不存在!");
+                    return errorPage(siteTemplateRoot,varMap);
                 }
             }
             ApplyOpenModelVo applyOpenModelVo = assemblyFeign.getApplyOpenModelById(applyOpenRecordVo.getModelId()).getData();
             if (ObjectUtil.isNull(applyOpenModelVo)) {
-                return "查询不到 applyOpenModelVo";
+                varMap.put("message","依申请公开模型不存在!");
+                return errorPage(siteTemplateRoot,varMap);
             }
             varMap.put("applyOpenData",applyOpenRecordVo);
             templatePath = applyOpenModelVo.getViewTemplet();
@@ -198,17 +213,20 @@ public class ViewController extends BaseController {
             String infoId = map.get("infoId");
             com.deyatech.interview.vo.ModelVo interviewVo = interviewFeign.getInterviewById(infoId).getData();
             if (ObjectUtil.isNull(interviewVo)) {
-                return "查询不到 interviewVo";
+                varMap.put("message","在线访谈信息不存在!");
+                return errorPage(siteTemplateRoot,varMap);
             }
             Category category = interviewFeign.getInterviewCatagoryById(interviewVo.getCategoryId()).getData();
             if (ObjectUtil.isNull(category)) {
-                return "查询不到 interviewCategoryVo";
+                varMap.put("message","在线访谈目录不存在!");
+                return errorPage(siteTemplateRoot,varMap);
             }
             varMap.put("interviewData",interviewVo);
             templatePath = category.getDetailPageTemplate();
         }
         if(StrUtil.isBlank(templatePath)){
-            return "模板加载失败";
+            varMap.put("message","模板读取失败!");
+            return errorPage(siteTemplateRoot,varMap);
         }
         return templateFeign.thyToString(siteTemplateRoot,templatePath,varMap).getData();
     }
@@ -247,7 +265,8 @@ public class ViewController extends BaseController {
             templatePath = modelVo.getFormTemplet();
         }
         if(StrUtil.isBlank(templatePath)){
-            return "模板加载失败";
+            varMap.put("message","模板读取失败!");
+            return errorPage(siteTemplateRoot,varMap);
         }
         return templateFeign.thyToString(siteTemplateRoot,templatePath,varMap).getData();
     }
@@ -272,6 +291,12 @@ public class ViewController extends BaseController {
             BeanUtil.copyProperties(varMap,record);
             return RestResult.ok(appealFeign.insertAppeal(record));
         }
+        //诉求满意度提交
+        if(actionType.equals("insertAppealSatis")){
+            RecordSatisfaction recordSatisfaction = new RecordSatisfaction();
+            BeanUtil.copyProperties(varMap,recordSatisfaction);
+            return RestResult.ok(appealFeign.insertAppealSatis(recordSatisfaction));
+        }
         //依申请公开提交
         if(actionType.equals("insertApplyOpen")){
             ApplyOpenRecord applyOpenRecord = new ApplyOpenRecord();
@@ -279,6 +304,11 @@ public class ViewController extends BaseController {
             return RestResult.ok(assemblyFeign.insertApplyOpen(applyOpenRecord));
         }
         return RestResult.ok();
+    }
+
+
+    public String errorPage(String siteTemplateRoot,Map<String,Object> varMap){
+        return templateFeign.thyToString(siteTemplateRoot,templateFeign.getTemplateDefaultError().getData(),varMap).getData();
     }
     /**
      * 根据条件获取当前栏目的顶级栏目信息

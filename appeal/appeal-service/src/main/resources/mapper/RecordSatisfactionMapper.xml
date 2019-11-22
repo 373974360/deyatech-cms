@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.appeal.mapper.RecordSatisfactionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.deyatech.appeal.entity.RecordSatisfaction">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="appeal_id" property="appealId" />
+        <result column="satis_id" property="satisId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id_,
+        enable_,
+        remark_,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        version_,
+        appeal_id, satis_id
+    </sql>
+
+    <select id="getAppealSatisCountByAppealId" resultType="com.deyatech.appeal.vo.RecordSatisfactionVo" parameterType="java.lang.String">
+        select s.name,t.totle from appeal_satisfaction s left join (select satis_id,count(*) as totle from appeal_record_satisfaction rs where appeal_id=#{appealId} group by satis_id) t on s.id_=t.satis_id
+    </select>
+</mapper>

@@ -40,6 +40,21 @@ public class TemplateFeignImpl implements TemplateFeign {
     }
 
     @Override
+    public RestResult<String> getTemplateDefaultIndex() {
+        return RestResult.ok(TemplateConstants.TEMPLATE_DEFAULT_INDEX);
+    }
+
+    @Override
+    public RestResult<String> getTemplateDefaultSearch() {
+        return RestResult.ok(TemplateConstants.TEMPLATE_DEFAULT_SEARCH);
+    }
+
+    @Override
+    public RestResult<String> getTemplateDefaultError() {
+        return RestResult.ok(TemplateConstants.TEMPLATE_DEFAULT_ERROR);
+    }
+
+    @Override
     public RestResult generateStaticPage(String templateRootPath, String templatePath, File distFile, Map<String, Object> varMap) {
         thymeleafUtil.thyToStaticFile(templateRootPath,templatePath,distFile,varMap);
         return RestResult.ok();

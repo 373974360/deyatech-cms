@@ -45,6 +45,11 @@ server {
             proxy_pass ${proxyPass}/manage/cms/search/${siteId}?$1;
             break;
         }
+        #自定义模板目录
+        if ($request_uri ~ "^/(template.*).jhtml\?*(.*)") {
+            proxy_pass ${proxyPass}/manage/cms/template/${siteId}?namePath=$1&$2;
+            break;
+        }
         #首页
         if ($request_uri ~ "^/index.jhtml") {
             proxy_pass ${proxyPass}/manage/cms/index/${siteId}?$1;
