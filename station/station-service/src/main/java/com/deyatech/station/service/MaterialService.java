@@ -1,7 +1,9 @@
 package com.deyatech.station.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseService;
 import com.deyatech.station.entity.Material;
+import com.deyatech.station.vo.MaterialDirectoryVo;
 import com.deyatech.station.vo.MaterialVo;
 
 import java.util.Collection;
@@ -48,4 +50,36 @@ public interface MaterialService extends BaseService<Material> {
      * @return
      */
     List<MaterialVo> getDownloadMaterialsByUrl(String url);
+
+    /**
+     * 获取站点目录树
+     *
+     * @param siteId
+     * @return
+     */
+    List<MaterialDirectoryVo> getDirectoryTree(String siteId);
+
+    /**
+     * 根据树目录分页检索
+     *
+     * @param directory
+     * @return
+     */
+    IPage<MaterialVo> pageByDirectory(MaterialDirectoryVo directory);
+
+    /**
+     * 根据材料翻页检索
+     *
+     * @param material
+     * @return
+     */
+    IPage<MaterialVo> pageByMaterial(Material material);
+
+    /**
+     * 物理删除材料
+     *
+     * @param ids
+     * @return
+     */
+    int deletePhysicsMaterialByIds(List<String> ids);
 }

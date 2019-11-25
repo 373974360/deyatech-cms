@@ -53,5 +53,40 @@
             #{item}
         </foreach>
     </select>
+    <!--根据目录检索材料-->
+    <select id="pageByDirectory" resultType="com.deyatech.station.vo.MaterialVo">
+        select
+        <include refid="Base_Column_List"></include>
+        from station_material
+        where enable_ = 1 and site_id = #{directory.siteId} and path_ like concat(#{directory.path},'%')
+    </select>
+    <select id="pageByMaterial" resultType="com.deyatech.station.vo.MaterialVo">
+        select
+        <include refid="Base_Column_List"></include>
+        from station_material
+        where enable_ = 1 and site_id = #{material.siteId}
+        <if test="material.name != null and material.name != ''">
+            and (
+            name_ like concat('%',#{material.name},'%')
+            or url_ like concat('%',#{material.name},'%')
+            or path_ like concat('%',#{material.name},'%')
+            )
+        </if>
+    </select>
+    <select id="selectMaterialByIds" resultType="com.deyatech.station.vo.MaterialVo">
+        select
+        <include refid="Base_Column_List"></include>
+        from station_material
+        where id_ in
+        <foreach index="index" item="item" collection="ids" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
 
+    <delete id="deleteMaterialByIds">
+        delete from station_material where id_ in
+        <foreach index="index" item="item" collection="ids" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
 </mapper>

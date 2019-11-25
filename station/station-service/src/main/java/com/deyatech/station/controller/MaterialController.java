@@ -14,6 +14,7 @@ import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.station.entity.Material;
 import com.deyatech.station.service.MaterialService;
+import com.deyatech.station.vo.MaterialDirectoryVo;
 import com.deyatech.station.vo.MaterialVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -120,8 +121,10 @@ public class MaterialController extends BaseController {
     @ApiImplicitParam(name = "ids", value = "对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
     public RestResult<Boolean> removeByIds(@RequestParam("ids[]") List<String> ids) {
         log.info(String.format("根据id批量删除: %s ", JSONUtil.toJsonStr(ids)));
-        boolean result = materialService.removeByIds(ids);
-        return RestResult.ok(result);
+//        boolean result = materialService.removeByIds(ids);
+        // 真实删除
+        int count = materialService.deletePhysicsMaterialByIds(ids);
+        return RestResult.ok(count > 0 ? true : false);
     }
 
     /**
@@ -166,9 +169,29 @@ public class MaterialController extends BaseController {
     @ApiOperation(value="根据Material对象属性分页检索", notes="根据Material对象属性分页检索信息")
     @ApiImplicitParam(name = "material", value = "对象", required = false, dataType = "Material", paramType = "query")
     public RestResult<IPage<MaterialVo>> pageByMaterial(Material material) {
-        IPage<MaterialVo> materialVoIPage = materialService.pageByBean(material);
+        IPage<MaterialVo> materialVoIPage = materialService.pageByMaterial(material);
         materialVoIPage.setRecords(materialService.setVoProperties(materialVoIPage.getRecords()));
         log.info(String.format("根据Materials对象属性分页检索: %s ",JSONUtil.toJsonStr(materialVoIPage)));
+        return RestResult.ok(materialVoIPage);
+    }
+
+    /**
+     * 根据树目录分页检索
+     *
+     * @param directory
+     * @return
+     */
+    @GetMapping("/pageByDirectory")
+    @ApiOperation(value="根据树目录分页检索", notes="根据树目录分页检索")
+    @ApiImplicitParam(name = "directory", value = "对象", required = false, dataType = "MaterialDirectoryVo", paramType = "query")
+    public RestResult<IPage<MaterialVo>> pageByDirectory(MaterialDirectoryVo directory) {
+        log.info(String.format("根据树目录分页检索参数: %s ",JSONUtil.toJsonStr(directory)));
+        if (StrUtil.isEmpty(directory.getPath()) || StrUtil.isEmpty(directory.getSiteId())) {
+            return RestResult.error("参数不正确");
+        }
+        directory.setPath(directory.getPath().replace("\\", "/"));
+        IPage<MaterialVo> materialVoIPage = materialService.pageByDirectory(directory);
+        materialVoIPage.setRecords(materialService.setVoProperties(materialVoIPage.getRecords()));
         return RestResult.ok(materialVoIPage);
     }
 
@@ -390,6 +413,18 @@ public class MaterialController extends BaseController {
             close(in);
             close(out);
         }
+    }
+
+    /**
+     * 获取目录树
+     *
+     * @param siteId 站点编号
+     */
+    @RequestMapping("/getDirectoryTree")
+    @ApiOperation(value = "获取目录树", notes = "获取目录树")
+    @ApiImplicitParam(name = "siteId", value = "站点编号", required = true, dataType = "String", paramType = "query")
+    private RestResult getDirectoryTree(String siteId) {
+        return RestResult.ok(materialService.getDirectoryTree(siteId));
     }
 
 }
