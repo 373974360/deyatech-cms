@@ -62,8 +62,10 @@
             auc.department_name as createUserDepartmentName,
             auu.name_ as updateUserName,
             auu.department_name as updateUserDepartmentName,
+            sc.path_name as cmsCatalogPathName,
             st.*
         from station_template st
+        left join station_catalog sc on st.cms_catalog_id = sc.id_ and sc.enable_ = 1
         left join station_model sm on st.content_model_id = sm.id_ and sm.enable_ = 1
         left join station_material smt on st.thumbnail_ = smt.id_ and smt.enable_ = 1
         left join (

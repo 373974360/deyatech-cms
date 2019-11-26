@@ -87,6 +87,11 @@ public class TemplateVo extends Template {
     private String cmsCatalogName;
 
     /**
+     * 路径名
+     */
+    private String cmsCatalogPathName;
+
+    /**
      * 资源名
      */
     private String resourceCategoryName;

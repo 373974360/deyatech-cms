@@ -53,6 +53,9 @@ public class IndexCodeServiceImpl extends BaseServiceImpl<IndexCodeMapper, Index
         QueryWrapper<IndexCode> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("site_id", siteId);
         IndexCode indexCode = getOne(queryWrapper);
+        if (Objects.isNull(indexCode)) {
+            return null;
+        }
         String nextIndexCode = getFixedPart(siteId, indexCode) + indexCode.getNextSerial();
         int value = Integer.parseInt(indexCode.getNextSerial());
         value += 1;

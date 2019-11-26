@@ -61,7 +61,7 @@ server {
             break;
         }
         #内容页 诉求 依申请公开
-        if ($request_uri ~ "^/(.*_info_*).jhtml\?*(.*)") {
+        if ($request_uri ~ "^/(.*_info_.*).jhtml\?*(.*)") {
             proxy_pass ${proxyPass}/manage/cms/info/${siteId}?namePath=$1&$2;
             break;
         }
