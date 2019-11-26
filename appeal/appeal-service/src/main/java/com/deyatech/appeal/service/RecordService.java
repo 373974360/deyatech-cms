@@ -93,4 +93,12 @@ public interface RecordService extends BaseService<Record> {
      * @return Record
      */
     Record insertAppeal(Record record);
+
+    /**
+     * 根据业务ID，信件类型得到总数
+     * @param maps countType 信件类型 all 所有,wsl 未受理信件,sl 受理信件　bj　办结信件（回复件）
+     * 			   countData years本年度  yesterday昨天的  ultimo 上月的 instant 本月 cur_data 当天
+     * @return String
+     */
+    String getAllAppealCount(Map<String, Object> maps);
 }

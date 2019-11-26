@@ -46,6 +46,8 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
     ModelService modelService;
     @Autowired
     PurposeService purposeService;
+    @Autowired
+    RecordMapper recordMapper;
 
     private static final String DEFAULT_RANDON_STR = "A-Z0-9";
 
@@ -347,5 +349,30 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
         return record;
     }
 
-
+    @Override
+    public String getAllAppealCount(Map<String, Object> maps) {
+        String countData = maps.get("countData").toString();
+        //本年度
+        if("years".equals(countData)) {
+            maps.put("startData", DateUtil.format(new Date(),"yyyy")+"-01-01 00:00:00");
+        }
+        //昨日
+        if("yesterday".equals(countData)) {
+            maps.put("startData", DateUtil.format(DateUtil.offsetDay(DateUtil.parseDate(DateUtil.format(new Date(),"yyyy-MM-dd")),-1),"yyyy-MM-dd HH:mm:ss"));
+            maps.put("endData", DateUtil.format(DateUtil.offsetDay(DateUtil.parseDate(DateUtil.format(new Date(),"yyyy-MM-dd")),-1),"yyyy-MM-dd")+" 23:59:59");
+        }
+        //上月
+        if("ultimo".equals(countData)) {
+            maps.put("ultimo",DateUtil.format(DateUtil.lastMonth(),"yyyy-MM"));
+        }
+        //本月
+        if("instant".equals(countData)) {
+            maps.put("instant", DateUtil.format(new Date(),"yyyy-MM"));
+        }
+        //当天
+        if("curday".equals(countData)) {
+            maps.put("startData",  DateUtil.format(new Date(),"yyyy-MM-dd")+" 00:00:00");
+        }
+        return recordMapper.getAllAppealCount(maps);
+    }
 }

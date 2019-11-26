@@ -89,4 +89,9 @@ public class AppealFeignImpl implements AppealFeign {
     public RestResult<List<RecordSatisfactionVo>> getAppealSatisCountByAppealId(String appealId) {
         return RestResult.ok(recordSatisfactionService.getAppealSatisCountByAppealId(appealId));
     }
+
+    @Override
+    public RestResult<String> getAllAppealCount(Map<String, Object> maps) {
+        return RestResult.ok(recordService.getAllAppealCount(maps));
+    }
 }

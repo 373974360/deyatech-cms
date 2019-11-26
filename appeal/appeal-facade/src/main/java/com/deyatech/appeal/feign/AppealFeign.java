@@ -121,4 +121,13 @@ public interface AppealFeign {
     @RequestMapping(value = "/feign/appeal/getAppealSatisCountByAppealId")
     RestResult<List<RecordSatisfactionVo>> getAppealSatisCountByAppealId(@RequestParam("appealId") String appealId);
 
+    /**
+     * 根据业务ID，信件类型得到总数
+     * @param maps countType 信件类型 all 所有,wsl 未受理信件,sl 受理信件　bj　办结信件（回复件）
+     * 			   countData years本年度  yesterday昨天的  ultimo 上月的 instant 本月 curday 当天
+     * @return String
+     */
+    @RequestMapping(value = "/feign/appeal/getAllAppealCount")
+    RestResult<String> getAllAppealCount(@RequestBody Map<String, Object> maps);
+
 }

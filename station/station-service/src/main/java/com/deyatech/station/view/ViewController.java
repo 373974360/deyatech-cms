@@ -27,6 +27,7 @@ import com.deyatech.station.view.utils.ViewUtils;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.template.feign.TemplateFeign;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -64,6 +65,9 @@ public class ViewController extends BaseController {
     @Autowired
     RedisTemplate redisTemplate;
 
+    //自定义模板的参数名  tm=模板路径
+    private static final String TEMPLATE_PARAMS_NAME = "tm";
+
 
     /**
      * 动态首页
@@ -72,26 +76,39 @@ public class ViewController extends BaseController {
      */
     @GetMapping(value = "/index/{siteId}", produces = {"text/html;charset=utf-8"})
     @ResponseBody
-    public String index(@PathVariable("siteId")String siteId){
+    public String indexPage(HttpServletRequest request,@PathVariable("siteId")String siteId){
         String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(siteId);
         Map<String,Object> varMap = new HashMap<>();
+        ViewUtils.requestParams(varMap,request);
+        //是否自定义模板
+        String template = request.getParameter(TEMPLATE_PARAMS_NAME);
+        if(StringUtils.isBlank(template)){
+            template = templateFeign.getTemplateDefaultIndex().getData();
+        }
         StationGroup site = siteCache.getStationGroupById(siteId);
         varMap.put("site",site);
-        return templateFeign.thyToString(siteTemplateRoot,templateFeign.getTemplateDefaultIndex().getData(),varMap).getData();
+        return templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
     }
 
     /**
-     * 自定义模板目录展示
+     * 搜索页
+     *
      * @return
      */
-    @GetMapping(value = "/template/{siteId}", produces = {"text/html;charset=utf-8"})
+    @GetMapping(value = "/search/{siteId}", produces = {"text/html;charset=utf-8"})
     @ResponseBody
-    public String template(HttpServletRequest request, @PathVariable("siteId") String siteId, @RequestParam("namePath") String namePath){
-        String template = namePath.substring(namePath.indexOf("/"))+templateFeign.getPageSuffix().getData();
+    public String searchPage(HttpServletRequest request,@PathVariable("siteId")String siteId){
         String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(siteId);
         Map<String,Object> varMap = new HashMap<>();
+        ViewUtils.requestParams(varMap,request);
+        //是否自定义模板
+        String template = request.getParameter(TEMPLATE_PARAMS_NAME);
+        if(StringUtils.isBlank(template)){
+            template = templateFeign.getTemplateDefaultSearch().getData();
+        }
         StationGroup site = siteCache.getStationGroupById(siteId);
         varMap.put("site",site);
+        varMap.putAll(templateService.search(varMap));
         return templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
     }
 
@@ -102,7 +119,7 @@ public class ViewController extends BaseController {
      */
     @GetMapping(value = "/catagory/{siteId}", produces = {"text/html;charset=utf-8"})
     @ResponseBody
-    public String list(HttpServletRequest request, @PathVariable("siteId") String siteId, @RequestParam("namePath") String namePath){
+    public String listAndIndexPage(HttpServletRequest request, @PathVariable("siteId") String siteId, @RequestParam("namePath") String namePath){
         String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(siteId);
         Map<String,Object> varMap = new HashMap<>();
         Map<String,String> map = ViewUtils.analysisNamePath(namePath,"catagory");
@@ -119,11 +136,14 @@ public class ViewController extends BaseController {
         varMap.put("rootCatalog",getRootCatalog(siteId,catalog.getId()));
         varMap.put("pageNo",map.get("pageNo"));
         ViewUtils.requestParams(varMap,request);
-        String template;
-        if(map.get("type").equals("index")){
-            template = catalog.getIndexTemplate();
-        }else{
-            template = catalog.getListTemplate();
+        //是否自定义模板
+        String template = request.getParameter(TEMPLATE_PARAMS_NAME);
+        if(StringUtils.isBlank(template)){
+            if(map.get("type").equals("index")){
+                template = catalog.getIndexTemplate();
+            }else{
+                template = catalog.getListTemplate();
+            }
         }
         if(StrUtil.isBlank(template)){
             varMap.put("message","模板读取失败!");
@@ -224,11 +244,16 @@ public class ViewController extends BaseController {
             varMap.put("interviewData",interviewVo);
             templatePath = category.getDetailPageTemplate();
         }
-        if(StrUtil.isBlank(templatePath)){
+        //是否自定义模板
+        String template = request.getParameter(TEMPLATE_PARAMS_NAME);
+        if(StringUtils.isBlank(template)){
+            template = templatePath;
+        }
+        if(StrUtil.isBlank(template)){
             varMap.put("message","模板读取失败!");
             return errorPage(siteTemplateRoot,varMap);
         }
-        return templateFeign.thyToString(siteTemplateRoot,templatePath,varMap).getData();
+        return templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
     }
     /**
      * 表单页
@@ -264,11 +289,16 @@ public class ViewController extends BaseController {
             varMap.put("modelData",modelVo);
             templatePath = modelVo.getFormTemplet();
         }
+        //是否自定义模板
+        String template = request.getParameter(TEMPLATE_PARAMS_NAME);
+        if(StringUtils.isBlank(template)){
+            template = templatePath;
+        }
         if(StrUtil.isBlank(templatePath)){
             varMap.put("message","模板读取失败!");
             return errorPage(siteTemplateRoot,varMap);
         }
-        return templateFeign.thyToString(siteTemplateRoot,templatePath,varMap).getData();
+        return templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
     }
 
     /**
