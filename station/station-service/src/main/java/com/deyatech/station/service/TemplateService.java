@@ -120,6 +120,13 @@ public interface TemplateService extends BaseService<Template> {
     IPage<TemplateVo> getTemplateListView(Map<String, Object> maps, Integer page, Integer pageSize);
 
     /**
+     * 前台检索
+     *
+     *
+     * */
+    Map<String, Object> search(Map<String,Object> map);
+
+    /**
      * 统计栏目下的内容
      *
      * @param catalogId

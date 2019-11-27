@@ -51,17 +51,17 @@ server {
             break;
         }
         #列表页 频道页
-        if ($request_uri ~ "^/(.*_catagory.*).jhtml\?*(.*)") {
+        if ($request_uri ~ "^/(.*(/index|/list.*)).jhtml\?*(.*)") {
             proxy_pass ${proxyPass}/manage/cms/catagory/${siteId}?namePath=$1&$2;
             break;
         }
         #内容页 诉求 依申请公开
-        if ($request_uri ~ "^/(.*_content_.*).jhtml\?*(.*)") {
+        if ($request_uri ~ "^/(.*/details/.*).jhtml\?*(.*)") {
             proxy_pass ${proxyPass}/manage/cms/info/${siteId}?namePath=$1&$2;
             break;
         }
         #表单页
-        if ($request_uri ~ "^/(.*_form_.*).jhtml\?*(.*)") {
+        if ($request_uri ~ "^/(.*/form/.*).jhtml\?*(.*)") {
             proxy_pass ${proxyPass}/manage/cms/form/${siteId}?namePath=$1&$2;
             break;
         }

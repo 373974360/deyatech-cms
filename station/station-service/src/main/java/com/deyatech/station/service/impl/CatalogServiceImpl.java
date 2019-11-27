@@ -122,6 +122,10 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
     public CatalogVo setVoProperties(Catalog catalog){
         CatalogVo catalogVo = new CatalogVo();
         BeanUtil.copyProperties(catalog, catalogVo);
+        catalogVo.setIndexUrl("/"+catalogVo.getPathName()+"/index.jhtml");
+        if(catalogVo.getFlagExternal() == 0){
+            catalogVo.setLinkUrl("/"+catalogVo.getPathName()+"/list.jhtml");
+        }
         return catalogVo;
     }
 
@@ -142,6 +146,10 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
                 if (YesNoEnum.YES.getCode().equals(catalogVo.getFlagAggregation())) {
                     CatalogAggregationVo catalogAggregationVo = catalogAggregationService.getCatalogAggregationById(catalogVo.getAggregationId());
                     catalogVo.setCatalogAggregation(catalogAggregationVo);
+                }
+                catalogVo.setIndexUrl("/"+catalogVo.getPathName()+"/index.jhtml");
+                if(catalogVo.getFlagExternal() == 0){
+                    catalogVo.setLinkUrl("/"+catalogVo.getPathName()+"/list.jhtml");
                 }
                 catalogVos.add(catalogVo);
             }

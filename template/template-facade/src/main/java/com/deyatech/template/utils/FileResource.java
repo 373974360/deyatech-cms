@@ -207,10 +207,11 @@ public class FileResource {
         JSONArray files = new JSONArray();
         path = path.replace("\\", "/");
         String dir = path.substring(path.lastIndexOf("/")+1);
+        int index = path.indexOf(type);
         if(dir.equals("images") || dir.equals("js") || dir.equals("styles")){
             return null;
         }
-        if(StrUtil.isNotBlank(type) && !type.equals(dir) && !dir.equals("template")){
+        if(StrUtil.isNotBlank(type) && !type.equals(dir) && !dir.equals("template") && index < 0){
             return null;
         }
         File file = new File(path);
