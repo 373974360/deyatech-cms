@@ -3,7 +3,6 @@ package com.deyatech.station.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.PinyinUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
 import cn.hutool.json.JSONUtil;
@@ -389,14 +388,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             if (YesNoEnum.YES.getCode() == templateVo.getFlagExternal()) {
                 throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "外链内容必须填写URL");
             }
-            // 获取栏目信息
-            Catalog catalog = catalogService.getById(templateVo.getCmsCatalogId());
-            // 设置URL
-            if (ObjectUtil.isNotNull(catalog)) {
-                templateVo.setUrl("/" + catalog.getPathName() + "/" + PinyinUtil.getAllFirstLetter(templateVo.getTitle()) + ".html");
-            } else {
-                throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "未查到栏目相关信息");
-            }
         }
 
         // 保存或更新元数据
@@ -457,8 +448,22 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             // 索引编码
             templateVo.setIndexCode(resultIndexCode.getData());
         }
+        //获取主键ID
+        String tempId = templateVo.getId();
         // 保存内容
         boolean res = super.saveOrUpdate(templateVo);
+        //如果主键ID tempId 为空 证明是新增信息 新增完成后根据主键ID命名 静态资源文件
+        if(StrUtil.isBlank(tempId)){
+            // 获取栏目信息
+            Catalog catalog = catalogService.getById(templateVo.getCmsCatalogId());
+            // 设置URL
+            if (ObjectUtil.isNotNull(catalog)) {
+                templateVo.setUrl("/" + catalog.getPathName() + "/" + templateVo.getId() + ".html");
+            } else {
+                throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "未查到栏目相关信息");
+            }
+            super.updateById(templateVo);
+        }
         if (res && ContentStatusEnum.PUBLISH.getCode() == templateVo.getStatus()) {
             // 生成静态页面任务
             this.addStaticPageTask(templateVo);

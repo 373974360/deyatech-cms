@@ -36,13 +36,13 @@ public class TemplateConstants {
     /**
      * 模板自定义内置对象-诉求工具
      */
-    public static final String TEMPLATE_OBJ_APPEAL_UTIL = "AppealUtil";
+    public static final String TEMPLATE_OBJ_APPEAL_UTIL = "AppealData";
     /**
      * 模板自定义内置对象-依申请公开
      */
-    public static final String TEMPLATE_OBJ_APPLYOPEN_UTIL = "ApplyOpenUtil";
+    public static final String TEMPLATE_OBJ_APPLYOPEN_UTIL = "ApplyOpenData";
     /**
      * 模板自定义内置对象-在线访谈
      */
-    public static final String TEMPLATE_OBJ_INTERVIEW_UTIL = "InterviewUtil";
+    public static final String TEMPLATE_OBJ_INTERVIEW_UTIL = "InterviewData";
 }

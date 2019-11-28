@@ -56,4 +56,9 @@ public class RecordVo extends Record {
      * 处理状态名称
      */
     private String flagName;
+
+    /**
+     * 详情地址
+     * */
+    private String url;
 }

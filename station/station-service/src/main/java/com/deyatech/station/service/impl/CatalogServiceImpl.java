@@ -26,6 +26,7 @@ import com.deyatech.station.service.CatalogService;
 import com.deyatech.station.service.TemplateService;
 import com.deyatech.station.vo.CatalogAggregationVo;
 import com.deyatech.station.vo.CatalogVo;
+import com.deyatech.template.feign.TemplateFeign;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,6 +55,8 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
     AdminFeign adminFeign;
     @Autowired
     CatalogRoleService catalogRoleService;
+    @Autowired
+    TemplateFeign templateFeign;
 
     /**
      * 根据Catalog对象属性检索栏目的tree对象
@@ -122,9 +125,10 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
     public CatalogVo setVoProperties(Catalog catalog){
         CatalogVo catalogVo = new CatalogVo();
         BeanUtil.copyProperties(catalog, catalogVo);
-        catalogVo.setIndexUrl("/"+catalogVo.getPathName()+"/index.jhtml");
+        String pageSuffix = templateFeign.getPageSuffix().getData();
+        catalogVo.setIndexUrl("/"+catalogVo.getPathName()+"/index" + pageSuffix);
         if(catalogVo.getFlagExternal() == 0){
-            catalogVo.setLinkUrl("/"+catalogVo.getPathName()+"/list.jhtml");
+            catalogVo.setLinkUrl("/"+catalogVo.getPathName()+"/list" + pageSuffix);
         }
         return catalogVo;
     }
@@ -137,6 +141,7 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
      */
     @Override
     public List<CatalogVo> setVoProperties(Collection catalogs){
+        String pageSuffix = templateFeign.getPageSuffix().getData();
         List<CatalogVo> catalogVos = CollectionUtil.newArrayList();
         if (CollectionUtil.isNotEmpty(catalogs)) {
             for (Object catalog : catalogs) {
@@ -147,9 +152,9 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
                     CatalogAggregationVo catalogAggregationVo = catalogAggregationService.getCatalogAggregationById(catalogVo.getAggregationId());
                     catalogVo.setCatalogAggregation(catalogAggregationVo);
                 }
-                catalogVo.setIndexUrl("/"+catalogVo.getPathName()+"/index.jhtml");
+                catalogVo.setIndexUrl("/"+catalogVo.getPathName()+"/index" + pageSuffix);
                 if(catalogVo.getFlagExternal() == 0){
-                    catalogVo.setLinkUrl("/"+catalogVo.getPathName()+"/list.jhtml");
+                    catalogVo.setLinkUrl("/"+catalogVo.getPathName()+"/list" + pageSuffix);
                 }
                 catalogVos.add(catalogVo);
             }

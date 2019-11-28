@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.station.feign.StationFeign;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.vo.TemplateVo;
+import com.deyatech.template.thymeleaf.utils.PageUrlUtil;
 import com.deyatech.template.thymeleaf.utils.PageUtil;
 import com.deyatech.template.thymeleaf.utils.TemplateConstants;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,34 +61,9 @@ public class InfoDataExpressionObject {
         Collection<CatalogVo> catalogVoCollection = stationFeign.getCatalogTreeBySiteId(maps.get("siteId").toString()).getData();
         CatalogVo catalogVo = getCatalog(catalogVoCollection,maps.get("catId").toString());
 
-        pageUtil.setFirstPageUrl(catalogVo.getLinkUrl());
-        pageUtil.setEndPageUrl("/"+catalogVo.getPathName()+"/list/"+pageUtil.getPages()+".jhtml");
-        pageUtil.setCurrPageUrl("/"+catalogVo.getPathName()+"/list/"+pageUtil.getCurrent()+".jhtml");
-        String preUrl;
-        if(pageUtil.getCurrent() <= 1){
-            preUrl = "/"+catalogVo.getPathName()+"/list/1.jhtml";
-        }else{
-            preUrl = "/"+catalogVo.getPathName()+"/list/"+(pageUtil.getCurrent()-1)+".jhtml";
-        }
-        pageUtil.setPrePageUrl(preUrl);
+        String pageDynamicSuffix = TemplateConstants.PAGE_SUFFIX;
 
-        String nextUrl;
-        if(pageUtil.getPages() == pageUtil.getCurrent()){
-            nextUrl = "/"+catalogVo.getPathName()+"/list/"+pageUtil.getPages()+".jhtml";
-        }else{
-            nextUrl = "/"+catalogVo.getPathName()+"/list/"+(pageUtil.getCurrent()+1)+".jhtml";
-        }
-        pageUtil.setPrePageUrl(preUrl);
-        pageUtil.setNextPageUrl(nextUrl);
-
-        List<String> pageUrlList = new ArrayList<>();
-        if(pageUtil.getPages()>0){
-            for(int i=0;i<pageUtil.getPages();i++){
-                pageUrlList.add("/"+catalogVo.getPathName()+"/list/"+(i+1)+".jhtml");
-            }
-        }
-        pageUtil.setPageList(pageUrlList);
-        return pageUtil;
+        return PageUrlUtil.setUrl(pageUtil,catalogVo,pageDynamicSuffix);
     }
 
 
