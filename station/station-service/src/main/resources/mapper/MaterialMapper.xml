@@ -31,6 +31,7 @@
         version_,
         name_, type_, url_, path_, site_id
     </sql>
+
     <select id="getDownloadMaterialsByUrl" resultType="com.deyatech.station.vo.MaterialVo">
         select
         id_,
@@ -89,4 +90,11 @@
             #{item}
         </foreach>
     </delete>
+
+    <update id="updateUsePlaceByUrl">
+        update station_material set use_place = #{usePlace} where url_ in
+        <foreach index="index" item="item" collection="urls" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
 </mapper>

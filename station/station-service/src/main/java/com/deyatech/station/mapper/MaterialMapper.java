@@ -58,4 +58,12 @@ public interface MaterialMapper extends BaseMapper<Material> {
      * @return
      */
     List<MaterialVo> selectMaterialByIds(@Param("ids") List<String> ids);
+
+    /**
+     * 更新使用地方
+     *
+     * @param urls
+     * @return
+     */
+    int updateUsePlaceByUrl(@Param("urls") List<String> urls, @Param("usePlace") String usePlace);
 }

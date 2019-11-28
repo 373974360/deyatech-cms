@@ -5,12 +5,15 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.deyatech.common.base.BaseServiceImpl;
+import com.deyatech.common.enums.MaterialUsePlaceEnum;
 import com.deyatech.common.enums.WaterMarkTypeEnum;
 import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.resource.entity.Setting;
 import com.deyatech.resource.mapper.SettingMapper;
 import com.deyatech.resource.service.SettingService;
 import com.deyatech.resource.vo.SettingVo;
+import com.deyatech.station.feign.StationFeign;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -27,7 +30,8 @@ import java.util.Objects;
  */
 @Service
 public class SettingServiceImpl extends BaseServiceImpl<SettingMapper, Setting> implements SettingService {
-
+    @Autowired
+    StationFeign stationFeign;
     /**
      * 单个将对象转换为vo
      *
@@ -89,7 +93,10 @@ public class SettingServiceImpl extends BaseServiceImpl<SettingMapper, Setting> 
      */
     @Override
     public boolean saveOrUpdateExtend(Setting setting) {
-        if (Objects.nonNull(setting) && StrUtil.isNotEmpty(setting.getId())) {
+        boolean flag;
+        StringBuilder oldUrls = new StringBuilder();
+        StringBuilder newUrls = new StringBuilder();
+        if (StrUtil.isNotEmpty(setting.getId())) {
             UpdateWrapper updateWrapper = new UpdateWrapper();
             // 没有缩略图
             if (YesNoEnum.NO.getCode().equals(setting.getThumbnailEnable())) {
@@ -115,9 +122,58 @@ public class SettingServiceImpl extends BaseServiceImpl<SettingMapper, Setting> 
                 }
             }
             updateWrapper.eq("id_", setting.getId());
-            return super.update(setting, updateWrapper);
+            if (StrUtil.isNotEmpty(setting.getStationGroupId())) {
+                Setting settingDB = getById(setting.getId());
+                checkUrl(settingDB.getIcoUrl(), setting.getIcoUrl(), oldUrls, newUrls);
+                checkUrl(settingDB.getWatermarkUrl(), setting.getWatermarkUrl(), oldUrls, newUrls);
+            }
+            flag = super.update(setting, updateWrapper);
         } else {
-            return super.save(setting);
+            if (StrUtil.isNotEmpty(setting.getStationGroupId())) {
+                checkUrl(null, setting.getIcoUrl(), oldUrls, newUrls);
+                checkUrl(null, setting.getWatermarkUrl(), oldUrls, newUrls);
+            }
+
+            flag = super.save(setting);
+        }
+        if (StrUtil.isNotEmpty(setting.getStationGroupId())) {
+            String oldUrl = oldUrls.toString();
+            if(StrUtil.isNotEmpty(oldUrl)) {
+                oldUrl = oldUrl.substring(1);
+            }
+            String newUrl = newUrls.toString();
+            if (StrUtil.isNotEmpty(newUrl)) {
+                newUrl = newUrl.substring(1);
+            }
+            stationFeign.markMaterialUsePlace(oldUrl, newUrl, MaterialUsePlaceEnum.RESOURCE_SETTING.getCode());
+        }
+        return flag;
+    }
+
+    private void checkUrl(String oldUrl, String newUrl, StringBuilder oldUrls, StringBuilder newUrls) {
+        // 原来有
+        if (StrUtil.isNotEmpty(oldUrl)) {
+            // 现在有
+            if (StrUtil.isNotEmpty(newUrl)) {
+                // 不相等处理
+                if (!oldUrl.equals(newUrl)) {
+                    oldUrls.append(",");
+                    oldUrls.append(oldUrl);
+                    newUrls.append(",");
+                    newUrls.append(newUrl);
+                }
+            } else {
+                oldUrls.append(",");
+                oldUrls.append(oldUrl);
+            }
+
+            // 原来没
+        } else {
+            // 现在有
+            if (StrUtil.isNotEmpty(newUrl)) {
+                newUrls.append(",");
+                newUrls.append(newUrl);
+            }
         }
     }
 }

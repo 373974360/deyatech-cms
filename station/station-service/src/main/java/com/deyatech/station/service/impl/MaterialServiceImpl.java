@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseServiceImpl;
+import com.deyatech.common.enums.MaterialUsePlaceEnum;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.entity.Material;
 import com.deyatech.station.mapper.MaterialMapper;
@@ -73,18 +74,6 @@ public class MaterialServiceImpl extends BaseServiceImpl<MaterialMapper, Materia
             }
         }
         return fileVos;
-    }
-
-    @Override
-    public boolean removeByIds(Collection<? extends Serializable> idList) {
-        for (Serializable id : idList) {
-            Material material = getById(id);
-            File file = new File(material.getPath());
-            if (!file.exists() || file.delete()) {
-                removeById(id);
-            }
-        }
-        return true;
     }
 
     /**
@@ -204,5 +193,22 @@ public class MaterialServiceImpl extends BaseServiceImpl<MaterialMapper, Materia
             });
         }
         return count;
+    }
+
+    /**
+     * 标记材料使用地
+     *
+     * @param oldUrlList
+     * @param newUrlList
+     * @param usePlace
+     */
+    @Override
+    public void markMaterialUsePlace(List<String> oldUrlList, List<String> newUrlList, String usePlace) {
+        if (CollectionUtil.isNotEmpty(oldUrlList)) {
+            baseMapper.updateUsePlaceByUrl(oldUrlList, MaterialUsePlaceEnum.UNUSED.getCode());
+        }
+        if (CollectionUtil.isNotEmpty(newUrlList)) {
+            baseMapper.updateUsePlaceByUrl(newUrlList, usePlace);
+        }
     }
 }

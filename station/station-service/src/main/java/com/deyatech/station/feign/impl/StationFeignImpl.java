@@ -1,19 +1,23 @@
 package com.deyatech.station.feign.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.common.enums.MaterialUsePlaceEnum;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.config.SiteProperties;
 import com.deyatech.station.feign.StationFeign;
 import com.deyatech.station.service.CatalogService;
+import com.deyatech.station.service.MaterialService;
 import com.deyatech.station.service.TemplateService;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.vo.TemplateVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +38,8 @@ public class StationFeignImpl implements StationFeign {
     CatalogService catalogService;
     @Autowired
     TemplateService templateService;
+    @Autowired
+    MaterialService materialService;
 
     @Override
     public RestResult<String> getStationGroupTemplatePathBySiteId(String siteId) {
@@ -70,4 +76,19 @@ public class StationFeignImpl implements StationFeign {
     public RestResult<Integer> resetTemplateIndexCode(String siteId, String start, String end, String part, int number) {
         return RestResult.ok(templateService.resetTemplateIndexCode(siteId, start, end, part, number));
     }
+
+    @Override
+    public RestResult markMaterialUsePlace(String oldUrls, String newUrls, String usePlace) {
+        List<String> oldUrlList = null;
+        if (StrUtil.isNotEmpty(oldUrls)) {
+            oldUrlList = Arrays.asList(oldUrls.split(","));
+        }
+        List<String> newUrlList = null;
+        if (StrUtil.isNotEmpty(newUrls)) {
+            newUrlList = Arrays.asList(newUrls.split(","));
+        }
+        materialService.markMaterialUsePlace(oldUrlList, newUrlList, usePlace);
+        return RestResult.ok();
+    }
+
 }

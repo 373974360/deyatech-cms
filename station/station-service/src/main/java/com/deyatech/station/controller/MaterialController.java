@@ -11,6 +11,7 @@ import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseController;
 import com.deyatech.common.entity.FileUploadResult;
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.common.enums.MaterialUsePlaceEnum;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.station.entity.Material;
 import com.deyatech.station.service.MaterialService;
@@ -28,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -264,6 +266,7 @@ public class MaterialController extends BaseController {
                 material.setUrl(url);
                 material.setPath(result.getFilePath());
                 material.setSiteId(siteId);
+                material.setUsePlace(MaterialUsePlaceEnum.UNKNOWN.getCode());
                 materialService.saveOrUpdate(material);
                 material.setValue(url);
                 result.setCustomData(material);
@@ -370,7 +373,13 @@ public class MaterialController extends BaseController {
      */
     private void showImage(String filePath, HttpServletResponse response) {
         if (StrUtil.isEmpty(filePath)) {
-            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "文件路径空");
+            log.error("图片路径为空");
+            return;
+        }
+        File file = new File(filePath);
+        if (!file.exists()) {
+            log.error("图片不存在：" + filePath);
+            return;
         }
         filePath = filePath.replace("\\","/");
         FileInputStream in = null;
@@ -381,8 +390,7 @@ public class MaterialController extends BaseController {
             out = response.getOutputStream();
             IOUtils.copy(in, out);
         } catch (IOException e) {
-            log.error("读取文件失败", e);
-            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "读取文件失败");
+            log.error("图片读取失败", e);
         } finally {
             close(in);
             close(out);
@@ -397,6 +405,15 @@ public class MaterialController extends BaseController {
      * @param response
      */
     private void downloadFile(String filePath, HttpServletRequest request, HttpServletResponse response) {
+        if (StrUtil.isEmpty(filePath)) {
+            log.error("文件路径为空");
+            return;
+        }
+        File file = new File(filePath);
+        if (!file.exists()) {
+            log.error("文件不存在：" + filePath);
+            return;
+        }
         FileInputStream in = null;
         OutputStream out = null;
         try {
@@ -407,8 +424,7 @@ public class MaterialController extends BaseController {
             out = response.getOutputStream();
             IOUtils.copy(in, out);
         } catch (IOException e) {
-            log.error("读取文件失败", e);
-            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "读取文件失败");
+            log.error("文件读取失败", e);
         } finally {
             close(in);
             close(out);
