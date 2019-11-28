@@ -1,32 +1,29 @@
 package com.deyatech.interview.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.deyatech.common.base.BaseServiceImpl;
+import com.deyatech.common.enums.MaterialUsePlaceEnum;
 import com.deyatech.interview.config.RabbitMQLiveConfig;
 import com.deyatech.interview.entity.Category;
 import com.deyatech.interview.entity.Model;
+import com.deyatech.interview.mapper.ModelMapper;
 import com.deyatech.interview.service.CategoryService;
+import com.deyatech.interview.service.ModelService;
 import com.deyatech.interview.vo.CategoryVo;
 import com.deyatech.interview.vo.LiveImageVo;
 import com.deyatech.interview.vo.LiveMessageVo;
 import com.deyatech.interview.vo.ModelVo;
-import com.deyatech.interview.mapper.ModelMapper;
-import com.deyatech.interview.service.ModelService;
-import com.deyatech.common.base.BaseServiceImpl;
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollectionUtil;
-import com.fasterxml.jackson.databind.JavaType;
+import com.deyatech.station.feign.StationFeign;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bouncycastle.math.raw.Mod;
-import org.springframework.amqp.core.MessageDeliveryMode;
-import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -41,10 +38,13 @@ import java.util.*;
 public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implements ModelService {
     private ObjectMapper mapper = new ObjectMapper();
     @Autowired
-    private RabbitTemplate rabbitTemplate;
+    RabbitTemplate rabbitTemplate;
 
     @Autowired
-    private CategoryService categoryService;
+    CategoryService categoryService;
+
+    @Autowired
+    StationFeign stationFeign;
 
     /**
      * 单个将对象转换为vo访谈模型
@@ -165,6 +165,8 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
     @Override
     public Boolean operateLiveImage(LiveImageVo liveImageVo) {
         try {
+            StringBuilder oldUrls = new StringBuilder();
+            StringBuilder newUrls = new StringBuilder();
             List<LiveImageVo> imageList;
             Model model = super.getById(liveImageVo.getModelId());
             // 取出原来的图片
@@ -178,6 +180,8 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
             if (StrUtil.isEmpty(liveImageVo.getKey())) {
                 flag = ",append";
                 liveImageVo.setKey(generateKey());
+                newUrls.append(",");
+                newUrls.append(liveImageVo.getUrl());
                 imageList.add(liveImageVo);
             } else {
                 int index = -1;
@@ -191,10 +195,19 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
                     if (StrUtil.isEmpty(liveImageVo.getUrl())) {
                         // 删除
                         flag = ",delete";
+                        oldUrls.append(",");
+                        oldUrls.append(imageList.get(index).getUrl());
                         imageList.remove(index);
                     } else {
                         // 修改
                         flag = ",modify";
+                        // 不相等
+                        if (!imageList.get(index).getUrl().equals(liveImageVo.getUrl())) {
+                            oldUrls.append(",");
+                            oldUrls.append(imageList.get(index).getUrl());
+                            newUrls.append(",");
+                            newUrls.append(liveImageVo.getUrl());
+                        }
                         imageList.set(index, liveImageVo);
                     }
                 } else {
@@ -206,6 +219,15 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
             image.setId(model.getId());
             image.setVersion(model.getVersion());
             image.setImages(mapper.writeValueAsString(imageList));
+            String oldUrl = oldUrls.toString();
+            if(StrUtil.isNotEmpty(oldUrl)) {
+                oldUrl = oldUrl.substring(1);
+            }
+            String newUrl = newUrls.toString();
+            if (StrUtil.isNotEmpty(newUrl)) {
+                newUrl = newUrl.substring(1);
+            }
+            stationFeign.markMaterialUsePlace(oldUrl, newUrl, MaterialUsePlaceEnum.INTERVIEW_MODEL.getCode());
             if (super.updateById(image)) {
                 liveImageVo.setKey(liveImageVo.getKey() + flag);
                 rabbitTemplate.convertAndSend(RabbitMQLiveConfig.FANOUT_EXCHANGE_LIVE_IMAGE, "", liveImageVo);

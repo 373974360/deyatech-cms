@@ -2,6 +2,7 @@ package com.deyatech.station.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseService;
+import com.deyatech.common.enums.MaterialUsePlaceEnum;
 import com.deyatech.station.entity.Material;
 import com.deyatech.station.vo.MaterialDirectoryVo;
 import com.deyatech.station.vo.MaterialVo;
@@ -82,4 +83,13 @@ public interface MaterialService extends BaseService<Material> {
      * @return
      */
     int deletePhysicsMaterialByIds(List<String> ids);
+
+    /**
+     * 标记材料使用地
+     *
+     * @param oldUrlList
+     * @param newUrlList
+     * @param usePlace
+     */
+    void markMaterialUsePlace(List<String> oldUrlList, List<String> newUrlList, String usePlace);
 }

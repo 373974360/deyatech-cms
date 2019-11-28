@@ -2,6 +2,7 @@ package com.deyatech.station.feign;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.common.enums.MaterialUsePlaceEnum;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.config.SiteProperties;
 import com.deyatech.station.vo.CatalogVo;
@@ -94,4 +95,17 @@ public interface StationFeign {
                                                     @RequestParam("end") String end,
                                                     @RequestParam("part") String part,
                                                     @RequestParam("number") int number);
+
+    /**
+     * 标记文件
+     *
+     * @param oldUrls
+     * @param newUrls
+     * @param usePlace
+     * @return
+     */
+    @RequestMapping(value = "/feign/station/material/markMaterialUsePlace")
+    RestResult markMaterialUsePlace(@RequestParam(value="oldUrls", required = false) String oldUrls,
+                                    @RequestParam(value="newUrls", required = false) String newUrls,
+                                    @RequestParam("usePlace") String usePlace);
 }

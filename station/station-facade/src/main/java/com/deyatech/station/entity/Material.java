@@ -42,4 +42,9 @@ public class Material extends BaseEntity {
     @ApiModelProperty(value = "站点id", dataType = "String")
     @TableField("site_id")
     private String siteId;
+
+    @ApiModelProperty(value = "使用地方", dataType = "String")
+    @TableField("use_place")
+    private String usePlace;
+
 }

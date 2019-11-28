@@ -15,12 +15,15 @@ import com.deyatech.admin.entity.MetadataCollection;
 import com.deyatech.admin.entity.User;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.admin.vo.DictionaryVo;
+import com.deyatech.admin.vo.MetadataCollectionMetadataVo;
 import com.deyatech.admin.vo.MetadataCollectionVo;
+import com.deyatech.admin.vo.MetadataVo;
 import com.deyatech.assembly.feign.AssemblyFeign;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.enums.ContentStatusEnum;
+import com.deyatech.common.enums.MaterialUsePlaceEnum;
 import com.deyatech.common.enums.TemplateAuthorityEnum;
 import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.common.exception.BusinessException;
@@ -134,9 +137,11 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         if (StrUtil.isNotEmpty(templateId)) {
             Template template = super.getById(templateId);
             Map<String, Object> baseMap = ColumnUtil.objectToColumnMap(template);
-            Map<String, Object> metaMap = adminFeign.getMetadataById(collectionId, template.getContentId()).getData();
             if (Objects.nonNull(baseMap)) metadataFieldDataMap.putAll(baseMap);
-            if (Objects.nonNull(metaMap)) metadataFieldDataMap.putAll(metaMap);
+            if (StrUtil.isNotEmpty(template.getContentId())) {
+                Map<String, Object> metaMap = adminFeign.getMetadataById(collectionId, template.getContentId()).getData();
+                if (Objects.nonNull(metaMap)) metadataFieldDataMap.putAll(metaMap);
+            }
         }
         // 每一页已排好的顺序
         List<List<TemplateFormOrderVo>> SortedDatas =  (List<List<TemplateFormOrderVo>>) orderMap.get("orders");
@@ -209,28 +214,40 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         }
     }
 
+    private boolean isObjectStringEmpty(Object value) {
+        if (Objects.isNull(value)) {
+            return true;
+        } else {
+            if (StrUtil.isEmpty(value.toString())) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
     private void putPageModel(Map<String, Object> pageModel, Metadata md, Map<String, Object> metadataFieldDataMap) {
         Object value = metadataFieldDataMap.get(md.getBriefName());
         // 开关switch
         if ("switchElement".equals(md.getControlType())) {
-            pageModel.put(md.getBriefName(), Objects.isNull(value) ? YesNoEnum.NO.getCode() : value);
+            pageModel.put(md.getBriefName(), isObjectStringEmpty(value) ? YesNoEnum.NO.getCode() : value);
         }
         // 复选框checkbox
         else if ("checkboxElement".equals(md.getControlType())) {
             // 绑定数组
-            pageModel.put("checkbox_" + md.getBriefName(), Objects.isNull(value) ? new ArrayList<String>() : Arrays.asList(value.toString().split(",")));
-            pageModel.put(md.getBriefName(), Objects.isNull(value) ? "" : value);
+            pageModel.put("checkbox_" + md.getBriefName(), isObjectStringEmpty(value) ? new ArrayList<String>() : Arrays.asList(value.toString().split(",")));
+            pageModel.put(md.getBriefName(), isObjectStringEmpty(value) ? "" : value);
         }
         // 图片image
         else if ("imageElement".equals(md.getControlType())) {
-            if (Objects.isNull(value)) {
+            if (isObjectStringEmpty(value)) {
                 pageModel.put(md.getBriefName(), "");
                 pageModel.put("image_" + md.getBriefName(), new ArrayList<>());
             } else {
                 pageModel.put(md.getBriefName(), value);
                 Material materail = new Material();
                 materail.setUrl(value.toString());
-                materail = materialService.getByBean(materail);
+                 materail = materialService.getByBean(materail);
                 MaterialVo materailVo = materialService.setVoProperties(materail);
                 if (Objects.isNull(materail)) {
                     pageModel.put("image_" + md.getBriefName(), new ArrayList<>());
@@ -247,9 +264,9 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         }
         // 附件file
         else if ("fileElement".equals(md.getControlType())) {
-            pageModel.put(md.getBriefName(), Objects.isNull(value) ? "" : value);
+            pageModel.put(md.getBriefName(), isObjectStringEmpty(value) ? "" : value);
             // 绑定数组
-            if (Objects.isNull(value)) {
+            if (isObjectStringEmpty(value)) {
                 pageModel.put("file_" + md.getBriefName(), new ArrayList<Material>());
             } else {
                 pageModel.put("file_" + md.getBriefName(), materialService.getDownloadMaterialsByUrl(value.toString()));
@@ -257,7 +274,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         }
         // 其他
         else {
-            pageModel.put(md.getBriefName(), Objects.isNull(value) ? "" : value);
+            pageModel.put(md.getBriefName(), isObjectStringEmpty(value) ? "" : value);
         }
     }
 
@@ -361,10 +378,79 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         }
     }
 
+    private void checkUrl(String oldUrl, String newUrl, List<String> oldUrlList, List<String> newUrlList) {
+        // 原来有
+        if (StrUtil.isNotEmpty(oldUrl)) {
+            // 现在有
+            if (StrUtil.isNotEmpty(newUrl)) {
+                // 不相等处理
+                if (!oldUrl.equals(newUrl)) {
+                    oldUrlList.add(oldUrl);
+                    newUrlList.add(newUrl);
+                }
+            } else {
+                oldUrlList.add(oldUrl);
+            }
+
+            // 原来没
+        } else {
+            // 现在有
+            if (StrUtil.isNotEmpty(newUrl)) {
+                newUrlList.add(newUrl);
+            }
+        }
+    }
+
+    private void contentUrl(boolean hasId , TemplateVo templateVo, Map<String, Object> contentMap, List<String> oldUrlList, List<String> newUrlList) {
+        // 附件和图片字段
+        List<String> fileImageFields = new ArrayList<>();
+        TemplateVo templateVoDB = new TemplateVo();
+        templateVoDB.setMetaDataCollectionId(templateVo.getMetaDataCollectionId());
+        templateVoDB.setContentId(templateVo.getContentId());
+        this.queryMetadata(templateVoDB);
+        Map<String, Object> contentMapDB = templateVoDB.getContent();
+        MetadataCollectionVo metadataCollectionVoDB = templateVoDB.getMetadataCollectionVo();
+        if (Objects.nonNull(metadataCollectionVoDB)) {
+            List<MetadataCollectionMetadataVo> metadataList = metadataCollectionVoDB.getMetadataList();
+            if (CollectionUtil.isNotEmpty(metadataList)) {
+                for (MetadataCollectionMetadataVo cmd : metadataList) {
+                    MetadataVo md = cmd.getMetadata();
+                    if (Objects.nonNull(md)) {
+                        if ("fileElement".equals(md.getControlType()) || "imageElement".equals(md.getControlType())) {
+                            fileImageFields.add(metadataCollectionVoDB.getMdPrefix() + md.getBriefName());
+                        }
+                    }
+                }
+            }
+        }
+        // 更新
+        if (hasId) {
+            for (String field : fileImageFields) {
+                checkUrl((String) contentMapDB.get(field), (String) contentMap.get(field), oldUrlList, newUrlList);
+            }
+            // 新增
+        } else {
+            for (String field : fileImageFields) {
+                checkUrl(null, (String) contentMap.get(field), oldUrlList, newUrlList);
+            }
+        }
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean saveOrUpdateTemplateVo(TemplateVo templateVo) {
+        List<String> oldUrlList = new ArrayList<>();
+        List<String> newUrlList = new ArrayList<>();
+
         boolean hasId = StrUtil.isNotBlank(templateVo.getId());
+        // 更新
+        if (hasId) {
+            Template templateDB = super.getById(templateVo.getId());
+            checkUrl(templateDB.getThumbnail(), templateVo.getThumbnail(), oldUrlList, newUrlList);
+            // 新增
+        } else {
+            checkUrl(null, templateVo.getThumbnail(), oldUrlList, newUrlList);
+        }
         if (this.checkTitleExist(templateVo)) {
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "当前栏目中已存在该标题内容");
         }
@@ -387,6 +473,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         if (YesNoEnum.NO.getCode() == templateVo.getFlagExternal() && StrUtil.isNotEmpty(templateVo.getContentMapStr())) {
             // contentMap 数据库字段
             Map<String, Object> contentMap = dataConvert(templateVo.getMetaDataCollectionId(), templateVo.getContentMapStr());
+            contentUrl(hasId , templateVo, contentMap, oldUrlList, newUrlList);
             String contentId = adminFeign.saveOrUpdateMetadata(templateVo.getMetaDataCollectionId(), templateVo.getContentId(), contentMap).getData();
             // 如果是插入数据， 回填contentId
             if (StrUtil.isEmpty(templateVo.getContentId())) {
@@ -399,8 +486,8 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             // 草稿
             templateVo.setStatus(ContentStatusEnum.DRAFT.getCode());
         } else {
-            // 工作流
-            if (StrUtil.isNotEmpty(templateVo.getWorkflowKey())) {
+            // 新增且有工作流
+            if (!hasId && StrUtil.isNotEmpty(templateVo.getWorkflowKey())) {
                 /*
                 // 启动审核流程生命周期 TODO
                 ReviewProcess reviewProcess = new ReviewProcess();
@@ -411,7 +498,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 contentFeign.saveOrUpdate(reviewProcess);
                 */
 
-                // 启动工作流 TODO
+                // 启动工作流
                 ProcessInstanceVo processInstanceVo = new ProcessInstanceVo();
                 processInstanceVo.setActDefinitionKey(templateVo.getWorkflowKey());
                 processInstanceVo.setBusinessId(String.valueOf(System.currentTimeMillis()));
@@ -424,7 +511,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 mapParams.put("siteId", templateVo.getSiteId());
                 processInstanceVo.setVariables(mapParams);
                 workflowFeign.startInstance(processInstanceVo);
-
                 // 审核中
                 templateVo.setStatus(ContentStatusEnum.VERIFY.getCode());
             } else {
@@ -449,6 +535,8 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             // 默认都创建索引, 索引任务
             this.addIndexTask(templateVo, hasId ? RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE : RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
         }
+        // 标记材料
+        materialService.markMaterialUsePlace(oldUrlList, newUrlList, MaterialUsePlaceEnum.STATION_TEMPLATE.getCode());
         return res;
     }
 
@@ -470,31 +558,40 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 String key = keys.next();
                 Metadata md = metadataMap.get(key);
                 String dataType = md.getDataType();
+                Object value = viewDataMap.get(key);
                 switch (dataType) {
                     case "int":
-                        data.put(key, Integer.parseInt(viewDataMap.get(key).toString()));
+                        if (isObjectStringEmpty(value)) {
+                            data.put(key, null);
+                        } else {
+                            data.put(key, Integer.parseInt(value.toString()));
+                        }
                         break;
                     case "float":
-                        data.put(key, Float.parseFloat(viewDataMap.get(key).toString()));
+                        if (isObjectStringEmpty(value)) {
+                            data.put(key, null);
+                        } else {
+                            data.put(key, Float.parseFloat(value.toString()));
+                        }
                         break;
                     case "date":
                         String controlType = md.getControlType();
                         switch (controlType) {
                             case "dateElement":
-                                data.put(key, parseDate(viewDataMap.get(key), "yyyy-MM-dd"));
+                                data.put(key, parseDate(value, "yyyy-MM-dd"));
                                 break;
                             case "timeElement":
-                                data.put(key, parseDate(viewDataMap.get(key), "HH:mm:ss"));
+                                data.put(key, parseDate(value, "HH:mm:ss"));
                                 break;
                             case "datetimeElement":
-                                data.put(key, parseDate(viewDataMap.get(key), "yyyy-MM-dd HH:mm:ss"));
+                                data.put(key, parseDate(value, "yyyy-MM-dd HH:mm:ss"));
                                 break;
                             default:
-                                data.put(key, viewDataMap.get(key));
+                                data.put(key, value);
                         }
                         break;
                     default:
-                        data.put(key, viewDataMap.get(key));
+                        data.put(key, value);
                 }
 
             }
@@ -503,7 +600,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     }
 
     private Date parseDate(Object date, String pattern) {
-        if (Objects.isNull(date))
+        if (isObjectStringEmpty(date))
             return null;
         try {
             String value = date.toString();
