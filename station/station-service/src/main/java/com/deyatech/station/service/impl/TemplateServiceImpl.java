@@ -455,40 +455,40 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean saveOrUpdateTemplateVo(TemplateVo templateVo) {
+        if (this.checkTitleExist(templateVo)) {
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "当前栏目中已存在该标题内容");
+        }
+        if (YesNoEnum.YES.getCode() == templateVo.getFlagExternal() && StrUtil.isEmpty(templateVo.getUrl())) {
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "外链内容必须填写URL");
+        }
         List<String> oldUrlList = new ArrayList<>();
         List<String> newUrlList = new ArrayList<>();
-
         boolean hasId = StrUtil.isNotBlank(templateVo.getId());
         // 更新
         if (hasId) {
             Template templateDB = super.getById(templateVo.getId());
+            // 标记材料
             checkUrl(templateDB.getThumbnail(), templateVo.getThumbnail(), oldUrlList, newUrlList);
             // 新增
         } else {
+            // 标记材料
             checkUrl(null, templateVo.getThumbnail(), oldUrlList, newUrlList);
         }
-        if (this.checkTitleExist(templateVo)) {
-            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "当前栏目中已存在该标题内容");
-        }
-
-        if (StrUtil.isEmpty(templateVo.getUrl())) {
-            if (YesNoEnum.YES.getCode() == templateVo.getFlagExternal()) {
-                throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "外链内容必须填写URL");
-            }
-            // 获取栏目信息
-            Catalog catalog = catalogService.getById(templateVo.getCmsCatalogId());
-            // 设置URL
-            if (ObjectUtil.isNotNull(catalog)) {
-                templateVo.setUrl("/" + catalog.getPathName() + "/" + PinyinUtil.getAllFirstLetter(templateVo.getTitle()) + ".html");
-            } else {
-                throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "未查到栏目相关信息");
-            }
-        }
-
+//        if (StrUtil.isEmpty(templateVo.getUrl())) {
+//            // 获取栏目信息
+//            Catalog catalog = catalogService.getById(templateVo.getCmsCatalogId());
+//            // 设置URL
+//            if (ObjectUtil.isNotNull(catalog)) {
+//                templateVo.setUrl("/" + catalog.getPathName() + "/" + PinyinUtil.getAllFirstLetter(templateVo.getTitle()) + ".html");
+//            } else {
+//                throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "未查到栏目相关信息");
+//            }
+//        }
         // 保存或更新元数据
         if (YesNoEnum.NO.getCode() == templateVo.getFlagExternal() && StrUtil.isNotEmpty(templateVo.getContentMapStr())) {
             // contentMap 数据库字段
             Map<String, Object> contentMap = dataConvert(templateVo.getMetaDataCollectionId(), templateVo.getContentMapStr());
+            // 标记材料
             contentUrl(hasId , templateVo, contentMap, oldUrlList, newUrlList);
             String contentId = adminFeign.saveOrUpdateMetadata(templateVo.getMetaDataCollectionId(), templateVo.getContentId(), contentMap).getData();
             // 如果是插入数据， 回填contentId
@@ -497,63 +497,64 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             }
         }
 
-        // 保存草稿
+        // 草稿
         if ("true".equals(templateVo.getDraftFlag())) {
-            // 草稿
             templateVo.setStatus(ContentStatusEnum.DRAFT.getCode());
         } else {
-            // 新增且有工作流
-            if (!hasId && StrUtil.isNotEmpty(templateVo.getWorkflowKey())) {
-                /*
-                // 启动审核流程生命周期 TODO
-                ReviewProcess reviewProcess = new ReviewProcess();
-                reviewProcess.setContentId(templateVo.getId());
-                reviewProcess.setWorkflowId(workflowId);
-                // 审核生命周期状态：0.启动 1.审核 2.完成
-                reviewProcess.setStatus(0);
-                contentFeign.saveOrUpdate(reviewProcess);
-                */
-
-                // 启动工作流
-                ProcessInstanceVo processInstanceVo = new ProcessInstanceVo();
-                processInstanceVo.setActDefinitionKey(templateVo.getWorkflowKey());
-                processInstanceVo.setBusinessId(String.valueOf(System.currentTimeMillis()));
-                processInstanceVo.setSource("CMS");
-                processInstanceVo.setUserId(UserContextHelper.getUserId());
-                Map<String, Object> mapParams = CollectionUtil.newHashMap();
-                mapParams.put("title", templateVo.getTitle());
-                mapParams.put("author", templateVo.getAuthor());
-                mapParams.put("templateId", templateVo.getId());
-                mapParams.put("siteId", templateVo.getSiteId());
-                processInstanceVo.setVariables(mapParams);
-                workflowFeign.startInstance(processInstanceVo);
-                // 审核中
-                templateVo.setStatus(ContentStatusEnum.VERIFY.getCode());
-            } else {
-                // 已发布
-                templateVo.setStatus(ContentStatusEnum.PUBLISH.getCode());
+            // 新增时设置状态, 编辑时不改变状态
+            if (!hasId) {
+                // 有工作流
+                if (StrUtil.isNotEmpty(templateVo.getWorkflowKey())) {
+                    // 审核中
+                    templateVo.setStatus(ContentStatusEnum.VERIFY.getCode());
+                } else {
+                    // 已发布
+                    templateVo.setStatus(ContentStatusEnum.PUBLISH.getCode());
+                }
             }
         }
-
         // 发布时间
         templateVo.setResourcePublicationDate(new Date());
-        // 新建生成索引码
+        // 新增时生成索引码
         if (!hasId) {
             RestResult<String> resultIndexCode = assemblyFeign.getNextIndexCodeBySiteId(templateVo.getSiteId());
             // 索引编码
             templateVo.setIndexCode(resultIndexCode.getData());
         }
         // 保存内容
-        boolean res = super.saveOrUpdate(templateVo);
-        if (res && ContentStatusEnum.PUBLISH.getCode() == templateVo.getStatus()) {
-            // 生成静态页面任务
-            this.addStaticPageTask(templateVo);
-            // 默认都创建索引, 索引任务
-            this.addIndexTask(templateVo, hasId ? RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE : RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
+        boolean result = super.saveOrUpdate(templateVo);
+        if (result) {
+            // 新增时, 启动工作流
+            if (!hasId) {
+                startWorkflow(templateVo);
+            }
+            // 发布状态
+            if (ContentStatusEnum.PUBLISH.getCode() == templateVo.getStatus()) {
+                // 生成静态页面任务
+                this.addStaticPageTask(templateVo);
+                // 默认都创建索引, 索引任务
+                this.addIndexTask(templateVo, hasId ? RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE : RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
+            }
+            // 标记材料
+            materialService.markMaterialUsePlace(oldUrlList, newUrlList, MaterialUsePlaceEnum.STATION_TEMPLATE.getCode());
         }
-        // 标记材料
-        materialService.markMaterialUsePlace(oldUrlList, newUrlList, MaterialUsePlaceEnum.STATION_TEMPLATE.getCode());
-        return res;
+        return result;
+    }
+
+    private void startWorkflow(TemplateVo templateVo) {
+        // 启动工作流
+        ProcessInstanceVo processInstanceVo = new ProcessInstanceVo();
+        processInstanceVo.setActDefinitionKey(templateVo.getWorkflowKey());
+        processInstanceVo.setBusinessId(String.valueOf(System.currentTimeMillis()));
+        processInstanceVo.setUserId(UserContextHelper.getUserId());
+        processInstanceVo.setSource("article");
+        Map<String, Object> mapParams = CollectionUtil.newHashMap();
+        mapParams.put("title", templateVo.getTitle());
+        mapParams.put("author", templateVo.getAuthor());
+        mapParams.put("templateId", templateVo.getId());
+        mapParams.put("siteId", templateVo.getSiteId());
+        processInstanceVo.setVariables(mapParams);
+        workflowFeign.startInstance(processInstanceVo);
     }
 
     /**
