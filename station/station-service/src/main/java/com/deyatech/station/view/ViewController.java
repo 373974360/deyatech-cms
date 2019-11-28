@@ -1,6 +1,7 @@
 package com.deyatech.station.view;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
@@ -33,9 +34,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 描述：网站前台控制器
@@ -87,7 +86,8 @@ public class ViewController extends BaseController {
         }
         StationGroup site = siteCache.getStationGroupById(siteId);
         varMap.put("site",site);
-        return templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
+        String content = templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
+        return analysisInclude(content,siteTemplateRoot,varMap);
     }
 
     /**
@@ -109,7 +109,8 @@ public class ViewController extends BaseController {
         StationGroup site = siteCache.getStationGroupById(siteId);
         varMap.put("site",site);
         varMap = templateService.search(varMap);
-        return templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
+        String content = templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
+        return analysisInclude(content,siteTemplateRoot,varMap);
     }
 
 
@@ -150,7 +151,8 @@ public class ViewController extends BaseController {
             varMap.put("message","模板读取失败!");
             return errorPage(siteTemplateRoot,varMap);
         }
-        return templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
+        String content = templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
+        return analysisInclude(content,siteTemplateRoot,varMap);
     }
     /**
      * 动态内容页
@@ -259,7 +261,8 @@ public class ViewController extends BaseController {
             varMap.put("message","模板读取失败!");
             return errorPage(siteTemplateRoot,varMap);
         }
-        return templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
+        String content = templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
+        return analysisInclude(content,siteTemplateRoot,varMap);
     }
     /**
      * 表单页
@@ -309,7 +312,8 @@ public class ViewController extends BaseController {
             varMap.put("message","模板读取失败!");
             return errorPage(siteTemplateRoot,varMap);
         }
-        return templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
+        String content = templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
+        return analysisInclude(content,siteTemplateRoot,varMap);
     }
 
     /**
@@ -349,8 +353,41 @@ public class ViewController extends BaseController {
 
 
     public String errorPage(String siteTemplateRoot,Map<String,Object> varMap){
-        return templateFeign.thyToString(siteTemplateRoot,templateFeign.getTemplateDefaultError().getData(),varMap).getData();
+        String content = templateFeign.thyToString(siteTemplateRoot,templateFeign.getTemplateDefaultError().getData(),varMap).getData();
+        return analysisInclude(content,siteTemplateRoot,varMap);
     }
+
+
+    /**
+     * 解析页面中的include(html)
+     *
+     * 静态页 使用 nginx ssi 引入页面 没有问题
+     * 动态页 使用 nginx ssi 引入页面的时候，会无线加载本页面，目前还没有找出是什么问题
+     * 暂时使用以下方法解决动态页不能 引入页面的问题
+     * */
+    public String analysisInclude(String pageContent,String rootPath,Map<String,Object> varMap){
+        rootPath = rootPath.replace("/template","");
+        //获取模板中 <!--#include virtual='***.html'--> 的列表
+        String array[] = pageContent.split("<!--");
+        List<String> templatePathArray = new ArrayList<>();
+        if(ArrayUtil.isNotEmpty(array)){
+            for(String str:array){
+                if(str.indexOf("#include")>=0){
+                    templatePathArray.add(str.substring(str.indexOf("/"),str.indexOf(".html")+5));
+                }
+            }
+        }
+        //替换 <!--#include virtual='***.html'--> 为引用资源的内容 并解析
+        if(!templatePathArray.isEmpty()&&templatePathArray.size()>0){
+            for(String tempPath:templatePathArray){
+                String includeStr = "<!--#include virtual='"+tempPath+"'-->";
+                String includeContent = templateFeign.thyToString(rootPath,tempPath,varMap).getData();
+                pageContent = pageContent.replace(includeStr,includeContent);
+            }
+        }
+        return pageContent;
+    }
+
     /**
      * 根据条件获取当前栏目的顶级栏目信息
      * @param siteId 站点ID
