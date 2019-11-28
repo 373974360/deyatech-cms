@@ -7,19 +7,27 @@ package com.deyatech.template.thymeleaf.tools;
  * @Date: 2019/8/26 11:42
  */
 
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.admin.entity.Department;
 import com.deyatech.admin.vo.DepartmentVo;
 import com.deyatech.appeal.entity.Purpose;
 import com.deyatech.appeal.entity.Satisfaction;
 import com.deyatech.appeal.feign.AppealFeign;
+import com.deyatech.appeal.vo.ModelVo;
 import com.deyatech.appeal.vo.RecordSatisfactionVo;
 import com.deyatech.appeal.vo.RecordVo;
+import com.deyatech.assembly.vo.ApplyOpenRecordVo;
+import com.deyatech.station.feign.StationFeign;
+import com.deyatech.station.vo.CatalogVo;
+import com.deyatech.template.thymeleaf.utils.PageUrlUtil;
+import com.deyatech.template.thymeleaf.utils.PageUtil;
 import com.deyatech.template.thymeleaf.utils.TemplateConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +39,9 @@ public class AppealDataExpressionObject {
 
     @Autowired
     AppealFeign appealFeign;
+
+    @Autowired
+    StationFeign stationFeign;
 
     /**
      * 获取诉求列表
@@ -49,7 +60,43 @@ public class AppealDataExpressionObject {
             pageSize = 10;
         }
         IPage<RecordVo> result = appealFeign.getAppealList(maps,page,pageSize).getData();
-        return result;
+
+        Collection<CatalogVo> catalogVoCollection = stationFeign.getCatalogTreeBySiteId(maps.get("siteId").toString()).getData();
+        CatalogVo catalogVo = getCatalog(catalogVoCollection,maps.get("catId").toString());
+
+        String pageDynamicSuffix = TemplateConstants.PAGE_SUFFIX;
+
+        PageUtil<RecordVo> pageUtil = new PageUtil<>();
+        pageUtil.setCurrent(result.getCurrent());
+        pageUtil.setPages(result.getPages());
+        pageUtil.setTotal(result.getTotal());
+        pageUtil.setSize(result.getSize());
+        pageUtil.setRecords(result.getRecords());
+
+        for(RecordVo recordVo:result.getRecords()){
+            recordVo.setUrl("/"+catalogVo.getPathName()+"/details/appeal/"+recordVo.getId()+pageDynamicSuffix);
+        }
+
+        return PageUrlUtil.setUrl(pageUtil,catalogVo,pageDynamicSuffix);
+    }
+
+    /**
+     * 根据模型ID 查询模型信息
+     *
+     * @param modelId 模型ID
+     * @param siteId 站点ID
+     * @param catId 栏目ID
+     *
+     * @return ModelVo
+     * */
+    public ModelVo getModelById(String modelId,String siteId,String catId){
+        ModelVo modelVo = appealFeign.getModelById(modelId).getData();
+
+        Collection<CatalogVo> catalogVoCollection = stationFeign.getCatalogTreeBySiteId(siteId).getData();
+        CatalogVo catalogVo = getCatalog(catalogVoCollection,catId);
+
+        modelVo.setFormUrl("/"+catalogVo.getPathName()+"/form/appeal/"+modelVo.getId()+TemplateConstants.PAGE_SUFFIX);
+        return modelVo;
     }
 
     /**
@@ -140,5 +187,22 @@ public class AppealDataExpressionObject {
             }
         }
         return resultList;
+    }
+
+
+    public CatalogVo getCatalog(Collection<CatalogVo> catalogVoCollection,String catalogId ){
+        CatalogVo catalogVo = null;
+        for(CatalogVo catalogVo1:catalogVoCollection){
+            if(catalogVo1.getId().equals(catalogId)){
+                catalogVo = catalogVo1;
+                break;
+            }else if(ObjectUtil.isNotNull(catalogVo1.getChildren())){
+                catalogVo = getCatalog(catalogVo1.getChildren(),catalogId);
+                if(ObjectUtil.isNotNull(catalogVo)){
+                    break;
+                }
+            }
+        }
+        return catalogVo;
     }
 }

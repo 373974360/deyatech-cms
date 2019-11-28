@@ -21,5 +21,4 @@ public class PageUtil<T> extends Page<T> {
     private String firstPageUrl;
     private String currPageUrl;
     private List<String> pageList;
-
 }

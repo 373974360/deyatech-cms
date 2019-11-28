@@ -20,4 +20,8 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @ApiModel(value = "扩展对象", description = "扩展对象", parent = Model.class)
 public class ModelVo extends Model {
+    /**
+     * 表单地址
+     * */
+    private String formUrl;
 }

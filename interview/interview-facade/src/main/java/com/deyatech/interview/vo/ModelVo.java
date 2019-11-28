@@ -33,4 +33,9 @@ public class ModelVo extends Model {
      * 嘉宾信息
      * */
     private List<GuestVo> guestVoList;
+
+    /**
+     * 详情地址
+     * */
+    private String url;
 }
