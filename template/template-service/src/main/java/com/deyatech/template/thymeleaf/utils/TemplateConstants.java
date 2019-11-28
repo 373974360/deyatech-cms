@@ -12,11 +12,11 @@ public class TemplateConstants {
     /**
      * 默认搜索模板
      */
-    public static final String TEMPLATE_DEFAULT_SEARCH = "/search/searchResult.html";
+    public static final String TEMPLATE_DEFAULT_SEARCH = "/other/searchResult.html";
     /**
      * 默认错误模板
      */
-    public static final String TEMPLATE_DEFAULT_ERROR = "/error/error.html";
+    public static final String TEMPLATE_DEFAULT_ERROR = "/other/error.html";
     /**
      * 模板自定义内置对象-栏目工具
      */

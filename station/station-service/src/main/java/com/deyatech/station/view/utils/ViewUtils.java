@@ -14,44 +14,53 @@ import java.util.Map;
 public class ViewUtils {
 
 
+
+    public static void main(String args[]){
+        String namePath = "xwzx/details/info/1186498265441447938";
+        String params = namePath.substring(namePath.indexOf("/details/")+9);
+        System.out.println(params.substring(params.indexOf("/")+1));
+    }
+
     /**
      * namePath 解析
      * */
     public static Map<String,String> analysisNamePath(String namePath, String type){
         Map<String,String> result = new HashMap<>();
-        String pathName = namePath.substring(0,namePath.indexOf("_"));
-        //栏目页 频道页
+        String pathName = "";
+        //栏目地址解析
         if(type.equals("catagory")){
-            String ext = namePath.substring(namePath.lastIndexOf("_")+1);
-            if(ext.equals("index")){
-                result.put("type",ext);
-            }else{
-                if(ext.equals("catagory")||ext.equals("")){
-                    result.put("pageNo","1");
-                }else{
-                    try {
-                        int pageNo = Integer.parseInt(ext);
-                    }catch (Exception e){
-                        ext = "1";
-                    }
-                    result.put("pageNo",ext);
+            //列表模板
+            if(namePath.indexOf("/list")>0){
+                pathName = namePath.substring(0,namePath.indexOf("/list"));
+                String pageNo = namePath.substring(namePath.lastIndexOf("/")+1);
+                try{
+                    int i = Integer.parseInt(pageNo);
+                }catch (Exception e){
+                    pageNo = "1";
                 }
+                result.put("pageNo",pageNo);
                 result.put("type","list");
             }
+            //频道模板
+            if(namePath.indexOf("/index")>0){
+                pathName = namePath.substring(0,namePath.indexOf("/index"));
+                result.put("pageNo","1");
+                result.put("type","index");
+            }
         }
-        //详情页
-        if(type.equals("content")){
-            String paramsPath = namePath.substring(namePath.indexOf("_")+1);
-            paramsPath = paramsPath.substring(paramsPath.indexOf("_")+1,paramsPath.lastIndexOf("_"));
-            result.put("infoId",namePath.substring(namePath.lastIndexOf("_")+1));
-            result.put("type",paramsPath);
+        //详情地址解析
+        if(type.equals("details")){
+            pathName = namePath.substring(0,namePath.indexOf("/details"));
+            String params = namePath.substring(namePath.indexOf("/details/")+9);
+            result.put("type",params.substring(0,params.indexOf("/")));
+            result.put("infoId",params.substring(params.indexOf("/")+1));
         }
-        //表单页
+        //表单地址解析
         if(type.equals("form")){
-            String paramsPath = namePath.substring(namePath.indexOf("_")+1);
-            paramsPath = paramsPath.substring(paramsPath.indexOf("_")+1,paramsPath.lastIndexOf("_"));
-            result.put("modelId",namePath.substring(namePath.lastIndexOf("_")+1));
-            result.put("type",paramsPath);
+            pathName = namePath.substring(0,namePath.indexOf("/form"));
+            String params = namePath.substring(namePath.indexOf("/form/")+6);
+            result.put("type",params.substring(0,params.indexOf("/")));
+            result.put("modelId",params.substring(params.indexOf("/")+1));
         }
         result.put("pathName",pathName);
         return result;

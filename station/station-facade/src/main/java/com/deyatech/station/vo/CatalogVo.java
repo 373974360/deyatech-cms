@@ -51,4 +51,9 @@ public class CatalogVo extends Catalog {
      * 栏目关联的内容数量
      */
     int templateCount;
+
+    /**
+     * 前台的栏目路径
+     * */
+    private String indexUrl;
 }

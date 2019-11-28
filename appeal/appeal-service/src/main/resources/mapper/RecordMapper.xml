@@ -45,5 +45,60 @@
         version_,
         model_id, pur_id, title, user_name, card_id, phone, email, ip, address, sq_code, query_code, dept_id, pro_dept_id, is_open, content, is_publish, reply_content, reply_time, reply_dept_id
     </sql>
-
+    <!-- 根据条件统计信件总数 -->
+    <select id="getAllAppealCount" parameterType="java.util.Map" resultType="java.lang.String">
+        select count(id_) count from appeal_record
+        <where>
+            <if test="map.modelId != null">
+                and model_id in (${map.modelId})
+            </if>
+            <if test="map.isOpen != null">
+                and is_open = #{map.isOpen}
+            </if>
+            <if test="map.isPublish != null">
+                and is_publish = #{map.isPublish}
+            </if>
+            <if test="map.replyDeptId != null">
+                and reply_dept_id = ${map.replyDeptId}
+            </if>
+            <!-- 根据信件受理状态统计 -->
+            <if test="map.countType != null">
+                <!-- 未受理信件总数 -->
+                <if test="map.countType == 'wsl'">
+                    and sq_status = 0
+                </if>
+                <!-- 已受理和已处理的信件(受理数) -->
+                <if test="map.countType == 'sl'">
+                    and sq_status > 0
+                </if>
+                <!-- 已办结总数 -->
+                <if test="map.countType == 'bj'">
+                    and sq_status = 3
+                </if>
+            </if>
+            <!-- 根据时间统计 -->
+            <if test="map.countData != null">
+                <!-- 本年度 -->
+                <if test="map.countData == 'years'">
+                    and create_time > #{map.startData}
+                </if>
+                <!-- 昨天的 -->
+                <if test="map.countData == 'yesterday'">
+                    and create_time between #{map.startData} and #{map.endData}
+                </if>
+                <!-- 上月的 -->
+                <if test="map.countData == 'ultimo'">
+                    and create_time like '%${map.ultimo}%'
+                </if>
+                <!-- 本月的 -->
+                <if test="map.countData == 'instant'">
+                    and create_time like '%${map.instant}%'
+                </if>
+                <!-- 当天的 -->
+                <if test="map.countData == 'curday'">
+                    and create_time > #{map.startData}
+                </if>
+            </if>
+        </where>
+    </select>
 </mapper>

@@ -28,21 +28,32 @@ import com.deyatech.common.enums.TemplateAuthorityEnum;
 import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.common.utils.ColumnUtil;
-import com.deyatech.common.utils.DateUtils;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.entity.*;
+import com.deyatech.station.index.IndexService;
 import com.deyatech.station.mapper.TemplateMapper;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.service.*;
 import com.deyatech.station.vo.*;
 import com.deyatech.workflow.feign.WorkflowFeign;
 import com.deyatech.workflow.vo.ProcessInstanceVo;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.MultiMatchQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.sort.ScoreSortBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -84,6 +95,11 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     AssemblyFeign assemblyFeign;
     @Autowired
     MaterialService materialService;
+
+    @Autowired
+    IndexService indexService;
+    @Autowired
+    ObjectMapper objectMapper;
 
     /**
      * 获取字段
@@ -903,6 +919,102 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             maps.put("cmsCatalogId",cmsCatalogId);
         }
         return baseMapper.getTemplateListView(pages,maps);
+    }
+
+    @Override
+    public Map<String, Object> search(Map<String, Object> map) {
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        //关键字搜索的表单域
+        String[] fields = {"title", "content"};
+        String searchFields = map.get("searchFields") == null ? "" : map.get("searchFields").toString();
+        if (StrUtil.isNotBlank(searchFields)) {
+            fields = searchFields.split(",");
+        }
+        String keywords = map.get("keywords") == null ? "" : map.get("keywords").toString();
+        MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keywords, fields);
+        multiMatchQueryBuilder.analyzer("ik_smart");
+        multiMatchQueryBuilder.field("title", 2f);
+
+        //站点id
+        String siteId = map.get("siteId") == null ? "" : map.get("siteId").toString();
+        if (StrUtil.isNotBlank(siteId)) {
+            boolQueryBuilder.must(QueryBuilders.termQuery("siteId", siteId));
+        }
+        //栏目
+        String catalogId = map.get("catalogId") == null ? "" : map.get("catalogId").toString();
+        if (StrUtil.isNotBlank(catalogId)) {
+            boolQueryBuilder.must(QueryBuilders.termsQuery("cmsCatalogId", catalogId.split(",")));
+        }
+        //关键字
+        boolQueryBuilder.must(multiMatchQueryBuilder);
+
+        String timeMin = map.get("timeMin") == null ? "" : map.get("timeMin").toString();
+        String timeMax = map.get("timeMax") == null ? "" : map.get("timeMax").toString();
+        if (StrUtil.isNotBlank(timeMin) || StrUtil.isNotBlank(timeMax)) {
+            // 时间范围
+            String timeField = map.get("timeField") == null ? "" : map.get("timeField").toString();
+            if (StrUtil.isNotBlank(timeField)) {
+                timeField = "createTime";
+            }
+            RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(timeField);
+            if (StrUtil.isNotBlank(timeMin)) {
+                rangeQueryBuilder.gte(timeMin);
+            }
+            if (StrUtil.isNotBlank(timeMax)) {
+                rangeQueryBuilder.lt(timeMax);
+            }
+            boolQueryBuilder.must(rangeQueryBuilder);
+        }
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.highlighter(new HighlightBuilder().field("title", 800000, 0).field("*_content" , 800000, 0));
+        searchSourceBuilder.query(boolQueryBuilder);
+        String defaultSortBy = ScoreSortBuilder.NAME;
+        SortOrder sortOrder = SortOrder.DESC;
+
+        String sortBy = map.get("sortBy") == null ? "createTime" : map.get("sortBy").toString();
+        if (StrUtil.isNotBlank(sortBy)) {
+            sortBy = defaultSortBy;
+        } else {
+            String[] st = sortBy.split("\\|");
+            sortBy = st[0];
+            if (st.length > 1) {
+                String anotherString = st[1];
+                if (SortOrder.ASC.name().equalsIgnoreCase(anotherString)) {
+                    sortOrder = SortOrder.ASC;
+                }
+            }
+        }
+        Integer page = map.get("page") == null ? 1 : Integer.parseInt(map.get("page").toString());
+        Integer size = map.get("size") == null ? 10 : Integer.parseInt(map.get("size").toString());
+        searchSourceBuilder.sort(sortBy, sortOrder);
+        searchSourceBuilder.from((page - 1) * size);
+        searchSourceBuilder.size(size);
+        String query = searchSourceBuilder.toString();
+        log.info("搜索：" + query);
+        String result = indexService.selectDataByESQueryJSON("cms_*", query);
+        log.info("搜索结果：" + result);
+        JsonNode jsonNode = null;
+        try {
+            jsonNode = objectMapper.readTree(result);
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.error("解析搜索引擎返回的json错误");
+        }
+        if (jsonNode == null) {
+            //搜索失败
+            log.error("搜索失败");
+            throw new RuntimeException("搜索失败");
+        }
+        int took = jsonNode.get("took").intValue();//用时
+        boolean timed_out = jsonNode.get("timed_out").booleanValue();//是否超时
+        JsonNode hits = jsonNode.get("hits");
+        int totalElements = hits.get("total").intValue();
+        int totalPages = ((totalElements + size - 1) / size);
+        List<String> idList = new ArrayList<>();
+        hits.get("hits").forEach(hit -> {
+            idList.add(hit.get("_id").textValue());
+        });
+        return map;
     }
 
 
