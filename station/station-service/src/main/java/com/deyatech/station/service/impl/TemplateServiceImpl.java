@@ -455,11 +455,22 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean saveOrUpdateTemplateVo(TemplateVo templateVo) {
+        // 获取栏目信息
+        Catalog catalog = null;
         if (this.checkTitleExist(templateVo)) {
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "当前栏目中已存在该标题内容");
         }
-        if (YesNoEnum.YES.getCode() == templateVo.getFlagExternal() && StrUtil.isEmpty(templateVo.getUrl())) {
-            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "外链内容必须填写URL");
+        // 外链
+        if (YesNoEnum.YES.getCode() == templateVo.getFlagExternal()) {
+            if (StrUtil.isEmpty(templateVo.getUrl())) {
+                throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "外链内容必须填写URL");
+            }
+        } else {
+            // 获取栏目信息
+            catalog = catalogService.getById(templateVo.getCmsCatalogId());
+            if (Objects.isNull(catalog)) {
+                throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "栏目信息不存在");
+            }
         }
         List<String> oldUrlList = new ArrayList<>();
         List<String> newUrlList = new ArrayList<>();
@@ -474,16 +485,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             // 标记材料
             checkUrl(null, templateVo.getThumbnail(), oldUrlList, newUrlList);
         }
-//        if (StrUtil.isEmpty(templateVo.getUrl())) {
-//            // 获取栏目信息
-//            Catalog catalog = catalogService.getById(templateVo.getCmsCatalogId());
-//            // 设置URL
-//            if (ObjectUtil.isNotNull(catalog)) {
-//                templateVo.setUrl("/" + catalog.getPathName() + "/" + PinyinUtil.getAllFirstLetter(templateVo.getTitle()) + ".html");
-//            } else {
-//                throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "未查到栏目相关信息");
-//            }
-//        }
         // 保存或更新元数据
         if (YesNoEnum.NO.getCode() == templateVo.getFlagExternal() && StrUtil.isNotEmpty(templateVo.getContentMapStr())) {
             // contentMap 数据库字段
@@ -524,9 +525,16 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         // 保存内容
         boolean result = super.saveOrUpdate(templateVo);
         if (result) {
-            // 新增时, 启动工作流
+            // 新增时
             if (!hasId) {
+                // 启动工作流
                 startWorkflow(templateVo);
+                // 非外链
+                if (YesNoEnum.YES.getCode() != templateVo.getFlagExternal()) {
+                    // 根据主键ID命名 静态资源文件URL
+                    templateVo.setUrl("/" + catalog.getPathName() + "/" + templateVo.getId() + ".html");
+                    super.updateById(templateVo);
+                }
             }
             // 发布状态
             if (ContentStatusEnum.PUBLISH.getCode() == templateVo.getStatus()) {
