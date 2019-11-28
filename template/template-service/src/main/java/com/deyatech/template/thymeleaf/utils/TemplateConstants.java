@@ -8,15 +8,15 @@ public class TemplateConstants {
     /**
      * 默认首页模板
      */
-    public static final String TEMPLATE_DEFAULT_INDEX = "/index/index.html";
+    public static final String TEMPLATE_DEFAULT_INDEX = "/首页和频道页/首页.html";
     /**
      * 默认搜索模板
      */
-    public static final String TEMPLATE_DEFAULT_SEARCH = "/other/searchResult.html";
+    public static final String TEMPLATE_DEFAULT_SEARCH = "/其他/搜索结果.html";
     /**
      * 默认错误模板
      */
-    public static final String TEMPLATE_DEFAULT_ERROR = "/other/error.html";
+    public static final String TEMPLATE_DEFAULT_ERROR = "/其他/错误提示.html";
     /**
      * 模板自定义内置对象-栏目工具
      */
