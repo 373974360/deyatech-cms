@@ -485,7 +485,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             // 标记材料
             checkUrl(null, templateVo.getThumbnail(), oldUrlList, newUrlList);
         }
-        // 保存或更新元数据
+        // 非外链保存或更新元数据
         if (YesNoEnum.NO.getCode() == templateVo.getFlagExternal() && StrUtil.isNotEmpty(templateVo.getContentMapStr())) {
             // contentMap 数据库字段
             Map<String, Object> contentMap = dataConvert(templateVo.getMetaDataCollectionId(), templateVo.getContentMapStr());
@@ -530,7 +530,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 // 启动工作流
                 startWorkflow(templateVo);
                 // 非外链
-                if (YesNoEnum.YES.getCode() != templateVo.getFlagExternal()) {
+                if (YesNoEnum.NO.getCode() == templateVo.getFlagExternal()) {
                     // 根据主键ID命名 静态资源文件URL
                     templateVo.setUrl("/" + catalog.getPathName() + "/" + templateVo.getId() + ".html");
                     super.updateById(templateVo);
@@ -555,7 +555,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         processInstanceVo.setActDefinitionKey(templateVo.getWorkflowKey());
         processInstanceVo.setBusinessId(String.valueOf(System.currentTimeMillis()));
         processInstanceVo.setUserId(UserContextHelper.getUserId());
-        processInstanceVo.setSource("article");
+        processInstanceVo.setSource("CMS");
         Map<String, Object> mapParams = CollectionUtil.newHashMap();
         mapParams.put("title", templateVo.getTitle());
         mapParams.put("author", templateVo.getAuthor());
