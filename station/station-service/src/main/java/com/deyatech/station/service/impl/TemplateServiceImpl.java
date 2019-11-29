@@ -2,10 +2,12 @@ package com.deyatech.station.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.PinyinUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -28,6 +30,7 @@ import com.deyatech.common.enums.TemplateAuthorityEnum;
 import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.common.utils.ColumnUtil;
+import com.deyatech.common.utils.DateUtils;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.entity.*;
 import com.deyatech.station.index.IndexService;
@@ -37,7 +40,6 @@ import com.deyatech.station.service.*;
 import com.deyatech.station.vo.*;
 import com.deyatech.workflow.feign.WorkflowFeign;
 import com.deyatech.workflow.vo.ProcessInstanceVo;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -46,14 +48,11 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
-import org.elasticsearch.search.sort.ScoreSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -527,8 +526,10 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         if (result) {
             // 新增时
             if (!hasId) {
-                // 启动工作流
-                startWorkflow(templateVo);
+                // 如果当前栏目绑定了工作流 启动工作流
+                if(catalog.getWorkflowEnable().equals(YesNoEnum.YES.getCode())){
+                    startWorkflow(templateVo);
+                }
                 // 非外链
                 if (YesNoEnum.YES.getCode() != templateVo.getFlagExternal()) {
                     // 根据主键ID命名 静态资源文件URL
@@ -934,8 +935,8 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     public Map<String, Object> search(Map<String, Object> map) {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         //关键字搜索的表单域
-        String[] fields = {"title", "content"};
-        String searchFields = map.get("searchFields") == null ? "" : map.get("searchFields").toString();
+        String[] fields = {"title","resourceSummary","resourceContent"};
+        String searchFields = map.get("scope") == null ? "" : map.get("scope").toString();
         if (StrUtil.isNotBlank(searchFields)) {
             fields = searchFields.split(",");
         }
@@ -961,10 +962,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         String timeMax = map.get("timeMax") == null ? "" : map.get("timeMax").toString();
         if (StrUtil.isNotBlank(timeMin) || StrUtil.isNotBlank(timeMax)) {
             // 时间范围
-            String timeField = map.get("timeField") == null ? "" : map.get("timeField").toString();
-            if (StrUtil.isNotBlank(timeField)) {
-                timeField = "createTime";
-            }
+            String timeField = map.get("timeField") == null ? "resourcePublicationDate" : map.get("timeField").toString();
             RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(timeField);
             if (StrUtil.isNotBlank(timeMin)) {
                 rangeQueryBuilder.gte(timeMin);
@@ -975,24 +973,17 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             boolQueryBuilder.must(rangeQueryBuilder);
         }
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        searchSourceBuilder.highlighter(new HighlightBuilder().field("title", 800000, 0).field("*_content" , 800000, 0));
+        //高亮显示
+        searchSourceBuilder.highlighter(new HighlightBuilder()
+                .field("title", 800000, 0)
+                .field("resourceContent", 800000, 0)
+                .field("resourceSummary" , 800000, 0));
         searchSourceBuilder.query(boolQueryBuilder);
-        String defaultSortBy = ScoreSortBuilder.NAME;
-        SortOrder sortOrder = SortOrder.DESC;
 
-        String sortBy = map.get("sortBy") == null ? "createTime" : map.get("sortBy").toString();
-        if (StrUtil.isNotBlank(sortBy)) {
-            sortBy = defaultSortBy;
-        } else {
-            String[] st = sortBy.split("\\|");
-            sortBy = st[0];
-            if (st.length > 1) {
-                String anotherString = st[1];
-                if (SortOrder.ASC.name().equalsIgnoreCase(anotherString)) {
-                    sortOrder = SortOrder.ASC;
-                }
-            }
-        }
+        //排序
+        SortOrder sortOrder = SortOrder.DESC;
+        String sortBy = map.get("sortBy") == null ? "resourcePublicationDate" : map.get("sortBy").toString();
+
         Integer page = map.get("page") == null ? 1 : Integer.parseInt(map.get("page").toString());
         Integer size = map.get("size") == null ? 10 : Integer.parseInt(map.get("size").toString());
         searchSourceBuilder.sort(sortBy, sortOrder);
@@ -1002,27 +993,43 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         log.info("搜索：" + query);
         String result = indexService.selectDataByESQueryJSON("cms_*", query);
         log.info("搜索结果：" + result);
-        JsonNode jsonNode = null;
-        try {
-            jsonNode = objectMapper.readTree(result);
-        } catch (IOException e) {
-            e.printStackTrace();
-            log.error("解析搜索引擎返回的json错误");
-        }
+        JSONObject jsonNode = JSONUtil.parseObj(result);
         if (jsonNode == null) {
             //搜索失败
             log.error("搜索失败");
             throw new RuntimeException("搜索失败");
         }
-        int took = jsonNode.get("took").intValue();//用时
-        boolean timed_out = jsonNode.get("timed_out").booleanValue();//是否超时
-        JsonNode hits = jsonNode.get("hits");
-        int totalElements = hits.get("total").intValue();
+        //用时
+        int took = jsonNode.getInt("took");
+        //是否超时
+        boolean timed_out = jsonNode.getBool("timed_out");
+        JSONObject hits = jsonNode.getJSONObject("hits");
+        int totalElements = hits.getInt("total");
         int totalPages = ((totalElements + size - 1) / size);
-        List<String> idList = new ArrayList<>();
-        hits.get("hits").forEach(hit -> {
-            idList.add(hit.get("_id").textValue());
+        //结果集
+        List<Map<String, Object>> records = new ArrayList<>();
+        hits.getJSONArray("hits").forEach(hit -> {
+            JSONObject source = JSONUtil.parseObj(hit).getJSONObject("_source");
+            for (Map.Entry<String, Object> entry : source.entrySet()) {
+                String value = source.getStr(entry.getKey());
+                if(StrUtil.isBlank(value)){
+                    source.put(entry.getKey(),"");
+                }
+            }
+            JSONObject highlight = JSONUtil.parseObj(hit).getJSONObject("highlight");
+            highlight.entrySet().forEach((field) -> {
+                JSONArray obj = JSONUtil.parseArray(field.getValue());
+                source.put(field.getKey(),obj.get(0).toString());
+            });
+            records.add(source);
         });
+        map.put("records", records);
+        map.put("timedOut", timed_out);
+        map.put("took", took);
+        map.put("total", totalElements);
+        map.put("pages", totalPages);
+        map.put("prevPage", page > 1 ? page - 1 : 1);
+        map.put("nextPage", page < totalPages ? page + 1 : page);
         return map;
     }
 
@@ -1160,4 +1167,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
      * @return
      */
     public int updateFlagTopById(boolean flagTop, String id) {return baseMapper.updateFlagTopById(flagTop, id);}
+
+
+
 }
