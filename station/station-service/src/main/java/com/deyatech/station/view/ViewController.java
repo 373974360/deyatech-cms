@@ -107,6 +107,7 @@ public class ViewController extends BaseController {
             template = templateFeign.getTemplateDefaultSearch().getData();
         }
         StationGroup site = siteCache.getStationGroupById(siteId);
+        varMap.put("siteId",siteId);
         varMap.put("site",site);
         varMap = templateService.search(varMap);
         String content = templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();

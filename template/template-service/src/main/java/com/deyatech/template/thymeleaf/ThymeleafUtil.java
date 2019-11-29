@@ -1,5 +1,7 @@
 package com.deyatech.template.thymeleaf;
 
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import com.deyatech.template.thymeleaf.utils.CmsDialect;
 import com.deyatech.template.thymeleaf.utils.TemplateConstants;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -141,6 +144,7 @@ public class ThymeleafUtil {
      * @return
      */
     public String thyToString(String siteTemplateRoot, String templatePath, Map<String, Object> varMap) {
+        parseDate(varMap);
         if (StringUtils.isBlank(templatePath)) {
             varMap.put("message","模板路径为空！");
             context.setVariables(varMap);
@@ -163,5 +167,55 @@ public class ThymeleafUtil {
             context.setVariables(varMap);
             return templateEngine.process(TemplateConstants.TEMPLATE_DEFAULT_ERROR, context);
         }
+    }
+
+    /**
+     * 将map中 字符串类型的日期修改为date 类型
+     * @param varMap
+     * @return
+     * */
+    public static Map<String, Object> parseDate(Map<String, Object> varMap){
+        for (Map.Entry<String, Object> entry : varMap.entrySet()) {
+            Object value = varMap.get(entry.getKey());
+            if (isDate(value.toString())){
+                varMap.put(entry.getKey(),parseDateStr(value.toString()));
+            }else if (value instanceof Map){
+                parseDate((Map<String, Object>)value);
+            }else if (entry.getKey().equals("records")){
+                for(Map<String, Object> map:(List<Map<String, Object>>)value){
+                    parseDate(map);
+                }
+            }
+        }
+        return varMap;
+    }
+
+
+    /**
+     * 判断字符串是否为日期格式
+     * @param strDate
+     * @return
+     * */
+    public static boolean isDate(String strDate) {
+        try {
+            //替换掉 UTC 格式中的T和Z
+            strDate = strDate.replace("T"," ").replace("Z","");
+            if(strDate.indexOf(".") > -1){
+                strDate = strDate.substring(0,strDate.indexOf("."));
+            }
+            DateUtil.parse(strDate,"yyyy-MM-dd HH:mm:ss");
+            return true;
+        }catch (Exception e){
+            return false;
+        }
+    }
+
+    public static DateTime parseDateStr(String strDate){
+        //替换掉 UTC 格式中的T和Z
+        strDate = strDate.replace("T"," ").replace("Z","");
+        if(strDate.indexOf(".") > -1){
+            strDate = strDate.substring(0,strDate.indexOf("."));
+        }
+        return DateUtil.parse(strDate,"yyyy-MM-dd HH:mm:ss");
     }
 }

@@ -207,7 +207,7 @@ public class IndexServiceImpl implements IndexService {
                     // 自定义ik_pinyin_analyzer分析器
                     .put("index.analysis.analyzer.ik_pinyin_analyzer.type", "custom")
                     // 定义分词策略ik，ik_smart会将文本做最粗粒度的拆分
-                    .put("index.analysis.analyzer.ik_pinyin_analyzer.tokenizer", "ik_smart")
+                    .put("index.analysis.analyzer.ik_pinyin_analyzer.tokenizer", "ik_max_word")
                     // 定义过滤器pinyin_filter
                     .put("index.analysis.analyzer.ik_pinyin_analyzer.filter", "pinyin_filter")
                     // 过滤器类型pinyin
@@ -376,6 +376,20 @@ public class IndexServiceImpl implements IndexService {
         title.field("analyzer", "ik_pinyin_analyzer");
         title.field("search_analyzer", "ik_pinyin_analyzer");
         title.endObject();
+
+        // 通用字段定义: 摘要
+        XContentBuilder resourceSummary = properties.startObject("resourceSummary");
+        resourceSummary.field("type", "text");
+        resourceSummary.field("analyzer", "ik_pinyin_analyzer");
+        resourceSummary.field("search_analyzer", "ik_pinyin_analyzer");
+        resourceSummary.endObject();
+
+        // 通用字段定义: 资源内容
+        XContentBuilder resourceContent = properties.startObject("resourceContent");
+        resourceContent.field("type", "text");
+        resourceContent.field("analyzer", "ik_pinyin_analyzer");
+        resourceContent.field("search_analyzer", "ik_pinyin_analyzer");
+        resourceContent.endObject();
 
         // 通用字段定义: 缩略图
         XContentBuilder thumbnail = properties.startObject("thumbnail");
