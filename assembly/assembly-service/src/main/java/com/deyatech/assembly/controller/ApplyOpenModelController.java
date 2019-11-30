@@ -1,5 +1,6 @@
 package com.deyatech.assembly.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.deyatech.assembly.entity.ApplyOpenModel;
 import com.deyatech.assembly.vo.ApplyOpenModelVo;
 import com.deyatech.assembly.service.ApplyOpenModelService;
@@ -139,6 +140,26 @@ public class ApplyOpenModelController extends BaseController {
         applyOpenModels.setRecords(applyOpenModelService.setVoProperties(applyOpenModels.getRecords()));
         log.info(String.format("根据ApplyOpenModel对象属性分页检索: %s ",JSONUtil.toJsonStr(applyOpenModels)));
         return RestResult.ok(applyOpenModels);
+    }
+
+
+    /**
+     * 检索主管部门的模型
+     *
+     * @param departmentId
+     * @return
+     */
+    @GetMapping("/listModelByCompetentDeptId")
+    @ApiOperation(value="检索主管部门的模型", notes="检索主管部门的模型")
+    @ApiImplicitParam(name = "model", value = "对象", required = false, dataType = "Model", paramType = "query")
+    public RestResult<Collection<ApplyOpenModelVo>> listModelByCompetentDeptId(String departmentId) {
+        QueryWrapper<ApplyOpenModel> queryWrapper = new QueryWrapper<>();
+        queryWrapper.likeLeft("competent_dept", departmentId)
+                .or().like("part_dept",departmentId);
+        Collection<ApplyOpenModel> models = applyOpenModelService.list(queryWrapper);
+        Collection<ApplyOpenModelVo> modelVos = applyOpenModelService.setVoProperties(models);
+        log.info(String.format("检索主管部门的模型: %s ",JSONUtil.toJsonStr(modelVos)));
+        return RestResult.ok(modelVos);
     }
 
 }

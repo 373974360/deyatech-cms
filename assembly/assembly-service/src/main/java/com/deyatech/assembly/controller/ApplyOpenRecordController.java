@@ -2,12 +2,16 @@ package com.deyatech.assembly.controller;
 
 import cn.hutool.core.util.StrUtil;
 import com.deyatech.admin.feign.AdminFeign;
+import com.deyatech.admin.vo.DepartmentVo;
 import com.deyatech.admin.vo.UserVo;
 import com.deyatech.assembly.entity.ApplyOpenRecord;
 import com.deyatech.assembly.vo.ApplyOpenRecordVo;
 import com.deyatech.assembly.service.ApplyOpenRecordService;
 import com.deyatech.common.context.UserContextHelper;
+import com.deyatech.common.entity.CascaderResult;
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.common.utils.CascaderUtil;
+import io.swagger.annotations.ApiImplicitParams;
 import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -49,15 +53,13 @@ public class ApplyOpenRecordController extends BaseController {
     @ApiOperation(value="单个保存或者更新", notes="根据对象保存或者更新信息")
     @ApiImplicitParam(name = "applyOpenRecord", value = "对象", required = true, dataType = "ApplyOpenRecord", paramType = "query")
     public RestResult<Boolean> saveOrUpdate(ApplyOpenRecord applyOpenRecord) {
-        if(StrUtil.isBlank(applyOpenRecord.getId())){
-            UserVo userVo = adminFeign.getUserByUserId(UserContextHelper.getUserId()).getData();
-            applyOpenRecord.setReplyDeptId(userVo.getDepartmentId());
-            applyOpenRecord.setQueryCode(applyOpenRecordService.getQueryCode(applyOpenRecord.getId()));
-            applyOpenRecord.setYsqCode(applyOpenRecordService.getYsqCode(applyOpenRecord.getId()));
-        }
         log.info(String.format("保存或者更新: %s ", JSONUtil.toJsonStr(applyOpenRecord)));
-        boolean result = applyOpenRecordService.saveOrUpdate(applyOpenRecord);
-        return RestResult.ok(result);
+        if(StrUtil.isBlank(applyOpenRecord.getId())){
+            applyOpenRecordService.insertApplyOpenRecord(applyOpenRecord);
+        }else{
+            applyOpenRecordService.updateById(applyOpenRecord);
+        }
+        return RestResult.ok();
     }
 
     /**
@@ -146,11 +148,31 @@ public class ApplyOpenRecordController extends BaseController {
      */
     @GetMapping("/pageByApplyOpenRecord")
     @ApiOperation(value="根据ApplyOpenRecord对象属性分页检索", notes="根据ApplyOpenRecord对象属性分页检索信息")
-    @ApiImplicitParam(name = "applyOpenRecord", value = "对象", required = false, dataType = "ApplyOpenRecord", paramType = "query")
-    public RestResult<IPage<ApplyOpenRecordVo>> pageByApplyOpenRecord(ApplyOpenRecord applyOpenRecord,String[] timeFrame) {
-        IPage<ApplyOpenRecordVo> applyOpenRecords = applyOpenRecordService.pageApplyOpenRecordByBean(applyOpenRecord,timeFrame);
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "applyOpenRecord", value = "对象", required = false, dataType = "ApplyOpenRecord", paramType = "query"),
+            @ApiImplicitParam(name = "timeFrame", value = "时间取件", required = false, dataType = "String[]", paramType = "query"),
+            @ApiImplicitParam(name = "userDepartmentId", value = "用户部门", required = true, dataType = "String", paramType = "query")
+    })
+    public RestResult<IPage<ApplyOpenRecordVo>> pageByApplyOpenRecord(ApplyOpenRecord applyOpenRecord,String[] timeFrame, String userDepartmentId) {
+        IPage<ApplyOpenRecordVo> applyOpenRecords = applyOpenRecordService.pageApplyOpenRecordByBean(applyOpenRecord,timeFrame,userDepartmentId);
         log.info(String.format("根据ApplyOpenRecord对象属性分页检索: %s ",JSONUtil.toJsonStr(applyOpenRecords)));
         return RestResult.ok(applyOpenRecords);
+    }
+
+    /**
+     * 根据Record对象属性分页检索
+     *
+     * @param modelId
+     * @return
+     */
+    @GetMapping("/getCompetentDept")
+    @ApiOperation(value="根据业务模型获取参与部门", notes="根据业务模型获取参与部门")
+    @ApiImplicitParam(name = "modelId", value = "业务模型ID", required = false, dataType = "String", paramType = "query")
+    public RestResult<List<CascaderResult>> getCompetentDept(String modelId) {
+        Collection<DepartmentVo> departmentVos = applyOpenRecordService.getCompetentDept(modelId);
+        List<CascaderResult> cascaderResults = CascaderUtil.getResult("Id", "Name","TreePosition","0", departmentVos);
+        log.info(String.format("获取系统部门信息的级联对象: %s ",JSONUtil.toJsonStr(cascaderResults)));
+        return RestResult.ok(cascaderResults);
     }
 
 }
