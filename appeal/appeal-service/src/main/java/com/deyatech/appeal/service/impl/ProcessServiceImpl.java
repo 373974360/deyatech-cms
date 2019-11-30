@@ -10,6 +10,7 @@ import com.deyatech.appeal.entity.Process;
 import com.deyatech.appeal.entity.Record;
 import com.deyatech.appeal.service.ModelService;
 import com.deyatech.appeal.service.RecordService;
+import com.deyatech.appeal.vo.ModelVo;
 import com.deyatech.appeal.vo.ProcessVo;
 import com.deyatech.appeal.mapper.ProcessMapper;
 import com.deyatech.appeal.service.ProcessService;
@@ -17,6 +18,7 @@ import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import com.deyatech.common.context.UserContextHelper;
+import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.workflow.feign.WorkflowFeign;
 import com.deyatech.workflow.vo.ProcessInstanceVo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +48,8 @@ public class ProcessServiceImpl extends BaseServiceImpl<ProcessMapper, Process> 
     ModelService modelService;
     @Autowired
     WorkflowFeign workflowFeign;
+    @Autowired
+    ProcessService processService;
 
     /**
      * 单个将对象转换为vo
@@ -123,6 +127,101 @@ public class ProcessServiceImpl extends BaseServiceImpl<ProcessMapper, Process> 
 
     @Override
     public void doProcess(Process process, Record record) {
-
+        UserVo userVo = adminFeign.getUserByUserId(UserContextHelper.getUserId()).getData();
+        process.setProDeptId(userVo.getDepartmentId());
+        Record oldRecord = recordService.getById(process.getSqId());
+        Model model = modelService.getById(oldRecord.getModelId());
+        boolean result = false;
+        //办理状态为 转办信件（1）
+        if(process.getProType() == 1){
+            //办理中
+            oldRecord.setSqStatus(1);
+            //退回状态为 正常
+            oldRecord.setIsBack(0);
+            //设置处理部门
+            oldRecord.setProDeptId(process.getToDeptId());
+        }
+        //办理状态为 回复信件（2）
+        if(process.getProType() == 2){
+            //已办结
+            oldRecord.setSqStatus(3);
+            //退回状态为 正常
+            oldRecord.setIsBack(0);
+            //设置回复部门
+            oldRecord.setReplyDeptId(userVo.getDepartmentId());
+            oldRecord.setIsOpen(record.getIsOpen());
+            //如果业务模型设置的自动发布
+            if(model.getAutoPublish().equals(YesNoEnum.YES.getCode())){
+                oldRecord.setIsPublish(YesNoEnum.YES.getCode());
+            }
+            oldRecord.setReplyTime(process.getProTime());
+            oldRecord.setReplyContent(process.getProContent());
+        }
+        //办理状态为 发布信件（3）
+        if(process.getProType() == 3){
+            //退回状态为 正常
+            oldRecord.setIsBack(0);
+            oldRecord.setTitle(record.getTitle());
+            oldRecord.setContent(record.getContent());
+            oldRecord.setIsOpen(record.getIsOpen());
+            oldRecord.setIsPublish(record.getIsPublish());
+            oldRecord.setReplyTime(process.getProTime());
+            oldRecord.setReplyContent(process.getProContent());
+            if(StrUtil.isBlank(process.getProContent())){
+                //已办结
+                oldRecord.setSqStatus(3);
+                //设置回复部门
+                oldRecord.setReplyDeptId(userVo.getDepartmentId());
+            }
+        }
+        //办理状态为 退回信件（4)
+        if(process.getProType() == 4){
+            //办理中
+            oldRecord.setSqStatus(1);
+            //退回状态为 退回
+            oldRecord.setIsBack(1);
+            //设置处理部门为收件部门
+            oldRecord.setProDeptId(oldRecord.getDeptId());
+            process.setToDeptId(oldRecord.getDeptId());
+        }
+        //办理状态为 信件判重（5）
+        if(process.getProType() == 5){
+            //信件状态 已办结
+            oldRecord.setSqStatus(3);
+            //信件标识 为无效件
+            oldRecord.setSqFlag(1);
+            oldRecord.setReplyDeptId(userVo.getDepartmentId());
+            oldRecord.setReplyTime(new Date());
+            oldRecord.setReplyContent(process.getProContent());
+        }
+        //办理状态为 置为无效（6）
+        if(process.getProType() == 6){
+            //信件状态 已办结
+            oldRecord.setSqStatus(3);
+            //信件标识 为无效件
+            oldRecord.setSqFlag(-1);
+            oldRecord.setReplyDeptId(userVo.getDepartmentId());
+            oldRecord.setReplyTime(new Date());
+            oldRecord.setReplyContent(process.getProContent());
+        }
+        //办理状态为 申请延期（7）
+        if(process.getProType() == 7){
+            //办理中
+            oldRecord.setSqStatus(1);
+            //延期标识为 申请延期
+            oldRecord.setLimitFlag(2);
+        }
+        //办理状态为 不予受理（8）
+        if(process.getProType() == 8){
+            //信件状态 已办结
+            oldRecord.setSqStatus(3);
+            //信件标识 不予受理
+            oldRecord.setSqFlag(2);
+            oldRecord.setReplyDeptId(userVo.getDepartmentId());
+            oldRecord.setReplyTime(new Date());
+            oldRecord.setReplyContent(process.getProContent());
+        }
+        recordService.saveOrUpdate(oldRecord);
+        processService.saveOrUpdate(process);
     }
 }

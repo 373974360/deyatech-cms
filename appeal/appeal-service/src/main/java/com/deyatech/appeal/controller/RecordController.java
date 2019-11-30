@@ -51,12 +51,11 @@ public class RecordController extends BaseController {
     public RestResult<Boolean> saveOrUpdate(Record record) {
         log.info(String.format("保存或者更新: %s ", JSONUtil.toJsonStr(record)));
         if(StrUtil.isBlank(record.getId())){
-            record.setQueryCode(recordService.getQueryCode(record.getModelId()));
-            record.setSqCode(recordService.getAppealCode(record.getModelId()));
+            recordService.insertAppeal(record);
+        }else{
+            recordService.updateById(record);
         }
-        record.setProDeptId(record.getDeptId());
-        boolean result = recordService.saveOrUpdate(record);
-        return RestResult.ok(result);
+        return RestResult.ok();
     }
 
     /**

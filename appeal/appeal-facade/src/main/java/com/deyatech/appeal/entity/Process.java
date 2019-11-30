@@ -30,21 +30,13 @@ public class Process extends BaseEntity {
     @TableField("sq_id")
     private String sqId;
 
-    @ApiModelProperty(value = "处理类型 1:受理，2:设为效件，3:申请延期，4:转办，5:回复，6:退回，7:同意延期", dataType = "Integer", example = "1")
+    @ApiModelProperty(value = "处理类型 1:转办，2回复，3发布，4退回，5判重，6无效，7延期，8不予受理", dataType = "Integer", example = "1")
     @TableField("pro_type")
     private Integer proType;
 
     @ApiModelProperty(value = "处理意见", dataType = "String")
     @TableField("pro_content")
     private String proContent;
-
-    @ApiModelProperty(value = "延期理由", dataType = "String")
-    @TableField("reasons_delay")
-    private String reasonsDelay;
-
-    @ApiModelProperty(value = "延期时间", dataType = "LocalDateTime")
-    @TableField("reasons_time")
-    private Date reasonsTime;
 
     @ApiModelProperty(value = "处理部门", dataType = "String")
     @TableField("pro_dept_id")
@@ -57,9 +49,5 @@ public class Process extends BaseEntity {
     @ApiModelProperty(value = "处理时间", dataType = "LocalDateTime")
     @TableField("pro_time")
     private Date proTime;
-
-    @ApiModelProperty(value = "延期审核状态", dataType = "Integer")
-    @TableField("reasons_status")
-    private Integer reasonsStatus;
 
 }
