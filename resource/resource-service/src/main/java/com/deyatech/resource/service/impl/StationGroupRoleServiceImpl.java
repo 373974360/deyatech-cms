@@ -1,6 +1,11 @@
 package com.deyatech.resource.service.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.deyatech.admin.vo.UserVo;
+import com.deyatech.common.Constants;
 import com.deyatech.resource.entity.StationGroupRole;
 import com.deyatech.resource.vo.StationGroupRoleVo;
 import com.deyatech.resource.mapper.StationGroupRoleMapper;
@@ -96,4 +101,22 @@ public class StationGroupRoleServiceImpl extends BaseServiceImpl<StationGroupRol
         queryWrapper.in("station_group_id", StationGroupIds);
         super.remove(queryWrapper);
     }
+
+    @Override
+    public IPage<UserVo> pageStationAssociationUser(String siteId, UserVo user) {
+        Page page = new Page();
+        if (ObjectUtil.isNotNull(user.getPage())) {
+            page.setCurrent(user.getPage());
+        } else {
+            page.setCurrent(Constants.DEFAULT_CURRENT_PAGE);
+        }
+        if (ObjectUtil.isNotNull(user.getSize())) {
+            page.setSize(user.getSize());
+        } else {
+            page.setSize(Constants.DEFAULT_PAGE_SIZE);
+        }
+        return baseMapper.pageStationAssociationUser(page, siteId, user);
+    }
+
+
 }

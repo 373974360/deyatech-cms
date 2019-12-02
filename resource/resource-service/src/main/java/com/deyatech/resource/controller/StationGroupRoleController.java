@@ -1,5 +1,7 @@
 package com.deyatech.resource.controller;
 
+import cn.hutool.core.util.StrUtil;
+import com.deyatech.admin.vo.UserVo;
 import com.deyatech.resource.entity.StationGroupRole;
 import com.deyatech.resource.vo.StationGroupRoleVo;
 import com.deyatech.resource.service.StationGroupRoleService;
@@ -159,5 +161,23 @@ public class StationGroupRoleController extends BaseController {
     public RestResult setRoleStationGroups(String roleId, @RequestParam(value = "stationGroupIds[]", required = false) List<String> stationGroupIds) {
         stationGroupRoleService.setRoleStationGroups(roleId, stationGroupIds);
         return RestResult.ok();
+    }
+
+    /**
+     * 根据User对象属性分页检索系统用户信息
+     *
+     * @param user
+     * @return
+     */
+    @GetMapping("/pageStationAssociationUser")
+    @ApiOperation(value="根据User对象属性分页检索系统用户信息", notes="根据User对象属性分页检索系统用户信息信息")
+    @ApiImplicitParam(name = "user", value = "系统用户信息对象", required = false, dataType = "User", paramType = "query")
+    public RestResult<IPage<UserVo>> pageStationAssociationUser(String siteId, UserVo user) {
+        if (StrUtil.isEmpty(siteId)) {
+            return RestResult.error("站点ID不存在");
+        }
+        IPage<UserVo> users = stationGroupRoleService.pageStationAssociationUser(siteId, user);
+        log.info(String.format("根据User对象属性分页检索系统用户信息: %s ",JSONUtil.toJsonStr(users)));
+        return RestResult.ok(users);
     }
 }

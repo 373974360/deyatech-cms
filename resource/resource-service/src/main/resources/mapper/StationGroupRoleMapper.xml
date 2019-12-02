@@ -14,5 +14,45 @@
         id_,
         station_group_id, role_id
     </sql>
+    <!--站关联的用户-->
+    <select id="pageStationAssociationUser" resultType="com.deyatech.admin.vo.UserVo">
+        SELECT
+        distinct
+        au.id_ AS id,
+        au.enable_ AS enable,
+        au.remark_ AS remark,
+        au.create_by AS createBy,
+        au.create_time AS createTime,
+        au.update_by AS updateBy,
+        au.update_time AS updateTime,
+        au.version_ AS version,
+        au.department_id AS departmentId,
+        au.name_ AS name,
+        au.gender_ AS gender,
+        au.phone_ AS phone,
+        au.avatar_ AS avatar,
+        au.emp_no AS empNo,
+
+        ad.name_ AS departmentName,
+        ad.tree_position AS departmentTreePosition
+        FROM admin_user au
+        LEFT JOIN admin_department ad ON au.department_id = ad.id_
+        JOIN admin_role_user ru on ru.user_id = au.id_
+        JOIN admin_role r on ru.role_id = r.id_ and r.enable_ = 1
+        JOIN resource_station_group_role sr on sr.role_id = r.id_
+        WHERE au.enable_ != -1 and sr.station_group_id = #{siteId}
+        <if test="user != null">
+            <if test="user.enable != null">
+                AND au.enable_ = #{user.enable}
+            </if>
+            <if test="user.name != null and user.name != ''">
+                and (au.name_ like concat('%', #{user.name}, '%') or au.account_ like concat('%', #{user.name}, '%'))
+            </if>
+            <if test="user.departmentId != null and user.departmentId != ''">
+                and au.department_id = #{user.departmentId}
+            </if>
+        </if>
+        order by au.update_time desc
+    </select>
 
 </mapper>

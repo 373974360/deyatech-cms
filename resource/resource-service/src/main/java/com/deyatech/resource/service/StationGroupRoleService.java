@@ -1,5 +1,7 @@
 package com.deyatech.resource.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.admin.vo.UserVo;
 import com.deyatech.resource.entity.StationGroupRole;
 import com.deyatech.resource.vo.StationGroupRoleVo;
 import com.deyatech.common.base.BaseService;
@@ -46,4 +48,12 @@ public interface StationGroupRoleService extends BaseService<StationGroupRole> {
      * @param StationGroupIds
      */
     void removeByStationGroupId(List<String> StationGroupIds);
+
+    /**
+     * 分页查询站关联的用户
+     *
+     * @param user
+     * @return
+     */
+    IPage<UserVo> pageStationAssociationUser(String siteId, UserVo user);
 }
