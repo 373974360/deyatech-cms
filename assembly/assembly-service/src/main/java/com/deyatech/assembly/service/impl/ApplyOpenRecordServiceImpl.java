@@ -20,11 +20,13 @@ import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import com.deyatech.common.context.UserContextHelper;
+import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.common.utils.RandomStrg;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -126,19 +128,54 @@ public class ApplyOpenRecordServiceImpl extends BaseServiceImpl<ApplyOpenRecordM
     }
 
     @Override
-    public IPage<ApplyOpenRecordVo> pageApplyOpenRecordByBean(ApplyOpenRecord applyOpenRecord, String[] timeFrame) {
+    public IPage<ApplyOpenRecordVo> pageApplyOpenRecordByBean(ApplyOpenRecord applyOpenRecord,String[] timeFrame, String userDepartmentId) {
         QueryWrapper<ApplyOpenRecord> queryWrapper = new QueryWrapper<>();
         if(ObjectUtil.isNotNull(timeFrame)){
             queryWrapper.between("create_time",timeFrame[0],timeFrame[1]);
         }
         if(StrUtil.isNotBlank(applyOpenRecord.getModelId())){
             queryWrapper.eq("model_id",applyOpenRecord.getModelId());
+            QueryWrapper<ApplyOpenModel> query = new QueryWrapper<>();
+            query.likeLeft("competent_dept", userDepartmentId);
+            query.eq("id_", applyOpenRecord.getModelId());
+            ApplyOpenModel model = applyOpenModelService.getOne(query);
+            //当前登录用户的所属部门不是所选择业务的主管部门
+            if(ObjectUtil.isNull(model)){
+                queryWrapper.eq("pro_dept_id", userDepartmentId);
+            }
+        } else {
+            QueryWrapper<ApplyOpenModel> query = new QueryWrapper<>();
+            query.likeLeft("competent_dept", userDepartmentId);
+            Collection<ApplyOpenModel> models = applyOpenModelService.list(query);
+            if(models != null && !models.isEmpty()){
+                //有主管业务查询主管业务的所有信息和处理部门是自己所属部门的信息
+                queryWrapper.and(i -> i.in("model_id", models.stream().map(ApplyOpenModel::getId).collect(Collectors.toList()))
+                        .or().eq("pro_dept_id", userDepartmentId));
+            }else{
+                //没有主管业务只查询处理部门是当前用户所属部门的信息
+                queryWrapper.or().eq("pro_dept_id", userDepartmentId);
+            }
         }
         if(StrUtil.isNotBlank(applyOpenRecord.getYsqCode())){
             queryWrapper.eq("ysq_code",applyOpenRecord.getYsqCode());
         }
-        if(applyOpenRecord.getIsPublish() != null && applyOpenRecord.getIsPublish() > 0){
+        if(applyOpenRecord.getApplyFlag() != null){
+            queryWrapper.eq("apply_flag",applyOpenRecord.getApplyFlag());
+        }
+        if(applyOpenRecord.getApplyStatus() != null){
+            queryWrapper.eq("apply_status",applyOpenRecord.getApplyStatus());
+        }
+        if(applyOpenRecord.getIsBack() != null){
+            queryWrapper.eq("is_back",applyOpenRecord.getIsBack());
+        }
+        if(applyOpenRecord.getLimitFlag() != null){
+            queryWrapper.eq("limit_flag",applyOpenRecord.getLimitFlag());
+        }
+        if(applyOpenRecord.getIsPublish() != null){
             queryWrapper.eq("is_publish",applyOpenRecord.getIsPublish());
+        }
+        if(applyOpenRecord.getAlarmFlag() != null){
+            queryWrapper.eq("alarm_flag",applyOpenRecord.getAlarmFlag());
         }
         IPage<ApplyOpenRecordVo> recordVoIPage = new Page<>(applyOpenRecord.getPage(),applyOpenRecord.getSize());
         IPage<ApplyOpenRecord> pages = super.page(getPageByBean(applyOpenRecord), queryWrapper);
@@ -217,21 +254,24 @@ public class ApplyOpenRecordServiceImpl extends BaseServiceImpl<ApplyOpenRecordM
         String[] competentDept = model.getCompetentDept().split(",");
         applyOpenRecord.setYsqCode(getYsqCode(model.getId()));
         applyOpenRecord.setQueryCode(getQueryCode(model.getId()));
-        if(model.getAutoPublish() == 1){
-            applyOpenRecord.setIsPublish(1);
+        if(model.getAutoPublish().equals(YesNoEnum.YES.getCode())){
+            applyOpenRecord.setIsPublish(YesNoEnum.YES.getCode());
         }else{
-            applyOpenRecord.setIsPublish(2);
+            applyOpenRecord.setIsPublish(YesNoEnum.NO.getCode());
         }
         applyOpenRecord.setApplyFlag(0);
         applyOpenRecord.setApplyStatus(0);
         applyOpenRecord.setIsBack(0);
         applyOpenRecord.setLimitFlag(0);
+        applyOpenRecord.setAlarmFlag(0);
         //如果业务模式为转发 或者网民选择了 "我不知道部门" 则处理部门全部为 主管部门，由主管部门转发给办理部门
-        if(model.getBusType() == 1 || applyOpenRecord.getDeptId().equals("-1")){
+        if(model.getBusType() == 1 || applyOpenRecord.getDeptId().equals("-1") || StrUtil.isBlank(applyOpenRecord.getDeptId())){
             applyOpenRecord.setDeptId(competentDept[competentDept.length-1]);
         }
         // 默认情况下 提交部门就是要处理该信息的部门
         applyOpenRecord.setProDeptId(applyOpenRecord.getDeptId());
+        //设置信件截止处理日期
+        applyOpenRecord.setTimeLimit(adminFeign.workDayAfter(new Date(),model.getLimitDay()).getData());
         super.save(applyOpenRecord);
         return applyOpenRecord;
     }
@@ -247,13 +287,14 @@ public class ApplyOpenRecordServiceImpl extends BaseServiceImpl<ApplyOpenRecordM
     @Override
     public IPage<ApplyOpenRecordVo> getApplyOpenList(Map<String, Object> maps, Integer page, Integer pageSize) {
         QueryWrapper<ApplyOpenRecord> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("is_publish",1);
+        queryWrapper.eq("is_publish",1)
+                .eq("apply_flag",0);
         if(maps.containsKey("modelId")){
             queryWrapper.in("model_id",maps.get("modelId").toString().split(","));
         }
-        if(maps.containsKey("applyFlag")){
-            queryWrapper.in("apply_flag",maps.get("applyFlag").toString().split(","));
-        }
+//        if(maps.containsKey("applyFlag")){
+//            queryWrapper.in("apply_flag",maps.get("applyFlag").toString().split(","));
+//        }
         if(maps.containsKey("applyStatus")){
             queryWrapper.in("apply_status",maps.get("applyStatus").toString().split(","));
         }

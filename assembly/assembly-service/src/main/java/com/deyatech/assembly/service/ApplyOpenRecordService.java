@@ -36,7 +36,7 @@ public interface ApplyOpenRecordService extends BaseService<ApplyOpenRecord> {
     List<ApplyOpenRecordVo> setVoProperties(Collection applyOpenRecords);
 
 
-    IPage<ApplyOpenRecordVo> pageApplyOpenRecordByBean(ApplyOpenRecord applyOpenRecord, String[] timeFrame);
+    IPage<ApplyOpenRecordVo> pageApplyOpenRecordByBean(ApplyOpenRecord applyOpenRecord,String[] timeFrame, String userDepartmentId);
 
     /**
      * 根据业务ID得到随机查询码，用于前台页面添加诉求时产生查询码

@@ -35,7 +35,7 @@ public class Model extends BaseEntity {
     @TableField("participant")
     private Integer participant;
 
-    @ApiModelProperty(value = "自动发布1是，2否", dataType = "Integer", example = "1")
+    @ApiModelProperty(value = "自动发布1:是，0否", dataType = "Integer", example = "1")
     @TableField("auto_publish")
     private Integer autoPublish;
 
@@ -59,7 +59,7 @@ public class Model extends BaseEntity {
     @TableField("bus_type")
     private Integer busType;
 
-    @ApiModelProperty(value = "部门间转办1是，2否", dataType = "Integer", example = "1")
+    @ApiModelProperty(value = "部门间转办1:是，0否", dataType = "Integer", example = "1")
     @TableField("dept_transfer")
     private Integer deptTransfer;
 
@@ -95,7 +95,7 @@ public class Model extends BaseEntity {
     @TableField("querycode_count")
     private Integer querycodeCount;
 
-    @ApiModelProperty(value = "是否开启工作流1:是，2否", dataType = "Integer", example = "1")
+    @ApiModelProperty(value = "是否开启工作流1:是，0否", dataType = "Integer", example = "1")
     @TableField("workflow_type")
     private Integer workflowType;
 

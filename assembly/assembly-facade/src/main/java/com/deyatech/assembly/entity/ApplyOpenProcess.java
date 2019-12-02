@@ -1,7 +1,7 @@
-package com.deyatech.appeal.entity;
+package com.deyatech.assembly.entity;
 
-import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.deyatech.common.base.BaseEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -17,14 +17,14 @@ import java.util.Date;
  * </p>
  *
  * @author lee.
- * @since 2019-09-24
+ * @since 2019-11-30
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-@TableName("appeal_process")
+@TableName("apply_open_process")
 @ApiModel(value = "对象", description = "", parent = BaseEntity.class)
-public class Process extends BaseEntity {
+public class ApplyOpenProcess extends BaseEntity {
 
     @ApiModelProperty(value = "诉求ID", dataType = "String")
     @TableField("sq_id")
@@ -46,7 +46,7 @@ public class Process extends BaseEntity {
     @TableField("to_dept_id")
     private String toDeptId;
 
-    @ApiModelProperty(value = "处理时间", dataType = "LocalDateTime")
+    @ApiModelProperty(value = "处理时间", dataType = "Date")
     @TableField("pro_time")
     private Date proTime;
 

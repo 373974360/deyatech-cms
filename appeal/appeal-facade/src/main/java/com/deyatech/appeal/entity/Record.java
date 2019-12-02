@@ -78,7 +78,7 @@ public class Record extends BaseEntity {
     @TableField("pro_dept_id")
     private String proDeptId;
 
-    @ApiModelProperty(value = "公开意愿 1:是，2：否", dataType = "Integer", example = "1")
+    @ApiModelProperty(value = "公开意愿 1:是，0否", dataType = "Integer", example = "1")
     @TableField("is_open")
     private Integer isOpen;
 
@@ -86,7 +86,7 @@ public class Record extends BaseEntity {
     @TableField("content")
     private String content;
 
-    @ApiModelProperty(value = "是否发布 1:是，2否", dataType = "Integer", example = "1")
+    @ApiModelProperty(value = "是否发布 1:是，0否", dataType = "Integer", example = "1")
     @TableField("is_publish")
     private Integer isPublish;
 
@@ -105,6 +105,10 @@ public class Record extends BaseEntity {
     @ApiModelProperty(value = "处理截止日期限制 受理后，计时开始，默认值从业务模型中取", dataType = "LocalDateTime")
     @TableField("time_limit")
     private Date timeLimit;
+
+    @ApiModelProperty(value = "超期未办警示标识 0：正常 1：预警 2：黄牌 3：红牌", dataType = "Integer")
+    @TableField("alarm_flag")
+    private Integer alarmFlag;
 
     @ApiModelProperty(value = "信件标识 0：正常信件（默认值）-1：无效信件1：重复信件2：不予受理信件", dataType = "Integer")
     @TableField("sq_flag")

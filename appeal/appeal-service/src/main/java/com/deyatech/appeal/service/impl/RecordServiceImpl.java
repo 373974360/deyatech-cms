@@ -22,6 +22,7 @@ import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.common.utils.RandomStrg;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -199,6 +200,9 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
         if(record.getIsPublish() != null){
             queryWrapper.eq("is_publish",record.getIsPublish());
         }
+        if(record.getAlarmFlag() != null){
+            queryWrapper.eq("alarm_flag",record.getAlarmFlag());
+        }
         IPage<RecordVo> recordVoIPage = new Page<>(record.getPage(),record.getSize());
         IPage<Record> pages = super.page(getPageByBean(record), queryWrapper);
         recordVoIPage.setRecords(setVoProperties(pages.getRecords()));
@@ -274,13 +278,14 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
     public IPage<RecordVo> getAppealList(Map<String, Object> maps, Integer page, Integer pageSize) {
         QueryWrapper<Record> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("is_publish",1)
-                .eq("is_open",1);
+                .eq("is_open",1)
+                .eq("sq_flag",0);
         if(maps.containsKey("modelId")){
             queryWrapper.in("model_id",maps.get("modelId").toString().split(","));
         }
-        if(maps.containsKey("sqFlag")){
-            queryWrapper.in("sq_flag",maps.get("sqFlag").toString().split(","));
-        }
+//        if(maps.containsKey("sqFlag")){
+//            queryWrapper.in("sq_flag",maps.get("sqFlag").toString().split(","));
+//        }
         if(maps.containsKey("sqStatus")){
             queryWrapper.in("sq_status",maps.get("sqStatus").toString().split(","));
         }
@@ -330,21 +335,26 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
         String[] competentDept = model.getCompetentDept().split(",");
         record.setSqCode(getAppealCode(model.getId()));
         record.setQueryCode(getQueryCode(model.getId()));
-        if(model.getAutoPublish() == 1){
-            record.setIsPublish(1);
+
+        if(model.getAutoPublish().equals(YesNoEnum.YES.getCode())){
+            record.setIsPublish(YesNoEnum.YES.getCode());
         }else{
-            record.setIsPublish(2);
+            record.setIsPublish(YesNoEnum.NO.getCode());
         }
         record.setSqFlag(0);
         record.setSqStatus(0);
         record.setIsBack(0);
         record.setLimitFlag(0);
+        record.setAlarmFlag(0);
         //如果业务模式为转发 或者网民选择了 "我不知道部门" 则处理部门全部为 主管部门，由主管部门转发给办理部门
-        if(model.getBusType() == 1 || record.getDeptId().equals("-1")){
+        if(model.getBusType() == 1 || record.getDeptId().equals("-1") || StrUtil.isBlank(record.getDeptId())){
             record.setDeptId(competentDept[competentDept.length-1]);
         }
         // 默认情况下 提交部门就是要处理该信息的部门
         record.setProDeptId(record.getDeptId());
+
+        //设置信件截止处理日期
+        record.setTimeLimit(adminFeign.workDayAfter(new Date(),model.getLimitDay()).getData());
         super.save(record);
         return record;
     }

@@ -145,6 +145,10 @@ public class ApplyOpenRecord extends BaseEntity {
     @TableField("time_limit")
     private Date timeLimit;
 
+    @ApiModelProperty(value = "超期未办警示标识 0：正常 1：预警 2：黄牌 3：红牌", dataType = "Integer")
+    @TableField("alarm_flag")
+    private Integer alarmFlag;
+
     @ApiModelProperty(value = "信件标识 0：正常信件（默认值）-1：无效信件1：重复信件2：不予受理信件", dataType = "Integer")
     @TableField("apply_flag")
     private Integer applyFlag;
