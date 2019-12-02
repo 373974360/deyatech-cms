@@ -111,6 +111,8 @@ public class CatalogController extends BaseController {
             for (String id : ids) {
                 count += templateService.countTemplateByCatalogId(id);
             }
+        } else {
+            return RestResult.ok(false);
         }
         if (count > 0) {
             return RestResult.error("当前栏目下已存在内容，不能删除栏目");

@@ -40,4 +40,12 @@ public interface CatalogRoleService extends BaseService<CatalogRole> {
      * @param siteId
      */
     void setRoleCatalogs(String roleId, List<String> catalogIds, String siteId);
+
+    /**
+     * 删除角色栏目根据栏目编号
+     *
+     * @param catalogIds
+     * @return
+     */
+    int removeRoleCatalogByCatalogIds(List<String> catalogIds);
 }

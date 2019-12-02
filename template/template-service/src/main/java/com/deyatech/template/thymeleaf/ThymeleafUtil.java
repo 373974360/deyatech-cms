@@ -128,6 +128,7 @@ public class ThymeleafUtil {
             init(templateRootPath);
             context.setVariables(varMap);
             templateEngine.process(templatePath, context, write);
+            write.close();
         } catch (Exception e) {
             log.error(String.format("静态化页面发生错误 , 模板 %s , 数据 %s", templatePath, varMap), e);
             throw new RuntimeException("静态化页面发生错误");

@@ -14,5 +14,10 @@
         id_,
         role_id, catalog_id
     </sql>
-
+    <delete id="removeRoleCatalogByCatalogIds">
+        delete from station_catalog_role where catalog_id in
+        <foreach index="index" item="item" collection="catalogIds" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
 </mapper>

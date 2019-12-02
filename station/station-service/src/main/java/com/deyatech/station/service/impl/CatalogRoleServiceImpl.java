@@ -101,4 +101,18 @@ public class CatalogRoleServiceImpl extends BaseServiceImpl<CatalogRoleMapper, C
             this.saveOrUpdateBatch(list);
         }
     }
+
+    /**
+     * 删除角色栏目根据栏目编号
+     *
+     * @param catalogIds
+     * @return
+     */
+    @Override
+    public int removeRoleCatalogByCatalogIds(List<String> catalogIds) {
+        if (CollectionUtil.isEmpty(catalogIds)) {
+            return 0;
+        }
+        return baseMapper.removeRoleCatalogByCatalogIds(catalogIds);
+    }
 }

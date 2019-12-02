@@ -15,6 +15,7 @@ import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.common.exception.BusinessException;
+import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.entity.CatalogAggregation;
 import com.deyatech.station.entity.CatalogRole;
@@ -31,9 +32,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -57,7 +61,8 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
     CatalogRoleService catalogRoleService;
     @Autowired
     TemplateFeign templateFeign;
-
+    @Autowired
+    private SiteCache siteCache;
     /**
      * 根据Catalog对象属性检索栏目的tree对象
      *
@@ -274,7 +279,7 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
         if (!"0".equals(entity.getParentId())) {
             Catalog catalogResult = super.getById(entity.getParentId());
             if (ObjectUtil.isNotNull(catalogResult)) {
-                parentPathName = catalogResult.getEname();
+                parentPathName = catalogResult.getPathName();
             }
         }
         entity.setPathName(parentPathName == null ? entity.getEname() : (parentPathName + "/" + entity.getEname()));
@@ -360,13 +365,51 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
     @Transactional(rollbackFor = Exception.class)
     public boolean removeByIds(List<String> idList) {
         List<String> all = new ArrayList<>(idList);
+        List<String> paths = new ArrayList<>();
         // 查询是否有子栏目，有子栏目删除子栏目
         for (String id : idList) {
+            Catalog catalog = super.getById(id);
+            String path = siteCache.getStationGroupRootPath(catalog.getSiteId());
+            path.replace("\\", "/");
+            if (!path.endsWith("/")) {
+                path += "/";
+            }
+            path += catalog.getPathName();
+            paths.add(path);
             List<CatalogVo> children = this.getChildCatalogTree(id);
             this.setRemoveChildren(children, all);
         }
+        boolean result = super.removeByIds(all);
+        if (result) {
+            // 删除栏目角色
+            catalogRoleService.removeRoleCatalogByCatalogIds(all);
+            // 删除栏目静态页
+            removeCatalogStaticPage(paths);
+        }
+        return result;
+    }
 
-        return super.removeByIds(all);
+    /**
+     * 删除栏目静态页
+     *
+     * @param paths
+     */
+    private void removeCatalogStaticPage(List<String> paths) {
+        if (CollectionUtil.isEmpty(paths)) {
+            return;
+        }
+        for (String path : paths) {
+            try {
+                File file = new File(path);
+                if (!file.exists()) {
+                    continue;
+                }
+                Files.walk(Paths.get(path)).sorted(Comparator.reverseOrder()).peek(System.out::println).map(Path::toFile).forEach(File::delete);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
     private void setRemoveChildren(Collection<CatalogVo> children, List<String> all) {
