@@ -71,4 +71,12 @@ public interface ModelService extends BaseService<Model> {
      * @return Ipage
      */
     IPage<ModelVo> getInterviewList(Map<String, Object> maps, Integer page, Integer pageSize);
+
+    /**
+     * 保存访谈模型
+     *
+     * @param model
+     * @return
+     */
+    boolean saveModel(Model model);
 }

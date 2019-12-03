@@ -1,5 +1,6 @@
 package com.deyatech.interview.controller;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseController;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * <p>
@@ -46,8 +48,7 @@ public class ModelController extends BaseController {
     @ApiImplicitParam(name = "model", value = "访谈模型对象", required = true, dataType = "Model", paramType = "query")
     public RestResult<Boolean> saveOrUpdate(Model model) {
         log.info(String.format("保存或者更新访谈模型: %s ", JSONUtil.toJsonStr(model)));
-        boolean result = modelService.saveOrUpdate(model);
-        return RestResult.ok(result);
+        return RestResult.ok(modelService.saveModel(model));
     }
 
     /**

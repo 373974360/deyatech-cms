@@ -24,6 +24,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -103,7 +104,6 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
     public Boolean operateLiveMessage(LiveMessageVo liveMessageVo) {
         try {
             List<LiveMessageVo> messageList;
-            ObjectMapper mapper = new ObjectMapper();
             Model model = super.getById(liveMessageVo.getModelId());
             // 取出原来的内容
             if (Objects.nonNull(model) && StrUtil.isNotEmpty(model.getContent())) {
@@ -278,5 +278,35 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
         modelVoIPage.setTotal(pages.getTotal());
         modelVoIPage.setCurrent(pages.getCurrent());
         return modelVoIPage;
+    }
+
+    /**
+     * 保存访谈模型
+     *
+     * @param model
+     * @return
+     */
+    @Override
+    public boolean saveModel(Model model) {
+        boolean isCreate = false;
+        if (StrUtil.isEmpty(model.getId())) {
+            isCreate = true;
+        }
+        boolean result = saveOrUpdate(model);
+        if (result && isCreate) {
+            if (StrUtil.isNotEmpty(model.getImages())) {
+                try {
+                    List<LiveImageVo> imageList = mapper.readValue(model.getImages(), mapper.getTypeFactory().constructParametricType(List.class, LiveImageVo.class));
+                    for (LiveImageVo image : imageList) {
+                        image.setModelId(model.getId());
+                    }
+                    model.setImages(mapper.writeValueAsString(imageList));
+                    updateById(model);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return result;
     }
 }
