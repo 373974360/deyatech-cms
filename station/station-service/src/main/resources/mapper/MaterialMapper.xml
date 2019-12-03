@@ -17,6 +17,7 @@
         <result column="url_" property="url" />
         <result column="path_" property="path" />
         <result column="site_id" property="siteId" />
+        <result column="use_place" property="usePlace" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
@@ -29,7 +30,7 @@
         update_by,
         update_time,
         version_,
-        name_, type_, url_, path_, site_id
+        name_, type_, url_, path_, site_id, use_place
     </sql>
 
     <select id="getDownloadMaterialsByUrl" resultType="com.deyatech.station.vo.MaterialVo">
@@ -47,7 +48,8 @@
         concat('/manage/station/material/downloadFileBySiteIdAndUrl?siteId=', site_id, '&amp;url=', url_) as url_,
         url_ as value,
         path_,
-        site_id
+        site_id,
+        use_place
         from station_material
         where enable_ = 1 and url_ in
         <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
@@ -60,6 +62,13 @@
         <include refid="Base_Column_List"></include>
         from station_material
         where enable_ = 1 and site_id = #{directory.siteId} and path_ like concat(#{directory.path},'%')
+        <if test="directory.name != null and directory.name != ''">
+            and (
+            name_ like concat('%',#{directory.name},'%')
+            or url_ like concat('%',#{directory.name},'%')
+            or path_ like concat('%',#{directory.name},'%')
+            )
+        </if>
     </select>
     <select id="pageByMaterial" resultType="com.deyatech.station.vo.MaterialVo">
         select
@@ -73,6 +82,7 @@
             or path_ like concat('%',#{material.name},'%')
             )
         </if>
+        order by create_time desc
     </select>
     <select id="selectMaterialByIds" resultType="com.deyatech.station.vo.MaterialVo">
         select

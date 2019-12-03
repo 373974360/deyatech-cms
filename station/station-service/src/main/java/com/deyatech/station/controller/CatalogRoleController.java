@@ -1,23 +1,24 @@
 package com.deyatech.station.controller;
 
-import com.deyatech.station.entity.CatalogRole;
-import com.deyatech.station.vo.CatalogRoleVo;
-import com.deyatech.station.service.CatalogRoleService;
-import com.deyatech.common.entity.RestResult;
-import io.swagger.annotations.ApiImplicitParams;
-import lombok.extern.slf4j.Slf4j;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import org.springframework.web.bind.annotation.RestController;
 import com.deyatech.common.base.BaseController;
+import com.deyatech.common.entity.RestResult;
+import com.deyatech.station.entity.CatalogRole;
+import com.deyatech.station.service.CatalogRoleService;
+import com.deyatech.station.vo.CatalogRoleVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * <p>
@@ -92,6 +93,26 @@ public class CatalogRoleController extends BaseController {
     public RestResult<Boolean> removeByIds(@RequestParam("ids[]") List<String> ids) {
         log.info(String.format("根据id批量删除角色栏目关联: %s ", JSONUtil.toJsonStr(ids)));
         boolean result = catalogRoleService.removeByIds(ids);
+        return RestResult.ok(result);
+    }
+
+    /**
+     * 根据角色ID批量删除角色栏目关联
+     *
+     * @param roleIds
+     * @return
+     */
+    @PostMapping("/removeByRoleIds")
+    @ApiOperation(value="根据角色ID批量删除角色栏目关联", notes="根据角色ID批量删除角色栏目关联")
+    @ApiImplicitParam(name = "roleIds", value = "角色ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
+    public RestResult<Boolean> removeByRoleIds(@RequestParam("roleIds[]") List<String> roleIds) {
+        log.info(String.format("根据角色ID批量删除角色栏目关联: %s ", JSONUtil.toJsonStr(roleIds)));
+        if (CollectionUtil.isEmpty(roleIds)) {
+            return RestResult.ok(false);
+        }
+        QueryWrapper<CatalogRole> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("role_id", roleIds);
+        boolean result = catalogRoleService.remove(queryWrapper);
         return RestResult.ok(result);
     }
 

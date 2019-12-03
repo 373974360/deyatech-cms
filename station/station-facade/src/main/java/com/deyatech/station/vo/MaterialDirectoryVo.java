@@ -26,6 +26,10 @@ public class MaterialDirectoryVo {
      * 绝对路径
      */
     private String path;
+    /**
+     * 搜索名
+     */
+    private String name;
     private Long page;
     private Long size;
     private String siteId;

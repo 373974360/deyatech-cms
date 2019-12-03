@@ -10,7 +10,6 @@ import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.enums.EnableEnum;
 import com.deyatech.common.utils.CascaderUtil;
 import com.deyatech.resource.entity.StationGroup;
-import com.deyatech.resource.entity.StationGroupClassification;
 import com.deyatech.resource.service.StationGroupService;
 import com.deyatech.resource.vo.StationGroupClassificationVo;
 import com.deyatech.resource.vo.StationGroupVo;
@@ -38,7 +37,6 @@ import java.util.*;
 public class StationGroupController extends BaseController {
     @Autowired
     StationGroupService stationGroupService;
-
     /**
      * 获取角色站点级联
      *

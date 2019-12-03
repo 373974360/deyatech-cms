@@ -1,6 +1,8 @@
 package com.deyatech.resource.controller;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.deyatech.admin.vo.UserVo;
 import com.deyatech.resource.entity.StationGroupRole;
 import com.deyatech.resource.vo.StationGroupRoleVo;
@@ -94,6 +96,26 @@ public class StationGroupRoleController extends BaseController {
     public RestResult<Boolean> removeByIds(@RequestParam("ids[]") List<String> ids) {
         log.info(String.format("根据id批量删除站点角色关联: %s ", JSONUtil.toJsonStr(ids)));
         boolean result = stationGroupRoleService.removeByIds(ids);
+        return RestResult.ok(result);
+    }
+
+    /**
+     * 根据角色ID批量删除站点角色关联
+     *
+     * @param roleIds
+     * @return
+     */
+    @PostMapping("/removeByRoleIds")
+    @ApiOperation(value="根据角色ID批量删除站点角色关联", notes="根据角色ID批量删除站点角色关联")
+    @ApiImplicitParam(name = "roleIds", value = "角色ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
+    public RestResult<Boolean> removeByRoleIds(@RequestParam("roleIds[]") List<String> roleIds) {
+        log.info(String.format("根据角色ID批量删除站点角色关联: %s ", JSONUtil.toJsonStr(roleIds)));
+        if (CollectionUtil.isEmpty(roleIds)) {
+            return RestResult.ok(false);
+        }
+        QueryWrapper<StationGroupRole> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("role_id", roleIds);
+        boolean result = stationGroupRoleService.remove(queryWrapper);
         return RestResult.ok(result);
     }
 
