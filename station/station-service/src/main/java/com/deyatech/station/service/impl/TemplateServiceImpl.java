@@ -1096,15 +1096,17 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Integer resetTemplateIndexCode(String siteId, String start, String end, String part, int number) {
+    public String resetTemplateIndexCode(String siteId, String start, String end, String part, int number) {
         QueryWrapper<Template> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("id_");
         queryWrapper.eq("site_id", siteId);
-        queryWrapper.between("DATE_FORMAT(resource_publication_date, '%Y-%m-%d')", start, end);
+        if (StrUtil.isNotEmpty(start) && StrUtil.isNotEmpty(end)) {
+            queryWrapper.between("DATE_FORMAT(resource_publication_date, '%Y-%m-%d')", start, end);
+        }
         queryWrapper.orderByAsc("resource_publication_date");
         int total = super.count(queryWrapper);
         if (total == 0) {
-            return new Integer(0);
+            return "0";
         }
         final int SIZE = 1000;
         int totalPage = total / SIZE;
@@ -1123,8 +1125,11 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             IPage<Template> resultPage = super.page(page, queryWrapper);
             List<Template> list = resultPage.getRecords();
             if (CollectionUtil.isNotEmpty(list)) {
-                for (Template t : resultPage.getRecords()) {
-                    StringBuilder indexCode = new StringBuilder(part);
+                for (Template t : list) {
+                    StringBuilder indexCode = new StringBuilder();
+                    if (StrUtil.isNotEmpty(part)) {
+                        indexCode.append(part);
+                    }
                     indexCode.append(String.format(format.toString(), value++));
                     t.setIndexCode(indexCode.toString());
                 }
@@ -1132,9 +1137,9 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             }
         }
         if (result) {
-            return new Integer(total);
+            return String.valueOf(total);
         } else {
-            return new Integer(0);
+            return "0";
         }
     }
 

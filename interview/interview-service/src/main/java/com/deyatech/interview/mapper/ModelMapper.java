@@ -23,5 +23,5 @@ public interface ModelMapper extends BaseMapper<Model> {
      * @param model
      * @return
      */
-    IPage<ModelVo> pageByCategoryAndName(@Param("page") IPage<Model> page, @Param("model") Model model);
+    IPage<ModelVo> pageByCategoryAndName(@Param("page") IPage<Model> page, @Param("siteId") String siteId,  @Param("model") Model model);
 }

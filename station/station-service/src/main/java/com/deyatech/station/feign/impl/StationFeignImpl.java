@@ -73,7 +73,7 @@ public class StationFeignImpl implements StationFeign {
         return RestResult.ok(templates);
     }
     @Override
-    public RestResult<Integer> resetTemplateIndexCode(String siteId, String start, String end, String part, int number) {
+    public RestResult<String> resetTemplateIndexCode(String siteId, String start, String end, String part, int number) {
         return RestResult.ok(templateService.resetTemplateIndexCode(siteId, start, end, part, number));
     }
 
@@ -90,5 +90,4 @@ public class StationFeignImpl implements StationFeign {
         materialService.markMaterialUsePlace(oldUrlList, newUrlList, usePlace);
         return RestResult.ok();
     }
-
 }

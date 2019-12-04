@@ -66,8 +66,10 @@
             and (
             name_ like concat('%',#{directory.name},'%')
             or url_ like concat('%',#{directory.name},'%')
-            or path_ like concat('%',#{directory.name},'%')
             )
+        </if>
+        <if test="directory.usePlace != null and directory.usePlace != ''">
+            and use_place = #{directory.usePlace}
         </if>
     </select>
     <select id="pageByMaterial" resultType="com.deyatech.station.vo.MaterialVo">
@@ -81,6 +83,9 @@
             or url_ like concat('%',#{material.name},'%')
             or path_ like concat('%',#{material.name},'%')
             )
+        </if>
+        <if test="material.usePlace != null and material.usePlace != ''">
+            and use_place = #{material.usePlace}
         </if>
         order by create_time desc
     </select>

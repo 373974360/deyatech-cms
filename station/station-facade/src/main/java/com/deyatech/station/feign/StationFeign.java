@@ -90,10 +90,10 @@ public interface StationFeign {
      * @return
      */
     @RequestMapping(value = "/feign/station/resetTemplateIndex")
-    RestResult<Integer> resetTemplateIndexCode(@RequestParam("siteId") String siteId,
-                                                    @RequestParam("start") String start,
-                                                    @RequestParam("end") String end,
-                                                    @RequestParam("part") String part,
+    RestResult<String> resetTemplateIndexCode(@RequestParam("siteId") String siteId,
+                                                    @RequestParam(value = "start", required = false) String start,
+                                                    @RequestParam(value = "end", required = false) String end,
+                                                    @RequestParam(value = "part", required = false) String part,
                                                     @RequestParam("number") int number);
 
     /**

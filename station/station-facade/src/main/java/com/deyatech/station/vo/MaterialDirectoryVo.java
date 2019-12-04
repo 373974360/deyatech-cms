@@ -30,6 +30,10 @@ public class MaterialDirectoryVo {
      * 搜索名
      */
     private String name;
+    /**
+     * 使用
+     */
+    private String usePlace;
     private Long page;
     private Long size;
     private String siteId;

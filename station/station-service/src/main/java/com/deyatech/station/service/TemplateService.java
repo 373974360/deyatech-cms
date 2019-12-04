@@ -143,7 +143,7 @@ public interface TemplateService extends BaseService<Template> {
      * @param number
      * @return
      */
-    Integer resetTemplateIndexCode(String siteId, String start, String end, String part, int number);
+    String resetTemplateIndexCode(String siteId, String start, String end, String part, int number);
 
     /**
      * 更新信息状态

@@ -154,8 +154,8 @@ public class ModelController extends BaseController {
     @GetMapping("/pageByCategoryAndName")
     @ApiOperation(value="根据Model对象属性分页检索访谈模型", notes="根据Model对象属性分页检索访谈模型信息")
     @ApiImplicitParam(name = "model", value = "访谈模型对象", required = false, dataType = "Model", paramType = "query")
-    public RestResult<IPage<ModelVo>> pageByCategoryAndName(Model model) {
-        IPage<ModelVo> models = modelService.pageByCategoryAndName(model);
+    public RestResult<IPage<ModelVo>> pageByCategoryAndName(String siteId, Model model) {
+        IPage<ModelVo> models = modelService.pageByCategoryAndName(siteId, model);
         models.setRecords(modelService.setVoProperties(models.getRecords()));
         log.info(String.format("根据Model对象属性分页检索访谈模型: %s ",JSONUtil.toJsonStr(models)));
         return RestResult.ok(models);

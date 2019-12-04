@@ -67,7 +67,7 @@
         m.name_, m.time_, m.cover_, m.description_, m.live_url, m.video_url, m.images_, m.content_, m.status_, m.is_publish,
         m.category_id, c.name_ as category_name
         from interview_model m
-             left join interview_category c on m.category_id = c.id_ and c.enable_ = 1
+             join interview_category c on m.category_id = c.id_ and c.site_id = #{siteId} and c.enable_ = 1
         where m.enable_ = 1
         <if test="model != null">
           <if test="model.name != null and model.name != ''">

@@ -2,6 +2,7 @@ package com.deyatech.assembly.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.http.HttpStatus;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.deyatech.admin.entity.Department;
 import com.deyatech.admin.feign.AdminFeign;
@@ -12,6 +13,7 @@ import com.deyatech.assembly.vo.IndexCodeVo;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.enums.YesNoEnum;
+import com.deyatech.common.exception.BusinessException;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.feign.ResourceFeign;
 import com.deyatech.station.feign.StationFeign;
@@ -78,9 +80,12 @@ public class IndexCodeServiceImpl extends BaseServiceImpl<IndexCodeMapper, Index
         queryWrapper.eq("site_id", siteId);
         IndexCode indexCode = getOne(queryWrapper);
         // 信息流水号位数
-        RestResult<Integer> result = stationFeign.resetTemplateIndexCode(siteId, start, end, getFixedPart(siteId, indexCode), indexCode.getNumber());
-        if (Objects.nonNull(result) && result.getData() > 0) {
-            int value = result.getData();
+        RestResult<String> result = stationFeign.resetTemplateIndexCode(siteId, start, end, getFixedPart(siteId, indexCode), indexCode.getNumber());
+        if (Objects.isNull(result)) {
+            return false;
+        }
+        int value = Integer.parseInt(result.getData());
+        if (value > 0) {
             value += 1;
             indexCode.setNextSerial(String.format("%0" + indexCode.getNumber() + "d", value));
             updateById(indexCode);

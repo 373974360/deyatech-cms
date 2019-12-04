@@ -59,6 +59,12 @@ public class IndexCodeController extends BaseController {
         if (StrUtil.isEmpty(end)) {
             return RestResult.error("没有结束日期");
         }
+        QueryWrapper<IndexCode> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("site_id", siteId);
+        IndexCode indexCode = indexCodeService.getOne(queryWrapper);
+        if (Objects.isNull(indexCode)) {
+            return RestResult.error("没有配置站点索引规则");
+        }
         return RestResult.ok(indexCodeService.reset(siteId,start,end));
     }
 

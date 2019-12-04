@@ -86,8 +86,8 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
      * @return
      */
     @Override
-    public IPage<ModelVo> pageByCategoryAndName(Model model) {
-        return baseMapper.pageByCategoryAndName(getPageByBean(model), model);
+    public IPage<ModelVo> pageByCategoryAndName(String siteId, Model model) {
+        return baseMapper.pageByCategoryAndName(getPageByBean(model), siteId, model);
     }
 
     private String generateKey() {

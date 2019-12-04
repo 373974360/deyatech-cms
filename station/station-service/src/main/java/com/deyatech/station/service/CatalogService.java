@@ -111,4 +111,11 @@ public interface CatalogService extends BaseService<Catalog> {
      * @return
      */
     int updatePlaceOnFileById(int placeOnFile, String id);
+
+    /**
+     * 清除工作流
+     *
+     * @param keys
+     */
+    void clearWorkFlow(List<String> keys);
 }

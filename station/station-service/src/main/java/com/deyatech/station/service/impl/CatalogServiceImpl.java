@@ -8,6 +8,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseServiceImpl;
@@ -492,4 +493,20 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
      * @return
      */
     public int updatePlaceOnFileById(int placeOnFile, String id) {return baseMapper.updatePlaceOnFileById(placeOnFile, id);}
+
+    /**
+     * 清除工作流
+     *
+     * @param keys
+     */
+    @Override
+    public void clearWorkFlow(List<String> keys) {
+        if (CollectionUtil.isNotEmpty(keys)) {
+            UpdateWrapper updateWrapper = new UpdateWrapper();
+            updateWrapper.set("workflow_enable", 0);
+            updateWrapper.set("workflow_key", null);
+            updateWrapper.in("workflow_key", keys);
+            super.update(updateWrapper);
+        }
+    }
 }

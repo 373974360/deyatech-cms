@@ -42,7 +42,7 @@ public interface ModelService extends BaseService<Model> {
      * @param model
      * @return
      */
-    IPage<ModelVo> pageByCategoryAndName(Model model);
+    IPage<ModelVo> pageByCategoryAndName(String siteId, Model model);
 
 
     /**

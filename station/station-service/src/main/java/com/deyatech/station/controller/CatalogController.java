@@ -18,6 +18,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -346,5 +347,18 @@ public class CatalogController extends BaseController {
         QueryWrapper queryWrapper = new QueryWrapper<>();
         queryWrapper.select("ifnull(max(sort_no), 0) + 1 as sortNo");
         return RestResult.ok(catalogService.getMap(queryWrapper).get("sortNo"));
+    }
+
+    /**
+     * 清除工作流
+     *
+     * @param keys
+     */
+    @RequestMapping("/clearWorkFlow")
+    @ApiOperation(value = "清除工作流", notes = "清除工作流")
+    @ApiImplicitParam(name = "key", value = "工作流key", required = true, allowMultiple = true, dataType = "String", paramType = "query")
+    public RestResult clearWorkFlow(@RequestParam("keys[]") List<String> keys) {
+        catalogService.clearWorkFlow(keys);
+        return RestResult.ok();
     }
 }

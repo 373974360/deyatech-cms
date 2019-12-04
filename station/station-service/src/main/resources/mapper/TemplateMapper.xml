@@ -94,7 +94,10 @@
         <if test="template.title != null">
             and (
                 st.title_ like concat('%', #{template.title}, '%') or
-                st.author_ like concat('%', #{template.title}, '%')
+                st.author_ like concat('%', #{template.title}, '%') or
+                st.source_ like concat('%', #{template.title}, '%') or
+                st.sort_no like concat('%', #{template.title}, '%') or
+                DATE_FORMAT(st.resource_publication_date, '%Y-%m-%d %H:%i') like concat('%', #{template.title}, '%')
              )
         </if>
         <if test="template.siteId != null">
