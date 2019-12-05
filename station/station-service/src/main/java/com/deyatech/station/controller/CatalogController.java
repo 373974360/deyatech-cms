@@ -352,13 +352,24 @@ public class CatalogController extends BaseController {
     /**
      * 清除工作流
      *
-     * @param keys
+     * @param actDefinitionIdList
      */
     @RequestMapping("/clearWorkFlow")
     @ApiOperation(value = "清除工作流", notes = "清除工作流")
-    @ApiImplicitParam(name = "key", value = "工作流key", required = true, allowMultiple = true, dataType = "String", paramType = "query")
-    public RestResult clearWorkFlow(@RequestParam("keys[]") List<String> keys) {
-        catalogService.clearWorkFlow(keys);
+    @ApiImplicitParam(name = "actDefinitionIdList", value = "工作流 ids", required = true, allowMultiple = true, dataType = "String", paramType = "query")
+    public RestResult clearWorkFlow(@RequestParam("actDefinitionIdList[]") List<String> actDefinitionIdList) {
+        catalogService.clearWorkFlow(actDefinitionIdList);
+        return RestResult.ok();
+    }
+
+    /**
+     * 更新工作流
+     *
+     */
+    @RequestMapping("/updateWorkFlow")
+    @ApiOperation(value = "清除工作流", notes = "清除工作流")
+    public RestResult updateWorkFlow() {
+        catalogService.updateWorkFlow();
         return RestResult.ok();
     }
 }

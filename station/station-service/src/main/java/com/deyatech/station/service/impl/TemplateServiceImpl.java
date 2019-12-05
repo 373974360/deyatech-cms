@@ -553,6 +553,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         // 启动工作流
         ProcessInstanceVo processInstanceVo = new ProcessInstanceVo();
         processInstanceVo.setActDefinitionKey(templateVo.getWorkflowKey());
+        processInstanceVo.setActDefinitionId(templateVo.getWorkflowId());
         processInstanceVo.setBusinessId(String.valueOf(System.currentTimeMillis()));
         processInstanceVo.setUserId(UserContextHelper.getUserId());
         processInstanceVo.setSource("CMS");

@@ -29,6 +29,8 @@ import com.deyatech.station.service.TemplateService;
 import com.deyatech.station.vo.CatalogAggregationVo;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.template.feign.TemplateFeign;
+import com.deyatech.workflow.entity.IProcessDefinition;
+import com.deyatech.workflow.feign.WorkflowFeign;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,6 +66,9 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
     TemplateFeign templateFeign;
     @Autowired
     private SiteCache siteCache;
+    @Autowired
+    WorkflowFeign workflowFeign;
+
     /**
      * 根据Catalog对象属性检索栏目的tree对象
      *
@@ -497,16 +502,40 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
     /**
      * 清除工作流
      *
-     * @param keys
+     * @param actDefinitionIdList
      */
     @Override
-    public void clearWorkFlow(List<String> keys) {
-        if (CollectionUtil.isNotEmpty(keys)) {
+    public void clearWorkFlow(List<String> actDefinitionIdList) {
+        if (CollectionUtil.isNotEmpty(actDefinitionIdList)) {
             UpdateWrapper updateWrapper = new UpdateWrapper();
             updateWrapper.set("workflow_enable", 0);
             updateWrapper.set("workflow_key", null);
-            updateWrapper.in("workflow_key", keys);
+            updateWrapper.set("workflow_id", null);
+            updateWrapper.in("workflow_id", actDefinitionIdList);
             super.update(updateWrapper);
+        }
+    }
+
+    /**
+     * 更新工作流
+     *
+     */
+    @Override
+    public void updateWorkFlow() {
+        QueryWrapper<Catalog> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("workflow_enable", 1);
+        queryWrapper.isNotNull("workflow_id");
+        List<Catalog> list = super.list(queryWrapper);
+        if (CollectionUtil.isNotEmpty(list)) {
+            for (Catalog c : list) {
+                RestResult<IProcessDefinition> restResult = workflowFeign.getActDefinitionIdAndKey(c.getWorkflowId());
+                if (Objects.nonNull(restResult) && Objects.nonNull(restResult.getData())) {
+                    IProcessDefinition definition = restResult.getData();
+                    c.setWorkflowId(definition.getActDefinitionId());
+                    c.setWorkflowKey(definition.getActDefinitionKey());
+                    super.updateById(c);
+                }
+            }
         }
     }
 }

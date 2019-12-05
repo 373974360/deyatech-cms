@@ -115,7 +115,13 @@ public interface CatalogService extends BaseService<Catalog> {
     /**
      * 清除工作流
      *
-     * @param keys
+     * @param actDefinitionIdList
      */
-    void clearWorkFlow(List<String> keys);
+    void clearWorkFlow(List<String> actDefinitionIdList);
+
+    /**
+     * 更新工作流
+     *
+     */
+    void updateWorkFlow();
 }

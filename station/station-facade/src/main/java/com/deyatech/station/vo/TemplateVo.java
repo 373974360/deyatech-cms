@@ -45,7 +45,10 @@ public class TemplateVo extends Template {
      * 工作流key
      */
     private String workflowKey;
-
+    /**
+     * 工作流id
+     */
+    private String workflowId;
     /**
      * 元数据附加在信息都保存在此map中
      */
