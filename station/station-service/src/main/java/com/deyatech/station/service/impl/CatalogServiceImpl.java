@@ -9,6 +9,7 @@ import cn.hutool.http.HttpStatus;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.deyatech.admin.entity.Role;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseServiceImpl;
@@ -261,10 +262,14 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
                 entity.setAggregationId(catalogAggregation.getId());
             }
         }
-
+        String catId = entity.getId();
         // 保存或更新
         boolean parent = super.saveOrUpdate(entity);
-
+        if(parent){
+            if(StrUtil.isBlank(catId)){
+                systemRoleAddCatalog(entity);
+            }
+        }
         // 覆盖子栏目
         boolean children = true;
         if (BooleanUtil.isTrue(entity.getCoverage())) {
@@ -275,6 +280,23 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
         }
 
         return aggregation && parent && children;
+    }
+
+    /**
+     * 给系统角色默认加上栏目权限
+     */
+    private void systemRoleAddCatalog(CatalogVo catalogVo){
+        Role role = new Role();
+        role.setType(3);
+        List<Role> roleList = adminFeign.getRoleList(role).getData();
+        if(CollectionUtil.isNotEmpty(roleList)){
+            for(Role r:roleList){
+                CatalogRole catalogRole = new CatalogRole();
+                catalogRole.setRoleId(r.getId());
+                catalogRole.setCatalogId(catalogVo.getId());
+                catalogRoleService.save(catalogRole);
+            }
+        }
     }
 
     /**
