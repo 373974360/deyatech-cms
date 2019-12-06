@@ -1,9 +1,6 @@
 package com.deyatech.template.controller;
 
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
-import com.deyatech.common.Constants;
-import com.deyatech.resource.entity.StationGroup;
-import com.deyatech.resource.feign.ResourceFeign;
 import com.deyatech.station.feign.StationFeign;
 import com.deyatech.template.entity.StationGit;
 import com.deyatech.template.utils.JGitUtil;
@@ -17,7 +14,6 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
@@ -218,7 +214,11 @@ public class StationGitController extends BaseController {
             @ApiImplicitParam(name = "siteId", value = "站点ID", required = true, dataType = "String", paramType = "query")
     })
     public RestResult<String> listTemplateFiles(String siteId,String path) {
-        return RestResult.ok(stationGitService.getTemplateFiles(siteId,path));
+        String json = stationGitService.getTemplateFiles(siteId,path);
+        if(json.equals("error")){
+            return RestResult.error("站点目录获取失败");
+        }
+        return RestResult.ok(json);
     }
 
     /**
@@ -231,7 +231,11 @@ public class StationGitController extends BaseController {
     @ApiOperation(value="根据站点ID递归获取所有模板文件信息", notes="根据站点ID递归获取所有模板文件信息")
     @ApiImplicitParam(name = "siteId", value = "站点ID", required = true, dataType = "String", paramType = "query")
     public RestResult<String> listTemplateAllFiles(String siteId,String type) {
-        return RestResult.ok(stationGitService.getTemplateAllFiles(siteId,type));
+        String json = stationGitService.getTemplateAllFiles(siteId,type);
+        if(json.equals("error")){
+            return RestResult.error("站点目录获取失败");
+        }
+        return RestResult.ok(json);
     }
 
     /**

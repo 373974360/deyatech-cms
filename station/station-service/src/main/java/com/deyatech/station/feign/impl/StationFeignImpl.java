@@ -90,4 +90,10 @@ public class StationFeignImpl implements StationFeign {
         materialService.markMaterialUsePlace(oldUrlList, newUrlList, usePlace);
         return RestResult.ok();
     }
+
+    @Override
+    public RestResult reloadCache() {
+        siteCache.cacheSite();
+        return RestResult.ok();
+    }
 }

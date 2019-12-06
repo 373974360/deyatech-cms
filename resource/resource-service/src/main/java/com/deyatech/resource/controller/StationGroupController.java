@@ -13,6 +13,7 @@ import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.service.StationGroupService;
 import com.deyatech.resource.vo.StationGroupClassificationVo;
 import com.deyatech.resource.vo.StationGroupVo;
+import com.deyatech.station.feign.StationFeign;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -37,6 +38,8 @@ import java.util.*;
 public class StationGroupController extends BaseController {
     @Autowired
     StationGroupService stationGroupService;
+    @Autowired
+    StationFeign stationFeign;
     /**
      * 获取角色站点级联
      *
@@ -118,6 +121,8 @@ public class StationGroupController extends BaseController {
             return RestResult.error("该简称已存在");
         }
         boolean result = stationGroupService.saveOrUpdateAndNginx(stationGroup);
+        //刷新缓存
+        stationFeign.reloadCache();
         return RestResult.ok(result);
     }
 
@@ -140,6 +145,8 @@ public class StationGroupController extends BaseController {
         List<String> ids = new ArrayList<>();
         ids.add(stationGroup.getId());
         boolean result = stationGroupService.removeStationGroupAndConfig(ids, maps);
+        //刷新缓存
+        stationFeign.reloadCache();
         return RestResult.ok(result);
     }
 
@@ -164,6 +171,8 @@ public class StationGroupController extends BaseController {
             }
         }
         boolean result = stationGroupService.removeStationGroupAndConfig(ids, maps);
+        //刷新缓存
+        stationFeign.reloadCache();
         return RestResult.ok(result);
     }
 

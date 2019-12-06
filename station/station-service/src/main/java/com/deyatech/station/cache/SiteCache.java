@@ -120,6 +120,7 @@ public class SiteCache {
         }
         //站点信息
         try {
+            clearCache();
             List<StationGroup> allStationGroup = resourceFeign.getStationGroupAll().getData();
             for (StationGroup stationGroup : allStationGroup) {
                 log.debug("缓存站点信息{}", stationGroup.getId());
@@ -146,7 +147,13 @@ public class SiteCache {
             throw new RuntimeException("缓存站点信息失败", e);
         }
     }
-
+    public void clearCache(){
+        this.cacheManager.getCache(CacheNames.STATION_GROUP_CACHE_KEY).clear();
+        this.cacheManager.getCache(CacheNames.STATION_GROUP_TEMPLATE_ROOT_CACHE_KEY).clear();
+        this.cacheManager.getCache(CacheNames.STATION_GROUP_ROOT_CACHE_KEY).clear();
+        this.cacheManager.getCache(CacheNames.CATALOG_CACHE_KEY).clear();
+        this.cacheManager.getCache(CacheNames.SITE_PROPERTIES_CACHE_KEY).clear();
+    }
     public void cacheSite(String siteId) {
         if (inited) {
             log.warn("reinitialization site info caches");
