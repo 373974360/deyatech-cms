@@ -349,9 +349,11 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
             flag = baseMapper.updateStationGroupById(stationGroup) > 0 ? true : false;
             if (flag) {
                 // 文件夹重命名
-                File src = new File(hostRootDir, oldStationGroupEnglishName);
-                File dest = new File(hostRootDir, stationGroup.getEnglishName());
-                src.renameTo(dest);
+                if(StrUtil.isNotBlank(oldStationGroupEnglishName)){
+                    File src = new File(hostRootDir, oldStationGroupEnglishName);
+                    File dest = new File(hostRootDir, stationGroup.getEnglishName());
+                    src.renameTo(dest);
+                }
             }
             // 新增
         } else {
