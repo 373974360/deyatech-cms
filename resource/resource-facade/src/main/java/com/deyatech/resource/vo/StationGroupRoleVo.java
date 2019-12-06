@@ -20,4 +20,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @ApiModel(value = "站点角色关联扩展对象", description = "站点角色关联扩展对象", parent = StationGroupRole.class)
 public class StationGroupRoleVo extends StationGroupRole {
+
+    private String name;
+
 }

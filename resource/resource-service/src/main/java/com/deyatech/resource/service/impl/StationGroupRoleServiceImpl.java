@@ -90,6 +90,32 @@ public class StationGroupRoleServiceImpl extends BaseServiceImpl<StationGroupRol
     }
 
     /**
+     * 设置角色站点
+     *
+     * @param roleIds
+     * @param stationGroupId
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void setStationGroupRoles(String stationGroupId, List<String> roleIds) {
+        StationGroupRole stationGroupRole = new StationGroupRole();
+        stationGroupRole.setStationGroupId(stationGroupId);
+        // 根据站点ID删除
+        this.removeByBean(stationGroupRole);
+        // 添加角色站点
+        if (CollectionUtil.isNotEmpty(roleIds)) {
+            List<StationGroupRole> list = new ArrayList<>();
+            for (String roleId : roleIds) {
+                StationGroupRole sgr = new StationGroupRole();
+                sgr.setRoleId(roleId);
+                sgr.setStationGroupId(stationGroupId);
+                list.add(sgr);
+            }
+            this.saveOrUpdateBatch(list);
+        }
+    }
+
+    /**
      * 删除站点角色关联
      *
      * @param StationGroupIds
@@ -116,6 +142,11 @@ public class StationGroupRoleServiceImpl extends BaseServiceImpl<StationGroupRol
             page.setSize(Constants.DEFAULT_PAGE_SIZE);
         }
         return baseMapper.pageStationAssociationUser(page, siteId, user);
+    }
+
+    @Override
+    public IPage<StationGroupRoleVo> pageByStationGroupRoleVo(StationGroupRoleVo stationGroupRoleVo) {
+        return baseMapper.pageByStationGroupRoleVo(getPageByBean(stationGroupRoleVo),stationGroupRoleVo);
     }
 
 

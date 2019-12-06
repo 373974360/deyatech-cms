@@ -55,4 +55,25 @@
         order by au.update_time desc
     </select>
 
+
+    <select id="pageByStationGroupRoleVo" resultType="com.deyatech.resource.vo.StationGroupRoleVo" parameterType="com.deyatech.resource.vo.StationGroupRoleVo">
+        SELECT
+        max(sgr.id_) AS id,
+        ar.id_ AS roleId,
+        ar.name_ AS name
+        FROM admin_role ar
+        LEFT JOIN resource_station_group_role sgr ON ar.id_ = sgr.role_id
+        WHERE ar.enable_ = 1
+        <if test="stationGroupRoleVo != null">
+            <if test="stationGroupRoleVo.name != null and stationGroupRoleVo.name != ''">
+                and ar.name_ like concat('%', #{stationGroupRoleVo.name}, '%')
+            </if>
+            <if test="stationGroupRoleVo.stationGroupId != null and stationGroupRoleVo.stationGroupId != ''">
+                and sgr.station_group_id = #{stationGroupRoleVo.stationGroupId}
+            </if>
+        </if>
+        group by ar.id_
+        order by ar.update_time desc
+    </select>
+
 </mapper>
