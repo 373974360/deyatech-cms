@@ -5,11 +5,14 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.admin.entity.Role;
+import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.enums.EnableEnum;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.entity.StationGroupClassification;
+import com.deyatech.resource.entity.StationGroupRole;
 import com.deyatech.resource.mapper.StationGroupMapper;
 import com.deyatech.resource.service.*;
 import com.deyatech.resource.vo.StationGroupClassificationVo;
@@ -47,6 +50,8 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     StationFeign stationFeign;
     @Autowired
     StationGroupRoleService stationGroupRoleService;
+    @Autowired
+    AdminFeign adminFeign;
 
     @Override
     public Collection<StationGroupClassificationVo> getRoleStationCascader(String roleId) {
@@ -352,6 +357,8 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
         } else {
             flag = super.save(stationGroup);
             if (flag) {
+                //给"系统角色"默认加上站点权限，其他角色则需要单独授权
+                systemRoleAddStationGroup(stationGroup);
                 File dir = new File(hostRootDir, stationGroup.getEnglishName());
                 if (!dir.exists()) {
                     dir.mkdirs();
@@ -361,7 +368,20 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
         }
         return flag;
     }
-
+    //给系统角色默认加上站点权限
+    private void systemRoleAddStationGroup(StationGroup stationGroup){
+        Role role = new Role();
+        role.setType(3);
+        List<Role> roleList = adminFeign.getRoleList(role).getData();
+        if(CollectionUtil.isNotEmpty(roleList)){
+            for(Role r:roleList){
+                StationGroupRole stationGroupRole = new StationGroupRole();
+                stationGroupRole.setStationGroupId(stationGroup.getId());
+                stationGroupRole.setRoleId(r.getId());
+                stationGroupRoleService.save(stationGroupRole);
+            }
+        }
+    }
     private String getHostsRootDir() {
         String hostRoot = stationFeign.getSiteProperties().getData().getHostsRoot();
         hostRoot = hostRoot.replace("\\", "/");
