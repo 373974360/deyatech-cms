@@ -89,6 +89,14 @@ public interface TemplateService extends BaseService<Template> {
     boolean genStaticPage(TemplateVo templateVo);
 
     /**
+     * 生成静态页
+     *
+     * @param template
+     * @return
+     */
+    boolean genStaticPage(Template template);
+
+    /**
      * 生成索引
      *
      * @param templateVo
