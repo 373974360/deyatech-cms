@@ -2,16 +2,24 @@ package com.deyatech.generate.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.deyatech.common.entity.RestResult;
 import com.deyatech.generate.entity.Page;
+import com.deyatech.generate.entity.PageCatalog;
+import com.deyatech.generate.service.PageCatalogService;
 import com.deyatech.generate.vo.PageVo;
 import com.deyatech.generate.mapper.PageMapper;
 import com.deyatech.generate.service.PageService;
 import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import com.deyatech.station.feign.StationFeign;
+import com.deyatech.template.feign.TemplateFeign;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Collection;
 import java.util.Map;
@@ -27,6 +35,12 @@ import java.util.Map;
 @Service
 public class PageServiceImpl extends BaseServiceImpl<PageMapper, Page> implements PageService {
 
+    @Autowired
+    StationFeign stationFeign;
+    @Autowired
+    TemplateFeign templateFeign;
+    @Autowired
+    PageCatalogService pageCatalogService;
     /**
      * 单个将对象转换为vo页面管理
      *
@@ -91,6 +105,35 @@ public class PageServiceImpl extends BaseServiceImpl<PageMapper, Page> implement
             return message;
         }
         return null;
+    }
+
+    @Override
+    public boolean replayPage(Page page) {
+        String templateRootPath = stationFeign.getStationGroupTemplatePathBySiteId(page.getSiteId()).getData();
+        String siteRootPath = stationFeign.getStationGroupRootPath(page.getSiteId()).getData();
+        String templatePath = page.getTemplatePath();
+        RestResult<Boolean> result = templateFeign.existsTemplatePath(templateRootPath + templatePath);
+        if (!result.getData()) {
+            return false;
+        }
+        String pagePath = siteRootPath + page.getPagePath() + page.getPageEnglishName() + templateFeign.getPageSuffix().getData();
+        Map<String,Object> varMap = new HashMap<>();
+        varMap.put("site",stationFeign.getStationGroupById(page.getSiteId()).getData());
+        templateFeign.generateStaticPage(templateRootPath,templatePath,new File(pagePath),varMap);
+        return true;
+    }
+
+    @Override
+    public boolean replyPageByCatalog(String catalogId) {
+        QueryWrapper<PageCatalog> queryWrapper = new QueryWrapper<>();
+        queryWrapper.like("cat_id",catalogId);
+        Collection<PageCatalog> pageCatalogs = pageCatalogService.list(queryWrapper);
+        if(CollectionUtil.isNotEmpty(pageCatalogs)){
+            for(PageCatalog pageCata:pageCatalogs){
+                replayPage(super.getById(pageCata.getPageId()));
+            }
+        }
+        return true;
     }
 
     private boolean validatePagePath(Page page) {

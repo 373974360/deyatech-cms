@@ -57,11 +57,11 @@ public class PageController extends BaseController {
     public RestResult<Boolean> saveOrUpdate(Page page,@RequestParam(value="ids[]",required=false) List<String> ids) {
         log.info(String.format("保存或者更新页面管理: %s ", JSONUtil.toJsonStr(page)));
         boolean result = pageService.saveOrUpdate(page);
-        if(result){
-            return replay(page);
-        }
         if(!ids.isEmpty()){
             pageCatalogService.updatePageCatalogById(page.getId(),ids);
+        }
+        if(result){
+            pageService.replayPage(page);
         }
         return RestResult.ok(result);
     }
@@ -190,18 +190,7 @@ public class PageController extends BaseController {
     @ApiOperation(value="发布静态页", notes="发布静态页")
     @ApiImplicitParam(name = "page", value = "页面管理对象", required = true, dataType = "Page", paramType = "query")
     public RestResult<Boolean> replay(Page page) {
-        String templateRootPath = stationFeign.getStationGroupTemplatePathBySiteId(page.getSiteId()).getData();
-        String siteRootPath = stationFeign.getStationGroupRootPath(page.getSiteId()).getData();
-        String templatePath = page.getTemplatePath();
-        RestResult<Boolean> result = templateFeign.existsTemplatePath(templateRootPath + templatePath);
-        if (!result.getData()) {
-            return RestResult.ok("模板地址不存在");
-        }
-        String pagePath = siteRootPath + page.getPagePath() + page.getPageEnglishName() + templateFeign.getPageSuffix().getData();
-        Map<String,Object> varMap = new HashMap<>();
-        varMap.put("site",stationFeign.getStationGroupById(page.getSiteId()).getData());
-        templateFeign.generateStaticPage(templateRootPath,templatePath,new File(pagePath),varMap);
-        return RestResult.ok(true);
+        return RestResult.ok(pageService.replayPage(page));
     }
 
 
