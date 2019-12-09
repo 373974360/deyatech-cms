@@ -108,4 +108,12 @@ public interface StationFeign {
     RestResult markMaterialUsePlace(@RequestParam(value="oldUrls", required = false) String oldUrls,
                                     @RequestParam(value="newUrls", required = false) String newUrls,
                                     @RequestParam("usePlace") String usePlace);
+
+
+    /**
+     * 刷新缓存
+     * @return
+     */
+    @RequestMapping(value = "/feign/station/reloadCache")
+    RestResult reloadCache();
 }

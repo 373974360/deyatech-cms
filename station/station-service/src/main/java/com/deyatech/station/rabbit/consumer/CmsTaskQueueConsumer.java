@@ -36,15 +36,14 @@ public class CmsTaskQueueConsumer {
 
     /**
      * 处理生成静态页面任务
-     * @param template
+     * @param templateVo
      */
     @RabbitListener(queues = RabbitMQConstants.QUEUE_NAME_STATIC_PAGE_TASK)
-    public void handleCmsStaticTask(Template template) {
-        log.info(String.format("处理生成静态页面任务：%s", JSONUtil.toJsonStr(template)));
-        // TODO 设置其他附加属性this.setVoProperties(template）
-        TemplateVo templateVoResult = templateService.setVoProperties(template);
-        // 立即生成静态页面
-        templateFeign.generateStaticTemplate(templateVoResult);
+    public void handleCmsStaticTask(TemplateVo templateVo) {
+        log.info(String.format("处理索引任务：%s", JSONUtil.toJsonStr(templateVo)));
+        String messageCode = templateVo.getCode();
+        // 创建/删除、更新静态页
+        templateFeign.generateStaticTemplate(templateVo,messageCode);
     }
 
     /**

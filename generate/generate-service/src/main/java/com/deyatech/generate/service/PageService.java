@@ -38,4 +38,26 @@ public interface PageService extends BaseService<Page> {
      * @return
      */
     String existsPagePath(Page page);
+
+    /**
+     * 发布静态页
+     * @param page
+     * @return
+     */
+    boolean replayPage(Page page);
+
+    /**
+     * 根据栏目ID 发布关联的页面静态页
+     *
+     * @param catalogId
+     * @return
+     */
+    boolean replyPageByCatalog(String catalogId);
+
+    /**
+     * 根据当前时间获取需要发布静态页的页面
+     * @param currTime
+     * @return
+     * */
+    List<Page> getPageListByCurrTime(String currTime);
 }

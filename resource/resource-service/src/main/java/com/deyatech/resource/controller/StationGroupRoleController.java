@@ -160,8 +160,8 @@ public class StationGroupRoleController extends BaseController {
     @GetMapping("/pageByStationGroupRole")
     @ApiOperation(value="根据StationGroupRole对象属性分页检索站点角色关联", notes="根据StationGroupRole对象属性分页检索站点角色关联信息")
     @ApiImplicitParam(name = "stationGroupRole", value = "站点角色关联对象", required = false, dataType = "StationGroupRole", paramType = "query")
-    public RestResult<IPage<StationGroupRoleVo>> pageByStationGroupRole(StationGroupRole stationGroupRole) {
-        IPage<StationGroupRoleVo> stationGroupRoles = stationGroupRoleService.pageByBean(stationGroupRole);
+    public RestResult<IPage<StationGroupRoleVo>> pageByStationGroupRole(StationGroupRoleVo stationGroupRole) {
+        IPage<StationGroupRoleVo> stationGroupRoles = stationGroupRoleService.pageByStationGroupRoleVo(stationGroupRole);
         stationGroupRoles.setRecords(stationGroupRoleService.setVoProperties(stationGroupRoles.getRecords()));
         log.info(String.format("根据StationGroupRole对象属性分页检索站点角色关联: %s ",JSONUtil.toJsonStr(stationGroupRoles)));
         return RestResult.ok(stationGroupRoles);
@@ -182,6 +182,24 @@ public class StationGroupRoleController extends BaseController {
     })
     public RestResult setRoleStationGroups(String roleId, @RequestParam(value = "stationGroupIds[]", required = false) List<String> stationGroupIds) {
         stationGroupRoleService.setRoleStationGroups(roleId, stationGroupIds);
+        return RestResult.ok();
+    }
+
+    /**
+     * 设置角色站点
+     *
+     * @param roleIds
+     * @param stationGroupId
+     * @return
+     */
+    @PostMapping("/setStationGroupRoles")
+    @ApiOperation(value = "设置角色站点", notes = "设置角色站点")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "roleId", value = "角色id", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "stationGroupIds", value = "站点id", required = true, dataType = "String", paramType = "query")
+    })
+    public RestResult setStationGroupRoles(@RequestParam(value = "roleIds[]", required = false) List<String> roleIds, String stationGroupId) {
+        stationGroupRoleService.setStationGroupRoles( stationGroupId,roleIds);
         return RestResult.ok();
     }
 

@@ -61,8 +61,8 @@ public class TemplateFeignImpl implements TemplateFeign {
     }
 
     @Override
-    public RestResult generateStaticTemplate(TemplateVo templateVo) {
-        return RestResult.ok(templateContextUtils.genStaticContentPage(templateVo));
+    public RestResult generateStaticTemplate(TemplateVo templateVo,String code) {
+        return RestResult.ok(templateContextUtils.genStaticContentPage(templateVo,code));
     }
 
     @Override

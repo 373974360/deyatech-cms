@@ -80,7 +80,7 @@ public interface TemplateFeign {
      * @return
      */
     @RequestMapping(value = "/feign/template/generateStaticTemplate", method = RequestMethod.POST)
-    RestResult generateStaticTemplate(@RequestBody TemplateVo templateVo);
+    RestResult generateStaticTemplate(@RequestBody TemplateVo templateVo,@RequestParam("code") String code);
 
 
 

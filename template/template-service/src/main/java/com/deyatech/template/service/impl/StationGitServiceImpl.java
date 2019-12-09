@@ -1,10 +1,8 @@
 package com.deyatech.template.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
-import com.deyatech.common.Constants;
-import com.deyatech.resource.entity.StationGroup;
-import com.deyatech.resource.feign.ResourceFeign;
 import com.deyatech.station.feign.StationFeign;
 import com.deyatech.template.entity.StationGit;
 import com.deyatech.template.utils.FileResource;
@@ -16,7 +14,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -78,22 +75,28 @@ public class StationGitServiceImpl extends BaseServiceImpl<StationGitMapper, Sta
     @Override
     public String getTemplateFiles(String siteId,String path) {
         String dir = stationFeign.getStationGroupTemplatePathBySiteId(siteId).getData();
-        JSONObject jsonObject = new JSONObject();
-        if(StringUtils.isEmpty(path)){
-            path = dir;
+        if(StrUtil.isNotBlank(dir)){
+            JSONObject jsonObject = new JSONObject();
+            if(StringUtils.isEmpty(path)){
+                path = dir;
+            }
+            String files = FileResource.getFiles(dir, path);
+            jsonObject.put("files", files);
+            return jsonObject.toString();
         }
-        String files = FileResource.getFiles(dir, path);
-        jsonObject.put("files", files);
-        return jsonObject.toString();
+        return "error";
     }
 
     @Override
     public String getTemplateAllFiles(String siteId,String type) {
         JSONObject jsonObject = new JSONObject();
         String dir = stationFeign.getStationGroupTemplatePathBySiteId(siteId).getData();
-        String files = FileResource.getAllFiles(dir,type);
-        jsonObject.put("files", files);
-        return jsonObject.toString();
+        if(StrUtil.isNotBlank(dir)){
+            String files = FileResource.getAllFiles(dir,type);
+            jsonObject.put("files", files);
+            return jsonObject.toString();
+        }
+        return "error";
     }
 
     @Override

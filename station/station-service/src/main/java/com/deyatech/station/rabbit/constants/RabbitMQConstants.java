@@ -25,7 +25,15 @@ public class RabbitMQConstants {
     /**
      * MQ 消息代码，生成静态页
      */
-    public static final String MQ_CMS_STATIC_PAGE_CODE = "staticPage";
+    public static final String MQ_CMS_STATIC_PAGE_CODE_ADD = "add";
+    /**
+     * MQ 消息代码，更新静态页
+     */
+    public static final String MQ_CMS_STATIC_PAGE_CODE_UPDATE = "update";
+    /**
+     * MQ 消息代码，更新静态页
+     */
+    public static final String MQ_CMS_STATIC_PAGE_CODE_DELETE = "delete";
 
 
     public static final String TOPIC_ADMIN = "ecp";

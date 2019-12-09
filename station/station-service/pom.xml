@@ -32,6 +32,11 @@
         </dependency>
         <dependency>
             <groupId>com.deyatech</groupId>
+            <artifactId>generate-facade</artifactId>
+            <version>${deyatech.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.deyatech</groupId>
             <artifactId>station-facade</artifactId>
             <version>${deyatech.version}</version>
         </dependency>
