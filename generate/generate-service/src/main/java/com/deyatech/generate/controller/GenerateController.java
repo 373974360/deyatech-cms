@@ -70,7 +70,7 @@ public class GenerateController {
                 if(list != null && !list.isEmpty()){
                     for(TemplateVo templateVo:list){
                         if(YesNoEnum.NO.getCode() == templateVo.getFlagExternal()){
-                            templateFeign.generateStaticTemplate(templateVo);
+                            templateFeign.generateStaticTemplate(templateVo, "update");
                         }
                     }
                 }

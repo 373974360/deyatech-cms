@@ -45,17 +45,21 @@ public class TemplateContextUtils {
     /**
      * 生成内容页的静态页面
      */
-    public boolean genStaticContentPage(TemplateVo templateVo) {
+    public boolean genStaticContentPage(TemplateVo templateVo,String code) {
         String siteRootPath = stationFeign.getStationGroupRootPath(templateVo.getSiteId()).getData();
         String templateRootPath = stationFeign.getStationGroupTemplatePathBySiteId(templateVo.getSiteId()).getData();
         boolean result = false;
         try {
+            File distFile = new File(siteRootPath, templateVo.getUrl());
+            if(code.equals("delete")){
+                distFile.delete();
+                return true;
+            }
             if (templateRootPath == null) {
                 throw new RuntimeException(String.format("模板根路径获取失败(缓存中没有%s)", templateVo.getSiteId()));
             }
             //生成内容页的静态页面
             Map<String, Object> varMap = this.contentPageVarMap(templateVo);
-            File distFile = new File(siteRootPath, templateVo.getUrl());
             String templatePath = templateVo.getTemplatePath();//内容模板路径
             Map<String, Object> models = new HashMap<>();
             models.put("distFile", distFile);
