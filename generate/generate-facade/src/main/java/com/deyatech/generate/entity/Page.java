@@ -50,4 +50,8 @@ public class Page extends BaseEntity {
     @ApiModelProperty(value = "是否自动更新", dataType = "Integer")
     @TableField("auto_update")
     private Integer autoUpdate;
+
+    @ApiModelProperty(value = "分类ID", dataType = "String")
+    @TableField("type_id")
+    private String typeId;
 }
