@@ -1,5 +1,6 @@
 package com.deyatech.generate.controller;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.deyatech.generate.entity.Page;
 import com.deyatech.generate.service.PageCatalogService;
@@ -57,7 +58,7 @@ public class PageController extends BaseController {
     public RestResult<Boolean> saveOrUpdate(Page page,@RequestParam(value="ids[]",required=false) List<String> ids) {
         log.info(String.format("保存或者更新页面管理: %s ", JSONUtil.toJsonStr(page)));
         boolean result = pageService.saveOrUpdate(page);
-        if(!ids.isEmpty()){
+        if(CollectionUtil.isNotEmpty(ids)){
             pageCatalogService.updatePageCatalogById(page.getId(),ids);
         }
         if(result){

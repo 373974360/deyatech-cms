@@ -1,5 +1,6 @@
 package com.deyatech.generate.service.impl;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -19,10 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 
 /**
  * <p>
@@ -136,6 +134,16 @@ public class PageServiceImpl extends BaseServiceImpl<PageMapper, Page> implement
         return true;
     }
 
+    @Override
+    public List<Page> getPageListByCurrTime(String currTime) {
+        QueryWrapper<Page> queryWrapper  = new QueryWrapper<>();
+        queryWrapper.gt("page_interval",0)
+                .eq("auto_update",1)
+                .and(i -> i.eq("next_dtime",currTime).or().lt("next_dtime",currTime));
+        List<Page> pageList = super.list(queryWrapper);
+        return pageList;
+    }
+
     private boolean validatePagePath(Page page) {
         String pagePath = page.getPagePath();
         String regExp = "^(\\/([\u4E00-\u9FA5]|\\w)+)*\\/$";
@@ -148,28 +156,14 @@ public class PageServiceImpl extends BaseServiceImpl<PageMapper, Page> implement
         if (!this.validatePagePath(entity)) {
             return false;
         }
+        if(StrUtil.isBlank(entity.getId())){
+            String currTime = DateUtil.formatDateTime(new Date());
+            entity.setNextDtime(currTime);
+            entity.setLastDtime(currTime);
+        }
         // 保存信息
         super.saveOrUpdate(entity);
-        // 获取站点根目录 TODO
-        String siteRoot = "";
-        // 获取站点模板路径信息 TODO
-        String templateRoot = "";
-
-        // 根据站点id 查询setting_site_base_config配置
-        // TODO
-        Map map = CollectionUtil.newHashMap();
-        map.put("site", "setting_site_base_config配置");
-        map.put("siteId", entity.getSiteId());
-
-        // TODO TemplateConstants.PAGE_SUFFIX
-        String pagePath = siteRoot + entity.getPagePath() + entity.getPageEnglishName() + ".html";
-        Map models = CollectionUtil.newHashMap();
-        models.put("distFile", new File(pagePath));
-        models.put("varMap", map);
-
-        // 生成静态页面 TODO
-        //thymeleafUtilApi.getThyToStaticFile(templateRoot.toString(), templatePath, models);
-
+        replayPage(entity);
         return true;
     }
 }

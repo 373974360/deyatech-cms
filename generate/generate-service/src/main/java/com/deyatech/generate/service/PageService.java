@@ -53,4 +53,11 @@ public interface PageService extends BaseService<Page> {
      * @return
      */
     boolean replyPageByCatalog(String catalogId);
+
+    /**
+     * 根据当前时间获取需要发布静态页的页面
+     * @param currTime
+     * @return
+     * */
+    List<Page> getPageListByCurrTime(String currTime);
 }
