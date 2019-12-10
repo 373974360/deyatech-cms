@@ -560,4 +560,14 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
             }
         }
     }
+
+    /**
+     * 获取栏目使用的工作流ID
+     *
+     * @return
+     */
+    @Override
+    public List<String> getAllCatalogWorkFlowId() {
+        return baseMapper.getAllCatalogWorkFlowId();
+    }
 }

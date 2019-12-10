@@ -132,4 +132,8 @@
     <update id="updatePlaceOnFileById">
         update station_catalog set place_on_file = #{placeOnFile} where id_ = #{id}
     </update>
+
+    <select id="getAllCatalogWorkFlowId" resultType="java.lang.String">
+        select distinct workflow_id from station_catalog where workflow_enable = 1 and workflow_id is not null and workflow_id != ''
+    </select>
 </mapper>

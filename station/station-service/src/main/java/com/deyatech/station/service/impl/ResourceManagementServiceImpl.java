@@ -9,6 +9,7 @@ import com.deyatech.admin.entity.Metadata;
 import com.deyatech.admin.entity.MetadataCollection;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.common.Constants;
+import com.deyatech.common.entity.RestResult;
 import com.deyatech.station.entity.Template;
 import com.deyatech.station.mapper.ResourceManagementMapper;
 import com.deyatech.station.service.ResourceManagementService;
@@ -84,15 +85,16 @@ public class ResourceManagementServiceImpl implements ResourceManagementService 
                 List<ResourceManagementVo> contentList = new ArrayList<>();
                 template.setContentList(contentList);
                 Map<String, Object> dataMap = adminFeign.getMetadataById(template.getMetaDataCollectionId(), template.getContentId()).getData();
-                Iterator<String> keys = dataMap.keySet().iterator();
-                while(keys.hasNext()) {
-                    String key = keys.next();
-                    Metadata md = metadataMap.get(key);
-                    if (Objects.nonNull(md)) {
-                        contentList.add(new ResourceManagementVo(md.getName(), key, objectToString(dataMap.get(key))));
+                if (Objects.nonNull(dataMap)) {
+                    Iterator<String> keys = dataMap.keySet().iterator();
+                    while(keys.hasNext()) {
+                        String key = keys.next();
+                        Metadata md = metadataMap.get(key);
+                        if (Objects.nonNull(md)) {
+                            contentList.add(new ResourceManagementVo(md.getName(), key, objectToString(dataMap.get(key))));
+                        }
                     }
                 }
-
             }
         }
         return page;

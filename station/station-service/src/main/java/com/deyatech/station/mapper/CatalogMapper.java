@@ -48,4 +48,10 @@ public interface CatalogMapper extends BaseMapper<Catalog> {
      * @return
      */
     int updatePlaceOnFileById(@Param("placeOnFile") int placeOnFile, @Param("id") String id);
+
+    /**
+     * 获取栏目使用的工作流ID
+     * @return
+     */
+    List<String> getAllCatalogWorkFlowId();
 }

@@ -371,4 +371,15 @@ public class CatalogController extends BaseController {
         catalogService.updateWorkFlow();
         return RestResult.ok();
     }
+
+    /**
+     * 获取栏目使用的工作流ID
+     *
+     */
+    @RequestMapping("/getAllCatalogWorkFlowId")
+    @ApiOperation(value = "获取栏目使用的工作流ID", notes = "获取栏目使用的工作流ID")
+    public RestResult getAllCatalogWorkFlowId() {
+        return RestResult.ok(catalogService.getAllCatalogWorkFlowId());
+    }
+
 }

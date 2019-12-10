@@ -124,4 +124,11 @@ public interface CatalogService extends BaseService<Catalog> {
      *
      */
     void updateWorkFlow();
+
+    /**
+     * 获取栏目使用的工作流ID
+     *
+     * @return
+     */
+    List<String> getAllCatalogWorkFlowId();
 }
