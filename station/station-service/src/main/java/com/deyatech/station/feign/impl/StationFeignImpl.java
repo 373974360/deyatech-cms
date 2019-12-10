@@ -8,6 +8,7 @@ import com.deyatech.common.enums.MaterialUsePlaceEnum;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.config.SiteProperties;
+import com.deyatech.station.entity.Template;
 import com.deyatech.station.feign.StationFeign;
 import com.deyatech.station.service.CatalogService;
 import com.deyatech.station.service.MaterialService;
@@ -44,6 +45,11 @@ public class StationFeignImpl implements StationFeign {
     @Override
     public RestResult<String> getStationGroupTemplatePathBySiteId(String siteId) {
         return RestResult.ok(siteCache.getStationGroupTemplatePathBySiteId(siteId));
+    }
+
+    @Override
+    public RestResult genStaticPage(Template template) {
+        return RestResult.ok(templateService.genStaticPage(template));
     }
 
     @Override

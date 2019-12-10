@@ -5,6 +5,7 @@ import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.enums.MaterialUsePlaceEnum;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.config.SiteProperties;
+import com.deyatech.station.entity.Template;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.vo.TemplateVo;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -35,6 +36,14 @@ public interface StationFeign {
      */
     @RequestMapping(value = "/feign/station/getStationGroupTemplatePathBySiteId", method = RequestMethod.GET)
     RestResult<String> getStationGroupTemplatePathBySiteId(@RequestParam("siteId") String siteId);
+
+    /**
+     * 添加生成静态页面任务到队列
+     * @param template
+     */
+    @RequestMapping(value = "/feign/station/genStaticPage")
+    RestResult genStaticPage(@RequestBody Template template);
+
     /**
      * 获取站点根路径
      *
