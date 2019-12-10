@@ -2,6 +2,7 @@ package com.deyatech.assembly.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.deyatech.admin.entity.Department;
@@ -58,11 +59,14 @@ public class IndexCodeServiceImpl extends BaseServiceImpl<IndexCodeMapper, Index
         if (Objects.isNull(indexCode)) {
             return null;
         }
-        String nextIndexCode = getFixedPart(siteId, indexCode) + indexCode.getNextSerial();
-        int value = Integer.parseInt(indexCode.getNextSerial());
+        int value = 0;
+        if(StrUtil.isNotBlank(indexCode.getNextSerial())){
+            value = Integer.parseInt(indexCode.getNextSerial());
+        }
         value += 1;
         indexCode.setNextSerial(String.format("%0" + indexCode.getNumber() + "d", value));
         updateById(indexCode);
+        String nextIndexCode = getFixedPart(siteId, indexCode) + indexCode.getNextSerial();
         return nextIndexCode;
     }
 

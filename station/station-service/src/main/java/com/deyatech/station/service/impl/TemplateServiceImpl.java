@@ -949,7 +949,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 cmsCatalogId.add(catId);
                 cmsCatalogId = getCatalogChildrenIds(catalogVos,cmsCatalogId);
             }
-            System.out.println(cmsCatalogId);
             maps.put("cmsCatalogId",cmsCatalogId);
         }
         return baseMapper.getTemplateListView(pages,maps);
