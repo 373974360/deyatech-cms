@@ -454,7 +454,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    //@Transactional(rollbackFor = Exception.class)
     public boolean saveOrUpdateTemplateVo(TemplateVo templateVo) {
         // 获取栏目信息
         Catalog catalog = null;
@@ -746,6 +746,25 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                     log.error("生成内容静态页出错", e);
                 }
             }
+        }
+        return true;
+    }
+
+
+
+    /**
+     * 生成静态页
+     *
+     * @param template
+     * @return
+     */
+    @Override
+    public boolean genStaticPage(Template template) {
+        // 添加任务，发送MQ消息 TODO
+        try {
+            this.addStaticPageTask(template,RabbitMQConstants.MQ_CMS_STATIC_PAGE_CODE_ADD);
+        } catch (Exception e) {
+            log.error("生成内容静态页出错", e);
         }
         return true;
     }

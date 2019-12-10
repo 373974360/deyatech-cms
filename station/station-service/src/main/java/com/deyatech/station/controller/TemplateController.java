@@ -4,6 +4,7 @@ import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baidu.aip.nlp.AipNlp;
 import com.deyatech.common.enums.ContentStatusEnum;
+import com.deyatech.generate.feign.GenerateFeign;
 import com.deyatech.station.config.AipNlpConfig;
 import com.deyatech.station.entity.Template;
 import com.deyatech.station.vo.TemplateVo;
@@ -44,6 +45,8 @@ public class TemplateController extends BaseController {
     AipNlpConfig aipNlpConfig;
     @Autowired
     TemplateService templateService;
+    @Autowired
+    GenerateFeign generateFeign;
 
 
 
@@ -314,6 +317,10 @@ public class TemplateController extends BaseController {
         template.setStatus(ContentStatusEnum.PUBLISH.getCode());
         // 发布日期
         template.setResourcePublicationDate(new Date());
+        //发布新闻所属栏目关联的页面静态页
+        generateFeign.replyPageByCatalog(template.getCmsCatalogId());
+        //生成内容静态页
+        templateService.genStaticPage(template);
         boolean result = templateService.updateById(template);
         return RestResult.ok(result);
     }

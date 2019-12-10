@@ -40,7 +40,7 @@ public class CmsTaskQueueConsumer {
      */
     @RabbitListener(queues = RabbitMQConstants.QUEUE_NAME_STATIC_PAGE_TASK)
     public void handleCmsStaticTask(TemplateVo templateVo) {
-        log.info(String.format("处理索引任务：%s", JSONUtil.toJsonStr(templateVo)));
+        log.info(String.format("处理发布静态页任务：%s", JSONUtil.toJsonStr(templateVo)));
         String messageCode = templateVo.getCode();
         // 创建/删除、更新静态页
         templateFeign.generateStaticTemplate(templateVo,messageCode);
