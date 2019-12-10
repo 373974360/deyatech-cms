@@ -31,9 +31,21 @@
         description_, english_name, meta_data_collection_id, name_
     </sql>
 
-    <select id="pageByBean" parameterType="com.deyatech.station.entity.Model"
-        resultType="com.deyatech.station.vo.ModelVo">
-        select sm.*, amdc.name_ as metaDataCollectionName
+    <select id="pageByBean" parameterType="com.deyatech.station.entity.Model" resultType="com.deyatech.station.vo.ModelVo">
+        select
+        sm.id_ as id,
+        sm.enable_ as enable,
+        sm.remark_ as remark,
+        sm.create_by as createBy,
+        sm.create_time as createTime,
+        sm.update_by as updateBy,
+        sm.update_time as updateTime,
+        sm.version_ as version,
+        sm.description_ as description,
+        sm.english_name as englishName,
+        sm.name_ as name,
+        amdc.id_ as metaDataCollectionId,
+        amdc.name_ as metaDataCollectionName
         from station_model sm
         left join admin_metadata_collection amdc on sm.meta_data_collection_id = amdc.id_
         where sm.enable_ = 1

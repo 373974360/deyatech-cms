@@ -3,10 +3,13 @@ package com.deyatech.station.controller;
 import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baidu.aip.nlp.AipNlp;
+import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.common.enums.ContentStatusEnum;
 import com.deyatech.generate.feign.GenerateFeign;
 import com.deyatech.station.config.AipNlpConfig;
+import com.deyatech.station.entity.Model;
 import com.deyatech.station.entity.Template;
+import com.deyatech.station.service.ModelService;
 import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.station.service.TemplateService;
 import com.deyatech.common.entity.RestResult;
@@ -47,8 +50,10 @@ public class TemplateController extends BaseController {
     TemplateService templateService;
     @Autowired
     GenerateFeign generateFeign;
-
-
+    @Autowired
+    private ModelService modelService;
+    @Autowired
+    private AdminFeign adminFeign;
 
     /**
      * 获取字段
@@ -77,6 +82,17 @@ public class TemplateController extends BaseController {
             @ApiImplicitParam(name = "templateId", value = "内容模板ID", required = true, dataType = "String", paramType = "query")
     })
     public RestResult getDynamicForm(String contentModelId, String templateId) {
+        // 内容模型
+        Model model = modelService.getById(contentModelId);
+        if (Objects.isNull(model)) {
+            return RestResult.error("模型不存在");
+        }
+        // 元数据集ID
+        String collectionId = model.getMetaDataCollectionId();
+        boolean check = adminFeign.checkMetadataCollectionById(collectionId).getData();
+        if (!check) {
+            return RestResult.error("模型关联元数据集不存在");
+        }
         return RestResult.ok(templateService.getDynamicForm(contentModelId, templateId));
     }
 

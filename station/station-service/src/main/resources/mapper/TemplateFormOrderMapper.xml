@@ -39,21 +39,54 @@
     <select id="getAllMetadataByByCollectionId" resultType="com.deyatech.admin.entity.Metadata">
         select
         m.id_ as id,
-        case when mcm.label_ is null then m.name_ when mcm.label_ = '' then m.name_ else mcm.label_ end as name,
-        m.brief_name as briefName,
+        case when mcm.label_ is null then m.name_
+             when mcm.label_ = '' then m.name_
+             else mcm.label_ end as name,
+
+        case when mcm.brief_name is null then m.brief_name
+             when mcm.brief_name = '' then m.brief_name
+             else mcm.brief_name end as briefName,
+
         m.en_name as enName,
         m.type_ as type,
-        m.data_type as dataType,
-        m.data_length as dataLength,
-        m.control_type as controlType,
+
+        case when mcm.data_type is null then m.data_type
+             when mcm.data_type = '' then m.data_type
+             else mcm.data_type end as dataType,
+
+        case when mcm.data_length is null then m.data_length
+             when mcm.data_length = '' then m.data_length
+             else mcm.data_length end as dataLength,
+
+        case when mcm.control_type is null then m.control_type
+             when mcm.control_type = '' then m.control_type
+             else mcm.control_type end as controlType,
+
         m.control_length as controlLength,
-        case when mcm.check_model is null then m.check_model when mcm.check_model = '' then m.check_model else mcm.check_model end as checkModel,
-        m.data_source as dataSource,
-        m.dictionary_id as dictionaryId,
+
+        case when mcm.check_model is null then m.check_model
+             when mcm.check_model = '' then m.check_model
+             else mcm.check_model end as checkModel,
+
+        case when mcm.data_source is null then m.data_source
+             when mcm.data_source = '' then m.data_source
+             else mcm.data_source end as dataSource,
+
+        case when mcm.dictionary_id is null then m.dictionary_id
+             when mcm.dictionary_id = '' then m.dictionary_id
+             else mcm.dictionary_id end as dictionaryId,
+
         m.definition_ as definition,
         m.field_ as field,
-        m.required_ as required,
-        m.mandatory_ as mandatory,
+
+        case when mcm.required_ is null then m.required_
+             when mcm.required_ = '' then m.required_
+             else mcm.required_ end as required,
+
+        case when mcm.mandatory_ is null then m.mandatory_
+             when mcm.mandatory_ = '' then m.mandatory_
+             else mcm.mandatory_ end as mandatory,
+
         m.multi_flag as multiFlag,
         m.annotation_count as annotationCount,
         m.category_id as categoryId,
@@ -67,12 +100,8 @@
         m.version_ as version
         from admin_metadata m
         join admin_metadata_collection_metadata mcm on mcm.metadata_id = m.id_
-        where m.enable_ = 1 and m.id_ in (
-            select cm.metadata_id
-            from admin_metadata_collection_metadata cm
-            join admin_metadata_collection c on c.id_ = cm.metadata_collection_id and c.enable_ = 1
-            where cm.metadata_collection_id = #{collectionId}
-        )
+        join admin_metadata_collection mc on mc.id_ = mcm.metadata_collection_id and mc.enable_ = 1
+        where m.enable_ = 1 and mc.id_ = #{collectionId}
     </select>
     <!--获取元数据集列表-->
     <select id="getCollectionList" resultType="com.deyatech.admin.entity.MetadataCollection">
