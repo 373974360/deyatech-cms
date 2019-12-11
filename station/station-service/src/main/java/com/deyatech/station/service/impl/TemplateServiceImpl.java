@@ -29,7 +29,6 @@ import com.deyatech.common.enums.TemplateAuthorityEnum;
 import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.common.utils.ColumnUtil;
-import com.deyatech.generate.feign.GenerateFeign;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.entity.*;
 import com.deyatech.station.index.IndexService;
@@ -68,7 +67,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Template> implements TemplateService {
+public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Template> implements TemplateService{
 
     @Autowired
     private CatalogService catalogService;
@@ -100,7 +99,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     @Autowired
     ObjectMapper objectMapper;
     @Autowired
-    GenerateFeign generateFeign;
+    PageService pageService;
 
     /**
      * 获取字段
@@ -546,7 +545,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 // 默认都创建索引, 索引任务
                 this.addIndexTask(templateVo, hasId ? RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE : RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
                 //发布新闻所属栏目关联的页面静态页
-                generateFeign.replyPageByCatalog(templateVo.getCmsCatalogId());
+                pageService.replyPageByCatalog(templateVo.getCmsCatalogId());
             }
             // 标记材料
             materialService.markMaterialUsePlace(oldUrlList, newUrlList, MaterialUsePlaceEnum.STATION_TEMPLATE.getCode());
@@ -693,6 +692,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     private void addStaticPageTask(Template template, String code) {
         TemplateVo templateVo = setVoProperties(template);
         templateVo.setCode(code);
+        log.info(String.format("新增任务：%s", JSONUtil.toJsonStr(templateVo)));
         rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_NAME_STATIC_PAGE_TASK, templateVo);
     }
 
@@ -729,7 +729,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     }
 
     /**
-     * 生成静态页
+     * 内容列表页面 生成静态页
      *
      * @param templateVo
      * @return
@@ -746,25 +746,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                     log.error("生成内容静态页出错", e);
                 }
             }
-        }
-        return true;
-    }
-
-
-
-    /**
-     * 生成静态页
-     *
-     * @param template
-     * @return
-     */
-    @Override
-    public boolean genStaticPage(Template template) {
-        // 添加任务，发送MQ消息 TODO
-        try {
-            this.addStaticPageTask(template,RabbitMQConstants.MQ_CMS_STATIC_PAGE_CODE_ADD);
-        } catch (Exception e) {
-            log.error("生成内容静态页出错", e);
         }
         return true;
     }
@@ -1184,7 +1165,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                     //删除静态页面
                     this.addStaticPageTask(template, RabbitMQConstants.MQ_CMS_STATIC_PAGE_CODE_DELETE);
                     //发布新闻所属栏目关联的页面静态页
-                    generateFeign.replyPageByCatalog(template.getCmsCatalogId());
+                    pageService.replyPageByCatalog(template.getCmsCatalogId());
                 }
             }
         }
@@ -1208,7 +1189,5 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
      * @return
      */
     public int updateFlagTopById(boolean flagTop, String id) {return baseMapper.updateFlagTopById(flagTop, id);}
-
-
 
 }

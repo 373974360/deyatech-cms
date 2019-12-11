@@ -319,8 +319,9 @@ public class StationGroupClassificationController extends BaseController {
      */
     @RequestMapping("/getNextSortNo")
     @ApiOperation(value = "下一个排序号", notes = "下一个排序号")
-    public RestResult<Integer> getNextSortNo() {
+    public RestResult<Integer> getNextSortNo(String id) {
         QueryWrapper queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("parent_id",id);
         queryWrapper.select("ifnull(max(sort_no), 0) + 1 as sortNo");
         return RestResult.ok(stationGroupClassificationService.getMap(queryWrapper).get("sortNo"));
     }

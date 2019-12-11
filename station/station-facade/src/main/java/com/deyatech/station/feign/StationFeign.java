@@ -38,13 +38,6 @@ public interface StationFeign {
     RestResult<String> getStationGroupTemplatePathBySiteId(@RequestParam("siteId") String siteId);
 
     /**
-     * 添加生成静态页面任务到队列
-     * @param template
-     */
-    @RequestMapping(value = "/feign/station/genStaticPage")
-    RestResult genStaticPage(@RequestBody Template template);
-
-    /**
      * 获取站点根路径
      *
      * @param siteId
