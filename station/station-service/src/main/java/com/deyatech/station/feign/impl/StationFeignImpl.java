@@ -48,11 +48,6 @@ public class StationFeignImpl implements StationFeign {
     }
 
     @Override
-    public RestResult genStaticPage(Template template) {
-        return RestResult.ok(templateService.genStaticPage(template));
-    }
-
-    @Override
     public RestResult<String> getStationGroupRootPath(String siteId) {
         return RestResult.ok(siteCache.getStationGroupRootPath(siteId));
     }

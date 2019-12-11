@@ -332,7 +332,8 @@ public class TemplateController extends BaseController {
         //发布新闻所属栏目关联的页面静态页
         pageService.replyPageByCatalog(template.getCmsCatalogId());
         //生成内容静态页
-        templateService.genStaticPage(template);
+        TemplateVo templateVo = templateService.setVoProperties(templateService.getById(template.getId()));
+        templateService.genStaticPage(templateVo);
         boolean result = templateService.updateById(template);
         return RestResult.ok(result);
     }
