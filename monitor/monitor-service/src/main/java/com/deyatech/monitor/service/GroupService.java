@@ -1,5 +1,6 @@
 package com.deyatech.monitor.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.monitor.entity.Group;
 import com.deyatech.monitor.vo.GroupVo;
 import com.deyatech.common.base.BaseService;
@@ -37,4 +38,12 @@ public interface GroupService extends BaseService<Group> {
      * 查询空闲任务并且已到执行时间
      * */
     List<Group> getGroupList(String currTime);
+
+    /**
+     * 翻页检索
+     *
+     * @param group
+     * @return
+     */
+    IPage<GroupVo> pageByGroup(Group group);
 }

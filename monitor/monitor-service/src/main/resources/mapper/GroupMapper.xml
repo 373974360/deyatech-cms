@@ -23,6 +23,27 @@
         <result column="run_type" property="runType" />
     </resultMap>
 
+    <resultMap id="BaseResultVoMap" type="com.deyatech.monitor.vo.GroupVo">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="group_name" property="groupName" />
+        <result column="trigger_type" property="triggerType" />
+        <result column="increment_seconds" property="incrementSeconds" />
+        <result column="calendar_time" property="calendarTime" />
+        <result column="calendar_type" property="calendarType" />
+        <result column="calendar_workday" property="calendarWorkday" />
+        <result column="last_dtime" property="lastDtime" />
+        <result column="next_dtime" property="nextDtime" />
+        <result column="run_type" property="runType" />
+        <result column="site_num" property="siteNum" />
+    </resultMap>
+
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         id_,
@@ -40,5 +61,42 @@
         <![CDATA[
             select * from monitor_group where run_type=2 and (next_dtime <=#{currTime} or next_dtime is null) and enable_ = 1
         ]]>
+    </select>
+    <select id="pageByGroup" resultMap="BaseResultVoMap">
+        select
+        g.id_,
+        g.enable_,
+        g.remark_,
+        g.create_by,
+        g.create_time,
+        g.update_by,
+        g.update_time,
+        g.version_,
+        g.group_name,
+        g.trigger_type,
+        g.increment_seconds,
+        g.calendar_time,
+        g.calendar_type,
+        g.calendar_workday,
+        g.last_dtime,
+        g.next_dtime,
+        g.run_type,
+        (select count(*) from monitor_group_site gs where gs.group_id = g.id_) as site_num
+        from monitor_group g
+        where g.enable_ = 1
+        <if test="group != null">
+            <if test="group.groupName != null and group.groupName != ''">
+                and (
+                    g.group_name like concat('%', #{group.groupName} , '%') or
+                    g.last_dtime like concat('%', #{group.groupName} , '%')
+                )
+            </if>
+            <if test="group.triggerType != null and group.triggerType != ''">
+                and g.trigger_type = #{group.triggerType}
+            </if>
+            <if test="group.runType != null and group.runType != ''">
+                and g.run_type = #{group.runType}
+            </if>
+        </if>
     </select>
 </mapper>

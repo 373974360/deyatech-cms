@@ -1,6 +1,10 @@
 package com.deyatech.station.controller;
 
+import cn.hutool.core.collection.CollectionUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.entity.Model;
+import com.deyatech.station.service.CatalogService;
 import com.deyatech.station.vo.ModelVo;
 import com.deyatech.station.service.ModelService;
 import com.deyatech.common.entity.RestResult;
@@ -34,7 +38,8 @@ import io.swagger.annotations.ApiOperation;
 public class ModelController extends BaseController {
     @Autowired
     ModelService modelService;
-
+    @Autowired
+    CatalogService catalogService;
     /**
      * 单个保存或者更新内容模型
      *
@@ -140,6 +145,14 @@ public class ModelController extends BaseController {
     public RestResult<IPage<ModelVo>> pageByModel(Model model) {
         IPage<ModelVo> models = modelService.pageByBean(model);
         models.setRecords(modelService.setVoProperties(models.getRecords()));
+        List<ModelVo> list = models.getRecords();
+        if (CollectionUtil.isNotEmpty(list)) {
+            list.stream().forEach(m -> {
+                QueryWrapper<Catalog> queryWrapper = new QueryWrapper<>();
+                queryWrapper.like("content_model_id", m.getId());
+                m.setCatalogNum(catalogService.count(queryWrapper));
+            });
+        }
         log.info(String.format("根据Model对象属性分页检索内容模型: %s ",JSONUtil.toJsonStr(models)));
         return RestResult.ok(models);
     }

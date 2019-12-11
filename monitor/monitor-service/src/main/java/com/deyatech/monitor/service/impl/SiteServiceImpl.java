@@ -1,15 +1,17 @@
 package com.deyatech.monitor.service.impl;
 
-import com.deyatech.monitor.entity.Site;
-import com.deyatech.monitor.vo.SiteVo;
-import com.deyatech.monitor.mapper.SiteMapper;
-import com.deyatech.monitor.service.SiteService;
-import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.common.base.BaseServiceImpl;
+import com.deyatech.monitor.entity.Site;
+import com.deyatech.monitor.mapper.SiteMapper;
+import com.deyatech.monitor.service.SiteService;
+import com.deyatech.monitor.vo.SiteVo;
 import org.springframework.stereotype.Service;
-import java.util.List;
+
 import java.util.Collection;
+import java.util.List;
 
 /**
  * <p>
@@ -52,5 +54,16 @@ public class SiteServiceImpl extends BaseServiceImpl<SiteMapper, Site> implement
             }
         }
         return siteVos;
+    }
+
+    /**
+     * 翻页检索
+     *
+     * @param site
+     * @return
+     */
+    @Override
+    public IPage<SiteVo> pageBySite(Site site) {
+        return baseMapper.pageBySite(this.getPageByBean(site), site);
     }
 }

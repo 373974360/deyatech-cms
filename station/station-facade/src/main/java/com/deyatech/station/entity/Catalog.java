@@ -1,5 +1,6 @@
 package com.deyatech.station.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.deyatech.common.base.BaseEntity;
@@ -72,7 +73,7 @@ public class Catalog extends BaseEntity {
     private Integer sortNo;
 
     @ApiModelProperty(value = "在树结构中位置", dataType = "String")
-    @TableField("tree_position")
+    @TableField(value="tree_position", strategy= FieldStrategy.IGNORED)
     private String treePosition;
 
     @ApiModelProperty(value = "状态", dataType = "Integer", example = "1")

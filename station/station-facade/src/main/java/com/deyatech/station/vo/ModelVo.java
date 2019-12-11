@@ -25,4 +25,8 @@ public class ModelVo extends Model {
      * 关联元数据集名称
      */
     private String metaDataCollectionName;
+    /**
+     * 栏目数
+     */
+    private int catalogNum;
 }

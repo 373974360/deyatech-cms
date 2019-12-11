@@ -20,4 +20,5 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @ApiModel(value = "扩展对象", description = "扩展对象", parent = Manager.class)
 public class ManagerVo extends Manager {
+    private int siteNum;
 }

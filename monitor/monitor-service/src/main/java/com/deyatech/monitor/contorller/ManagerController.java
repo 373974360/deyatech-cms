@@ -1,10 +1,15 @@
 package com.deyatech.monitor.contorller;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.deyatech.monitor.entity.Manager;
+import com.deyatech.monitor.entity.SiteManager;
 import com.deyatech.monitor.service.SiteManagerService;
 import com.deyatech.monitor.vo.ManagerVo;
 import com.deyatech.monitor.service.ManagerService;
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.monitor.vo.SiteVo;
 import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -140,10 +145,8 @@ public class ManagerController extends BaseController {
     @ApiOperation(value="根据Manager对象属性分页检索", notes="根据Manager对象属性分页检索信息")
     @ApiImplicitParam(name = "manager", value = "对象", required = false, dataType = "Manager", paramType = "query")
     public RestResult<IPage<ManagerVo>> pageByManager(Manager manager) {
-        IPage<ManagerVo> managers = managerService.pageByBean(manager);
-        managers.setRecords(managerService.setVoProperties(managers.getRecords()));
-        log.info(String.format("根据Manager对象属性分页检索: %s ",JSONUtil.toJsonStr(managers)));
-        return RestResult.ok(managers);
+        log.info(String.format("根据Manager对象属性分页检索: %s ",JSONUtil.toJsonStr(manager)));
+        return RestResult.ok(managerService.pageByManager(manager));
     }
 
 }

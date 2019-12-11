@@ -20,4 +20,5 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @ApiModel(value = "扩展对象", description = "扩展对象", parent = Group.class)
 public class GroupVo extends Group {
+    private int siteNum;
 }

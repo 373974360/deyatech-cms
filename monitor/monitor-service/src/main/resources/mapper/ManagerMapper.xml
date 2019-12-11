@@ -15,7 +15,19 @@
         <result column="user_name" property="userName" />
         <result column="user_phone" property="userPhone" />
     </resultMap>
-
+    <resultMap id="BaseResultVoMap" type="com.deyatech.monitor.vo.ManagerVo">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="user_name" property="userName" />
+        <result column="user_phone" property="userPhone" />
+        <result column="site_num" property="siteNum" />
+    </resultMap>
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         id_,
@@ -26,7 +38,32 @@
         update_by,
         update_time,
         version_,
-        user_name, user_phone
+        user_name,
+        user_phone
     </sql>
+    <select id="pageByManager" resultMap="BaseResultVoMap">
+        select
+        m.id_,
+        m.enable_,
+        m.remark_,
+        m.create_by,
+        m.create_time,
+        m.update_by,
+        m.update_time,
+        m.version_,
+        m.user_name,
+        m.user_phone,
+        (select count(*) from monitor_site_manager sm where sm.manager_id = m.id_) as site_num
+        from monitor_manager m
+        where m.enable_ = 1
+        <if test="manager != null">
+            <if test="manager.userName != null and manager.userName != ''">
+                and (
+                    m.user_name like concat('%', #{manager.userName}, '%') or
+                    m.user_phone like concat('%', #{manager.userName}, '%')
+                )
+            </if>
+        </if>
+    </select>
 
 </mapper>

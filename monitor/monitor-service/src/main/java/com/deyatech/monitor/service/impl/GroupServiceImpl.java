@@ -1,20 +1,19 @@
 package com.deyatech.monitor.service.impl;
 
-import cn.hutool.core.date.DateTime;
-import cn.hutool.core.date.DateUtil;
-import com.deyatech.monitor.entity.Group;
-import com.deyatech.monitor.vo.GroupVo;
-import com.deyatech.monitor.mapper.GroupMapper;
-import com.deyatech.monitor.service.GroupService;
-import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.common.base.BaseServiceImpl;
+import com.deyatech.monitor.entity.Group;
+import com.deyatech.monitor.mapper.GroupMapper;
+import com.deyatech.monitor.service.GroupService;
+import com.deyatech.monitor.service.GroupSiteService;
+import com.deyatech.monitor.vo.GroupVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * <p>
@@ -26,10 +25,8 @@ import java.util.Collection;
  */
 @Service
 public class GroupServiceImpl extends BaseServiceImpl<GroupMapper, Group> implements GroupService {
-
     @Autowired
-    GroupMapper groupMapper;
-
+    GroupSiteService groupSiteService;
     /**
      * 单个将对象转换为vo
      *
@@ -64,6 +61,17 @@ public class GroupServiceImpl extends BaseServiceImpl<GroupMapper, Group> implem
 
     @Override
     public List<Group> getGroupList(String currTime) {
-        return groupMapper.getGroupList(currTime);
+        return baseMapper.getGroupList(currTime);
+    }
+
+    /**
+     * 翻页检索
+     *
+     * @param group
+     * @return
+     */
+    @Override
+    public IPage<GroupVo> pageByGroup(Group group) {
+        return baseMapper.pageByGroup(this.getPageByBean(group), group);
     }
 }

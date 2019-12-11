@@ -141,10 +141,8 @@ public class GroupController extends BaseController {
     @ApiOperation(value="根据Group对象属性分页检索", notes="根据Group对象属性分页检索信息")
     @ApiImplicitParam(name = "group", value = "对象", required = false, dataType = "Group", paramType = "query")
     public RestResult<IPage<GroupVo>> pageByGroup(Group group) {
-        IPage<GroupVo> groups = groupService.pageByBean(group);
-        groups.setRecords(groupService.setVoProperties(groups.getRecords()));
-        log.info(String.format("根据Group对象属性分页检索: %s ",JSONUtil.toJsonStr(groups)));
-        return RestResult.ok(groups);
+        log.info(String.format("根据Group对象属性分页检索: %s ",JSONUtil.toJsonStr(group)));
+        return RestResult.ok(groupService.pageByGroup(group));
     }
 
 }

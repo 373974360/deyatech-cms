@@ -1,6 +1,10 @@
 package com.deyatech.monitor.contorller;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.deyatech.monitor.entity.Site;
+import com.deyatech.monitor.entity.SiteManager;
 import com.deyatech.monitor.service.GroupSiteService;
 import com.deyatech.monitor.service.SiteManagerService;
 import com.deyatech.monitor.vo.SiteVo;
@@ -145,10 +149,8 @@ public class SiteController extends BaseController {
     @ApiOperation(value="根据Site对象属性分页检索监控配置表", notes="根据Site对象属性分页检索监控配置表信息")
     @ApiImplicitParam(name = "site", value = "监控配置表对象", required = false, dataType = "Site", paramType = "query")
     public RestResult<IPage<SiteVo>> pageBySite(Site site) {
-        IPage<SiteVo> sites = siteService.pageByBean(site);
-        sites.setRecords(siteService.setVoProperties(sites.getRecords()));
-        log.info(String.format("根据Site对象属性分页检索监控配置表: %s ",JSONUtil.toJsonStr(sites)));
-        return RestResult.ok(sites);
+        log.info(String.format("根据Site对象属性分页检索监控配置表: %s ",JSONUtil.toJsonStr(site)));
+        return RestResult.ok(siteService.pageBySite(site));
     }
 
 }

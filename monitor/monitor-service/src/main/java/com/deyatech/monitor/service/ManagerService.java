@@ -1,5 +1,6 @@
 package com.deyatech.monitor.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.monitor.entity.Manager;
 import com.deyatech.monitor.vo.ManagerVo;
 import com.deyatech.common.base.BaseService;
@@ -31,4 +32,13 @@ public interface ManagerService extends BaseService<Manager> {
      * @return
      */
     List<ManagerVo> setVoProperties(Collection managers);
+
+    /**
+     * 翻页检索
+     *
+     * @param manager
+     * @return
+     */
+    IPage<ManagerVo> pageByManager(Manager manager);
+
 }

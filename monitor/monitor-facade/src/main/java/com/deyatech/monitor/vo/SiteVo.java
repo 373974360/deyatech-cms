@@ -20,4 +20,8 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @ApiModel(value = "监控配置表扩展对象", description = "监控配置表扩展对象", parent = Site.class)
 public class SiteVo extends Site {
+    /**
+     * 关联管理人数
+     */
+    private int managerNum;
 }

@@ -15,7 +15,19 @@
         <result column="site_name" property="siteName" />
         <result column="site_domain" property="siteDomain" />
     </resultMap>
-
+    <resultMap id="BaseResultVoMap" type="com.deyatech.monitor.vo.SiteVo">
+        <result column="id_" property="id" />
+        <result column="enable_" property="enable" />
+        <result column="remark_" property="remark" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="version_" property="version" />
+        <result column="site_name" property="siteName" />
+        <result column="site_domain" property="siteDomain" />
+        <result column="manager_num" property="managerNum" />
+    </resultMap>
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         id_,
@@ -28,5 +40,30 @@
         version_,
         site_name, site_domain
     </sql>
+    <select id="pageBySite" resultMap="BaseResultVoMap">
+        select
+        s.id_,
+        s.enable_,
+        s.remark_,
+        s.create_by,
+        s.create_time,
+        s.update_by,
+        s.update_time,
+        s.version_,
+        s.site_name,
+        s.site_domain,
+        (select count(*) from monitor_site_manager sm where sm.site_id = s.id_) as manager_num
+        from monitor_site s
+        where s.enable_ = 1
+        <if test="site != null">
+            <if test="site.siteName != null and site.siteName != ''">
+                and (
+                    s.site_name like concat('%', #{site.siteName}, '%') or
+                    s.site_domain like concat('%', #{site.siteName}, '%')
+                )
+            </if>
+        </if>
+    </select>
+
 
 </mapper>

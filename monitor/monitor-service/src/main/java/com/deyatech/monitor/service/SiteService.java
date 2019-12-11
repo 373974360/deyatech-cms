@@ -1,8 +1,10 @@
 package com.deyatech.monitor.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.common.base.BaseService;
 import com.deyatech.monitor.entity.Site;
 import com.deyatech.monitor.vo.SiteVo;
-import com.deyatech.common.base.BaseService;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -31,4 +33,12 @@ public interface SiteService extends BaseService<Site> {
      * @return
      */
     List<SiteVo> setVoProperties(Collection sites);
+
+    /**
+     * 翻页检索
+     *
+     * @param site
+     * @return
+     */
+    IPage<SiteVo> pageBySite(Site site);
 }
