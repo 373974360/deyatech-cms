@@ -1,15 +1,13 @@
 package com.deyatech.station.controller;
 
-import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baidu.aip.nlp.AipNlp;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.common.enums.ContentStatusEnum;
-import com.deyatech.generate.feign.GenerateFeign;
 import com.deyatech.station.config.AipNlpConfig;
 import com.deyatech.station.entity.Model;
 import com.deyatech.station.entity.Template;
 import com.deyatech.station.service.ModelService;
+import com.deyatech.station.service.PageService;
 import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.station.service.TemplateService;
 import com.deyatech.common.entity.RestResult;
@@ -22,9 +20,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.charset.Charset;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.web.bind.annotation.RestController;
 import com.deyatech.common.base.BaseController;
@@ -49,7 +45,7 @@ public class TemplateController extends BaseController {
     @Autowired
     TemplateService templateService;
     @Autowired
-    GenerateFeign generateFeign;
+    PageService pageService;
     @Autowired
     private ModelService modelService;
     @Autowired
@@ -334,7 +330,7 @@ public class TemplateController extends BaseController {
         // 发布日期
         template.setResourcePublicationDate(new Date());
         //发布新闻所属栏目关联的页面静态页
-        generateFeign.replyPageByCatalog(template.getCmsCatalogId());
+        pageService.replyPageByCatalog(template.getCmsCatalogId());
         //生成内容静态页
         templateService.genStaticPage(template);
         boolean result = templateService.updateById(template);

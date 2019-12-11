@@ -113,7 +113,6 @@ public class SiteCache {
     /**
      * 本地缓存站点信息
      */
-    @Scheduled(initialDelay = 5000L, fixedRate = 10 * 60 * 1000)
     public void cacheSite() {
         if (inited) {
             log.warn("reinitialization site info caches");
