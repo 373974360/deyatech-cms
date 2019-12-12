@@ -54,3 +54,14 @@ docker run -d --restart=always -m=512m --name nginx --network deyatech -p 80:80 
 #docker exec -d consul consul kv import --http-addr=http://127.0.0.1:8500  @/consul/kv/consul_kv.json
 
 
+## elasticsearch 安装
+docker pull docker.elastic.co/elasticsearch/elasticsearch:6.2.4
+docker run -d --name elasticsearch --network deyatech -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:6.2.4
+#安装分词插件  https://github.com/medcl/elasticsearch-analysis-ik
+docker exec -it elasticsearch bash
+cd /usr/share/elasticsearch/bin
+elasticsearch-plugin install https://github.com/medcl/elasticsearch-analysis-ik/releases/download/v6.2.4/elasticsearch-analysis-ik-6.2.4.zip
+#安装拼音插件  https://github.com/medcl/elasticsearch-analysis-pinyin
+docker exec -it elasticsearch bash
+cd /usr/share/elasticsearch/bin
+elasticsearch-plugin install https://github.com/medcl/elasticsearch-analysis-pinyin/releases/download/v6.2.4/elasticsearch-analysis-pinyin-6.2.4.zip

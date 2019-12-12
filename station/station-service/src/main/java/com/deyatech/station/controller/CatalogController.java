@@ -383,4 +383,23 @@ public class CatalogController extends BaseController {
         return RestResult.ok(catalogService.getAllCatalogWorkFlowId());
     }
 
+
+
+
+    /**
+     * 复制子目录至目标目录
+     *
+     * @param sourceCatId
+     * @param toCatId
+     * @return
+     */
+    @PostMapping("/copyChildrenCatalog")
+    @ApiOperation(value="单个保存或者更新栏目", notes="根据栏目对象保存或者更新栏目信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "sourceCatId", value = "源目录ID", required = true, allowMultiple = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "toCatId", value = "目标目录ID", required = true, allowMultiple = true, dataType = "String", paramType = "query")
+    })
+    public RestResult copyChildrenCatalog(String sourceCatId,String toCatId) {
+        return RestResult.ok(catalogService.copyChildrenCatalog(sourceCatId,toCatId));
+    }
 }
