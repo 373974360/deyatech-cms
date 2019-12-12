@@ -25,6 +25,7 @@ public interface MaterialMapper extends BaseMapper<Material> {
      * @return
      */
     List<MaterialVo> getDownloadMaterialsByUrl(List<String> list);
+    List<MaterialVo> getDisplayMaterialsByUrl(List<String> list);
 
     /**
      * 根据目录检索材料

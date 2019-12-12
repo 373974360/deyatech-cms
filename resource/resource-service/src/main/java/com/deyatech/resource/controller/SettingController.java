@@ -1,22 +1,23 @@
 package com.deyatech.resource.controller;
 
-import com.deyatech.resource.entity.Setting;
-import com.deyatech.resource.vo.SettingVo;
-import com.deyatech.resource.service.SettingService;
-import com.deyatech.common.entity.RestResult;
-import lombok.extern.slf4j.Slf4j;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import org.springframework.web.bind.annotation.RestController;
 import com.deyatech.common.base.BaseController;
+import com.deyatech.common.entity.RestResult;
+import com.deyatech.common.enums.UploadFileTypeEnum;
+import com.deyatech.resource.entity.Setting;
+import com.deyatech.resource.service.SettingService;
+import com.deyatech.resource.vo.SettingVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.*;
 
 /**
  * <p>
@@ -157,6 +158,46 @@ public class SettingController extends BaseController {
         settings.setRecords(settingService.setVoProperties(settings.getRecords()));
         log.info(String.format("根据Setting对象属性分页检索: %s ",JSONUtil.toJsonStr(settings)));
         return RestResult.ok(settings);
+    }
+
+    /**
+     * 获取站点上传附件类型和大小
+     *
+     * @param siteId
+     * @return
+     */
+    @RequestMapping("/getUploadFileTypeAndSize")
+    @ApiOperation(value="获取站点上传附件类型和大小", notes="获取站点上传附件类型和大小")
+    @ApiImplicitParam(name = "siteId", value = "站点", required = false, dataType = "String", paramType = "query")
+    public RestResult getUploadFileTypeAndSize(@RequestParam(value = "siteId", required = false) String siteId) {
+        Setting setting = null;
+        QueryWrapper<Setting> queryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotEmpty(siteId)) {
+            queryWrapper.eq("station_group_id", siteId);
+            setting = settingService.getOne(queryWrapper);
+            // 指定站点ID没有查到，再查全局配置
+            if (Objects.isNull(setting)) {
+                queryWrapper = new QueryWrapper<>();
+                queryWrapper.isNull("station_group_id");
+                setting = settingService.getOne(queryWrapper);
+            }
+        } else {
+            queryWrapper.isNull("station_group_id");
+        }
+        List<String> types;
+        int size;
+        if (Objects.isNull(setting)) {
+            types = new ArrayList<>();
+            Arrays.stream(UploadFileTypeEnum.values()).forEach(t -> types.add(t.getCode()));
+            size = 2;
+        } else {
+            types = Arrays.asList(setting.getUploadFileType().split(","));
+            size = setting.getUploadFileSize();
+        }
+        Map<String, Object> data = new HashMap<>();
+        data.put("types", types);
+        data.put("size", size);
+        return RestResult.ok(data);
     }
 
 }

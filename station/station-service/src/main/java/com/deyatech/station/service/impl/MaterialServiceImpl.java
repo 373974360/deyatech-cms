@@ -105,6 +105,12 @@ public class MaterialServiceImpl extends BaseServiceImpl<MaterialMapper, Materia
             return new ArrayList<>();
         return baseMapper.getDownloadMaterialsByUrl(Arrays.asList(url.split(",")));
     }
+    @Override
+    public List<MaterialVo> getDisplayMaterialsByUrl(String url) {
+        if (StrUtil.isEmpty(url))
+            return new ArrayList<>();
+        return baseMapper.getDisplayMaterialsByUrl(Arrays.asList(url.split(",")));
+    }
 
     /**
      * 获取站点目录树

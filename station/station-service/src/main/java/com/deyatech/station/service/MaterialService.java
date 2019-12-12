@@ -51,7 +51,7 @@ public interface MaterialService extends BaseService<Material> {
      * @return
      */
     List<MaterialVo> getDownloadMaterialsByUrl(String url);
-
+    List<MaterialVo> getDisplayMaterialsByUrl(String url);
     /**
      * 获取站点目录树
      *

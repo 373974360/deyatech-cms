@@ -256,26 +256,12 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         }
         // 图片image
         else if ("imageElement".equals(md.getControlType())) {
+            pageModel.put(md.getBriefName(), isObjectStringEmpty(value) ? "" : value);
+            // 绑定数组
             if (isObjectStringEmpty(value)) {
-                pageModel.put(md.getBriefName(), "");
                 pageModel.put("image_" + md.getBriefName(), new ArrayList<>());
             } else {
-                pageModel.put(md.getBriefName(), value);
-                Material materail = new Material();
-                materail.setUrl(value.toString());
-                 materail = materialService.getByBean(materail);
-                MaterialVo materailVo = materialService.setVoProperties(materail);
-                if (Objects.isNull(materail)) {
-                    pageModel.put("image_" + md.getBriefName(), new ArrayList<>());
-                } else {
-                    StringBuilder url = new StringBuilder("/manage/station/material/showImageBySiteIdAndUrl?siteId=");
-                    url.append(materail.getSiteId());
-                    url.append("&url=");
-                    url.append(materail.getUrl());
-                    materailVo.setUrl(url.toString());
-                    materailVo.setValue(materail.getUrl());
-                    pageModel.put("image_" + md.getBriefName(), Arrays.asList(materailVo));
-                }
+                pageModel.put("image_" + md.getBriefName(), materialService.getDisplayMaterialsByUrl(value.toString()));
             }
         }
         // 附件file
@@ -515,12 +501,13 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             }
         }
         // 发布时间
-        templateVo.setResourcePublicationDate(new Date());
+        //templateVo.setResourcePublicationDate(new Date());
         // 新增时生成索引码
         if (!hasId) {
             RestResult<String> resultIndexCode = assemblyFeign.getNextIndexCodeBySiteId(templateVo.getSiteId());
             // 索引编码
             templateVo.setIndexCode(resultIndexCode.getData());
+            templateVo.setSortNo(1);
         }
         // 保存内容
         boolean result = super.saveOrUpdate(templateVo);
