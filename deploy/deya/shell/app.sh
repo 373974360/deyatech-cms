@@ -17,6 +17,8 @@ server_list[8]=setting-service
 server_list[9]=station-service
 server_list[10]=statistics-service
 server_list[11]=template-service
+server_list[12]=appeal-service
+server_list[13]=assembly-service
 #阿里云私有docker仓库地址
 docker_server=registry.cn-hangzhou.aliyuncs.com/deyatech/
 #image版本号
@@ -160,15 +162,23 @@ rmi(){
 
 run(){
     upload_path=""
+    vhost_path=""
+    nginx_path=""
     if [ "${index}" = "0" ];then
         upload_path=" -v /deya/data/nginx/html/upload/:/deya/upload/ "
+    fi
+    if [ "${index}" = "11" -o "${index}" = "9" -o "${index}" = "7" ];then
+        vhost_path=" -v /deya/vhost/:/deya/vhost/ "
+    fi
+    if [ "${index}" = "7"  ];then
+        nginx_path=" -v /deya/data/nginx/conf/nginx.d/:/deya/data/nginx/conf/nginx.d/ "
     fi
     if [ "${index}" -lt "4" ];then
         version=master-${today}
 	  else
 		    version=master-${today}
     fi
-    docker run -d --restart=always --name ${server_list[$index]} --network deyatech --privileged=true -v /deya/logs/${server_list[$index]}/:/deya/logs/app/ ${upload_path} -m=${xxm}m --oom-kill-disable  ${docker_server}${server_list[$index]}:${version}
+    docker run -d --restart=always --name ${server_list[$index]} --network deyatech --privileged=true -v /deya/logs/${server_list[$index]}/:/deya/logs/app/ ${upload_path} ${vhost_path} ${nginx_path} -m=${xxm}m --oom-kill-disable  ${docker_server}${server_list[$index]}:${version}
     echo -e "\e[1;32m"	#高亮绿色显示
     printf "%s\n" "docker run ${server_list[$index]} Success!"
     echo -e "\e[0m"	#恢复打印颜色

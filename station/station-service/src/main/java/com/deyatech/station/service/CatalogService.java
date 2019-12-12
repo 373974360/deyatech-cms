@@ -131,4 +131,13 @@ public interface CatalogService extends BaseService<Catalog> {
      * @return
      */
     List<String> getAllCatalogWorkFlowId();
+
+    /**
+     * 复制子目录至目标目录
+     *
+     * @param sourceCatId
+     * @param toCatId
+     * @return
+     */
+    boolean copyChildrenCatalog(String sourceCatId,String toCatId);
 }

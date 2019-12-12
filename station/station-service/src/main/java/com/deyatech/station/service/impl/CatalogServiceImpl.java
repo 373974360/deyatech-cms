@@ -570,4 +570,46 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
     public List<String> getAllCatalogWorkFlowId() {
         return baseMapper.getAllCatalogWorkFlowId();
     }
+
+
+
+
+    /**
+     * 复制子目录至目标目录
+     *
+     * @param sourceCatId
+     * @param toCatId
+     * @return
+     */
+    @Override
+    public boolean copyChildrenCatalog(String sourceCatId, String toCatId) {
+        //目标栏目
+        Catalog toCatalog = this.getById(toCatId);
+        Collection<Catalog> sourceCatalogs = this.getCatalogTreeByParentId(sourceCatId);
+        return copyChildrenCatalog(sourceCatalogs,toCatalog);
+    }
+    public Collection<Catalog> getCatalogTreeByParentId(String catId) {
+        QueryWrapper<Catalog> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("parent_id", catId);
+        List<Catalog> catalogs = super.list(queryWrapper);
+        return catalogs;
+    }
+    public boolean copyChildrenCatalog(Collection<Catalog> sourceCatalogVos,Catalog toCatalog){
+        if(CollectionUtil.isNotEmpty(sourceCatalogVos)){
+            for(Catalog catalog:sourceCatalogVos){
+                catalog.setParentId(toCatalog.getId());
+                catalog.setTreePosition(toCatalog.getTreePosition()+"&"+toCatalog.getId());
+
+                Catalog newCatalog = new Catalog();
+                BeanUtil.copyProperties(catalog,newCatalog);
+                newCatalog.setId(null);
+                this.save(newCatalog);
+                Collection<Catalog> children = this.getCatalogTreeByParentId(catalog.getId());
+                if(CollectionUtil.isNotEmpty(children)){
+                    copyChildrenCatalog(children,newCatalog);
+                }
+            }
+        }
+        return true;
+    }
 }
