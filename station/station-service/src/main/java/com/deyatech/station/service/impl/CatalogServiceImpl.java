@@ -598,7 +598,11 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
         if(CollectionUtil.isNotEmpty(sourceCatalogVos)){
             for(Catalog catalog:sourceCatalogVos){
                 catalog.setParentId(toCatalog.getId());
-                catalog.setTreePosition(toCatalog.getTreePosition()+"&"+toCatalog.getId());
+                if (StrUtil.isEmpty(toCatalog.getTreePosition())) {
+                    catalog.setTreePosition("&"+toCatalog.getId());
+                } else {
+                    catalog.setTreePosition(toCatalog.getTreePosition()+"&"+toCatalog.getId());
+                }
 
                 Catalog newCatalog = new Catalog();
                 BeanUtil.copyProperties(catalog,newCatalog);
