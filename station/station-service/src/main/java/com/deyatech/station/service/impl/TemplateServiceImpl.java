@@ -304,6 +304,8 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     public TemplateVo setVoProperties(Template template){
         TemplateVo templateVo = baseMapper.queryTemplateById(template.getId());
         BeanUtil.copyProperties(template, templateVo);
+        Map<String, String> departmentNameMap = this.getDepartmentIdNameMap();
+        templateVo.setSourceName(departmentNameMap.get(templateVo.getSource()) == null ? templateVo.getSource() : departmentNameMap.get(templateVo.getSource()));
         // 查询元数据结构及数据
         this.queryMetadata(templateVo);
         // 查询模型模板
