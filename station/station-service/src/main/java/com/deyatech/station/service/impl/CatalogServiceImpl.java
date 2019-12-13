@@ -263,6 +263,19 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
             }
         }
         String catId = entity.getId();
+
+        //修改栏目英文名重新命名文件夹
+        if(StrUtil.isNotBlank(entity.getId())){
+            Catalog oldCatalog = super.getById(entity.getId());
+            if(!entity.getEname().equals(oldCatalog.getEname())){
+                String oldFilePath = siteCache.getStationGroupRootPath(entity.getSiteId())+"/"+oldCatalog.getPathName();
+                String newFilePath = siteCache.getStationGroupRootPath(entity.getSiteId())+"/"+entity.getPathName();
+                File old = new File(oldFilePath);
+                if (old.exists()) {
+                    old.renameTo(new File(newFilePath));
+                }
+            }
+        }
         // 保存或更新
         boolean parent = super.saveOrUpdate(entity);
         if(parent){
@@ -597,21 +610,24 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
     public boolean copyChildrenCatalog(Collection<Catalog> sourceCatalogVos,Catalog toCatalog){
         if(CollectionUtil.isNotEmpty(sourceCatalogVos)){
             for(Catalog catalog:sourceCatalogVos){
-                catalog.setParentId(toCatalog.getId());
-                if (StrUtil.isEmpty(toCatalog.getTreePosition())) {
-                    catalog.setTreePosition("&"+toCatalog.getId());
-                } else {
-                    catalog.setTreePosition(toCatalog.getTreePosition()+"&"+toCatalog.getId());
+                if(!toCatalog.getId().equals(catalog.getId())){
+                    catalog.setParentId(toCatalog.getId());
+                    if (StrUtil.isEmpty(toCatalog.getTreePosition())) {
+                        catalog.setTreePosition("&"+toCatalog.getId());
+                    } else {
+                        catalog.setTreePosition(toCatalog.getTreePosition()+"&"+toCatalog.getId());
+                    }
+
+                    Catalog newCatalog = new Catalog();
+                    BeanUtil.copyProperties(catalog,newCatalog);
+                    newCatalog.setId(null);
+                    this.save(newCatalog);
+                    Collection<Catalog> children = this.getCatalogTreeByParentId(catalog.getId());
+                    if(CollectionUtil.isNotEmpty(children)){
+                        copyChildrenCatalog(children,newCatalog);
+                    }
                 }
 
-                Catalog newCatalog = new Catalog();
-                BeanUtil.copyProperties(catalog,newCatalog);
-                newCatalog.setId(null);
-                this.save(newCatalog);
-                Collection<Catalog> children = this.getCatalogTreeByParentId(catalog.getId());
-                if(CollectionUtil.isNotEmpty(children)){
-                    copyChildrenCatalog(children,newCatalog);
-                }
             }
         }
         return true;
