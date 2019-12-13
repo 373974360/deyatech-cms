@@ -171,4 +171,11 @@ public interface TemplateService extends BaseService<Template> {
      * @return
      */
     int updateFlagTopById(boolean flagTop, String id);
+
+    /**
+     * 获取部门编号名称映射
+     *
+     * @return
+     */
+    Map<String, String> getDepartmentIdNameMap();
 }

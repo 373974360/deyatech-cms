@@ -5,6 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.deyatech.admin.entity.Department;
 import com.deyatech.admin.entity.Metadata;
 import com.deyatech.admin.entity.MetadataCollection;
 import com.deyatech.admin.feign.AdminFeign;
@@ -14,6 +15,7 @@ import com.deyatech.station.entity.Template;
 import com.deyatech.station.mapper.ResourceManagementMapper;
 import com.deyatech.station.service.ResourceManagementService;
 import com.deyatech.station.service.TemplateFormOrderService;
+import com.deyatech.station.service.TemplateService;
 import com.deyatech.station.vo.ResourceManagementVo;
 import com.deyatech.station.vo.TemplateVo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,8 @@ public class ResourceManagementServiceImpl implements ResourceManagementService 
     private AdminFeign adminFeign;
     @Autowired
     TemplateFormOrderService formOrderService;
+    @Autowired
+    TemplateService templateService;
 
     private Page getPage(ResourceManagementVo resource) {
         Page page = new Page();
@@ -67,11 +71,13 @@ public class ResourceManagementServiceImpl implements ResourceManagementService 
         Map<String, Map<String, Metadata>> matedataMapCache = new HashMap<>();
         IPage<TemplateVo> page = resourceManagementMapper.pageByResourceManagement(getPage(resource), resource);
         if (CollectionUtil.isNotEmpty(page.getRecords())) {
+            Map<String, String> departmentNameMap = templateService.getDepartmentIdNameMap();
             Map<String, Metadata> metadataMap;
             for (TemplateVo template : page.getRecords()) {
                 if (StrUtil.isEmpty(template.getMetaDataCollectionId()) || StrUtil.isEmpty(template.getContentId())) {
                     continue;
                 }
+                template.setSourceName(departmentNameMap.get(template.getSource()) == null ? template.getSource() : departmentNameMap.get(template.getSource()));
                 // 根据分类检索元数据
                 if (Objects.isNull(matedataMapCache.get(template.getMetaDataCollectionId()))) {
                     metadataMap = getMetadatas(template.getMetaDataCollectionId());

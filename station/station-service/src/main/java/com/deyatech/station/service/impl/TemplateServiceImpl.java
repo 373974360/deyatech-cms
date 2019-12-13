@@ -11,14 +11,12 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.deyatech.admin.entity.Department;
 import com.deyatech.admin.entity.Metadata;
 import com.deyatech.admin.entity.MetadataCollection;
 import com.deyatech.admin.entity.User;
 import com.deyatech.admin.feign.AdminFeign;
-import com.deyatech.admin.vo.DictionaryVo;
-import com.deyatech.admin.vo.MetadataCollectionMetadataVo;
-import com.deyatech.admin.vo.MetadataCollectionVo;
-import com.deyatech.admin.vo.MetadataVo;
+import com.deyatech.admin.vo.*;
 import com.deyatech.assembly.feign.AssemblyFeign;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.context.UserContextHelper;
@@ -314,6 +312,21 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     }
 
     /**
+     * 获取部门编号名称映射
+     *
+     * @return
+     */
+    @Override
+    public Map<String, String> getDepartmentIdNameMap() {
+        List<Department> departmentList = adminFeign.getAllDepartments().getData();
+        Map<String, String> departmentNameMap = new HashMap<>();
+        if (CollectionUtil.isNotEmpty(departmentList)) {
+            departmentNameMap = departmentList.stream().collect(Collectors.toMap(Department::getId, Department::getName));
+        }
+        return departmentNameMap;
+    }
+
+    /**
      * 批量将对象转换为vo内容模板
      *
      * @param templates
@@ -323,9 +336,11 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     public List<TemplateVo> setVoProperties(Collection templates){
         List<TemplateVo> templateVos = CollectionUtil.newArrayList();
         if (CollectionUtil.isNotEmpty(templates)) {
+            Map<String, String> departmentNameMap = this.getDepartmentIdNameMap();
             for (Object template : templates) {
                 TemplateVo templateVo = new TemplateVo();
                 BeanUtil.copyProperties(template, templateVo);
+                templateVo.setSourceName(departmentNameMap.get(templateVo.getSource()) == null ? templateVo.getSource() : departmentNameMap.get(templateVo.getSource()));
                 templateVos.add(templateVo);
             }
         }
