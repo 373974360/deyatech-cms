@@ -26,6 +26,10 @@ import java.util.Map;
 public class TemplateVo extends Template {
 
     /**
+     * 来源名
+     */
+    private String sourceName;
+    /**
      * id字符串数组
      */
     private String ids;
