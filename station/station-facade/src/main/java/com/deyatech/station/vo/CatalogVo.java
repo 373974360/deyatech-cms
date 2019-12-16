@@ -56,4 +56,9 @@ public class CatalogVo extends Catalog {
      * 前台的栏目路径
      * */
     private String indexUrl;
+
+    /**
+     * 栏目类型树中索引位置
+     */
+    private String columnTypeTreePosition;
 }
