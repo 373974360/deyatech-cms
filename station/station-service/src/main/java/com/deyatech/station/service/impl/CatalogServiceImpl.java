@@ -621,7 +621,10 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
                     Catalog newCatalog = new Catalog();
                     BeanUtil.copyProperties(catalog,newCatalog);
                     newCatalog.setId(null);
+                    newCatalog.setPathName(toCatalog.getPathName()+"/"+newCatalog.getEname());
                     this.save(newCatalog);
+                    //给系统角色默认加上栏目权限
+                    systemRoleAddCatalog(setVoProperties(newCatalog));
                     Collection<Catalog> children = this.getCatalogTreeByParentId(catalog.getId());
                     if(CollectionUtil.isNotEmpty(children)){
                         copyChildrenCatalog(children,newCatalog);
