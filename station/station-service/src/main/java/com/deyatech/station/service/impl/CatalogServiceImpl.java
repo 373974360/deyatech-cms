@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.deyatech.admin.entity.Role;
 import com.deyatech.admin.feign.AdminFeign;
+import com.deyatech.admin.vo.DictionaryVo;
 import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.context.UserContextHelper;
@@ -99,6 +100,12 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
         List<CatalogVo> rootCatalogs = CollectionUtil.newArrayList();
         if (CollectionUtil.isNotEmpty(catalogVos)) {
             for (CatalogVo catalogVo : catalogVos) {
+                if(StrUtil.isNotEmpty(catalogVo.getColumnType())) {
+                    DictionaryVo dictionaryVo = adminFeign.getDictionaryById(catalogVo.getColumnType()).getData();
+                    if (Objects.nonNull(dictionaryVo)) {
+                        catalogVo.setColumnTypeTreePosition(dictionaryVo.getTreePosition());
+                    }
+                }
                 QueryWrapper<Template> queryWrapper = new QueryWrapper<>();
                 queryWrapper.eq("cms_catalog_id", catalogVo.getId());
                 catalogVo.setTemplateCount(templateService.count(queryWrapper));
