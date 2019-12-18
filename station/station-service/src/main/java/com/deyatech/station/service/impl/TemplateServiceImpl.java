@@ -262,6 +262,30 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 pageModel.put("image_" + md.getBriefName(), materialService.getDisplayMaterialsByUrl(value.toString()));
             }
         }
+        // 组图 image array
+        else if("imageArrayElement".equals(md.getControlType()) ){
+            pageModel.put(md.getBriefName(), isObjectStringEmpty(value) ? "" : value);
+            if(ObjectUtil.isNotNull(value)){
+                JSONArray array = JSONUtil.parseArray(value);
+                String urls = "";
+                Map<String,String> map = new HashMap<>();
+                for(Object obj:array){
+                    String url = JSONUtil.parseObj(obj).get("url").toString();
+                    map.put(url,JSONUtil.parseObj(obj).get("remark").toString());
+                    urls+="," + url;
+                }
+                urls = urls.substring(1);
+                List<MaterialVo> materialVos = materialService.getDisplayMaterialsByUrl(urls);
+                if(CollectionUtil.isNotEmpty(materialVos)){
+                    for(MaterialVo materialVo:materialVos){
+                        materialVo.setName(map.get(materialVo.getValue()));
+                    }
+                }
+                pageModel.put("imagearray_" + md.getBriefName(), materialVos);
+            }else{
+                pageModel.put("imagearray_" + md.getBriefName(), new ArrayList<>());
+            }
+        }
         // 附件file
         else if ("fileElement".equals(md.getControlType())) {
             pageModel.put(md.getBriefName(), isObjectStringEmpty(value) ? "" : value);
