@@ -1,10 +1,13 @@
 package com.deyatech.resource.service;
 
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.deyatech.resource.entity.Setting;
 import com.deyatech.resource.vo.SettingVo;
 import com.deyatech.common.base.BaseService;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * <p>
@@ -54,4 +57,12 @@ public interface SettingService extends BaseService<Setting> {
      * @return
      */
     boolean saveOrUpdateExtend(Setting setting);
+
+    /**
+     * 获取站点设置
+     *
+     * @param siteId
+     * @return
+     */
+    Setting getSetting(String siteId);
 }

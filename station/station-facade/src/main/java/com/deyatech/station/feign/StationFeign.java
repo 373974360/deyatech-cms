@@ -111,11 +111,20 @@ public interface StationFeign {
                                     @RequestParam(value="newUrls", required = false) String newUrls,
                                     @RequestParam("usePlace") String usePlace);
 
-
     /**
      * 刷新缓存
      * @return
      */
     @RequestMapping(value = "/feign/station/reloadCache")
     RestResult reloadCache();
+
+    /**
+     * 处理水印图片
+     *
+     * @param siteId
+     * @param url
+     * @return
+     */
+    @RequestMapping(value = "/feign/station/material/watermarkHandle")
+    RestResult watermarkHandle(@RequestParam("siteId") String siteId, @RequestParam("url") String url);
 }

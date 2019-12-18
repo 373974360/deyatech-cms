@@ -3,6 +3,7 @@ package com.deyatech.resource.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.enums.MaterialUsePlaceEnum;
@@ -112,13 +113,20 @@ public class SettingServiceImpl extends BaseServiceImpl<SettingMapper, Setting> 
                 updateWrapper.set("watermark_url", null);
                 updateWrapper.set("watermark_word", null);
                 updateWrapper.set("watermark_position", null);
+                updateWrapper.set("watermark_point_size", null);
+                updateWrapper.set("watermark_fill_color", null);
             } else {
                 // 图片
                 if (WaterMarkTypeEnum.PICTURE.getCode() == setting.getWatermarkType()) {
                     updateWrapper.set("watermark_word", null);
+                    updateWrapper.set("watermark_point_size", null);
+                    updateWrapper.set("watermark_fill_color", null);
                     // 文字
                 } else if (WaterMarkTypeEnum.WORD.getCode() == setting.getWatermarkType()) {
                     updateWrapper.set("watermark_url", null);
+                    updateWrapper.set("watermark_transparency", null);
+                    updateWrapper.set("watermark_width", null);
+                    updateWrapper.set("watermark_height", null);
                 }
             }
             updateWrapper.eq("id_", setting.getId());
@@ -146,6 +154,10 @@ public class SettingServiceImpl extends BaseServiceImpl<SettingMapper, Setting> 
                 newUrl = newUrl.substring(1);
             }
             stationFeign.markMaterialUsePlace(oldUrl, newUrl, MaterialUsePlaceEnum.RESOURCE_SETTING.getCode());
+            // 有图片水印
+            if (YesNoEnum.YES.getCode() == setting.getWatermarkEnable() && WaterMarkTypeEnum.PICTURE.getCode() == setting.getWatermarkType()) {
+                stationFeign.watermarkHandle(setting.getStationGroupId(), setting.getWatermarkUrl());
+            }
         }
         return flag;
     }
@@ -176,4 +188,30 @@ public class SettingServiceImpl extends BaseServiceImpl<SettingMapper, Setting> 
             }
         }
     }
+
+    /**
+     * 获取站点设置
+     *
+     * @param siteId
+     * @return
+     */
+    public Setting getSetting(String siteId) {
+        Setting setting;
+        QueryWrapper<Setting> queryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotEmpty(siteId)) {
+            queryWrapper.eq("station_group_id", siteId);
+            setting = super.getOne(queryWrapper);
+            // 指定站点ID没有查到，再查全局配置
+            if (Objects.isNull(setting)) {
+                queryWrapper = new QueryWrapper<>();
+                queryWrapper.isNull("station_group_id");
+                setting = super.getOne(queryWrapper);
+            }
+        } else {
+            queryWrapper.isNull("station_group_id");
+            setting = super.getOne(queryWrapper);
+        }
+        return setting;
+    }
+
 }

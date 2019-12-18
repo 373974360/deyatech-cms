@@ -2,10 +2,12 @@ package com.deyatech.station.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseService;
+import com.deyatech.common.entity.FileUploadResult;
 import com.deyatech.common.enums.MaterialUsePlaceEnum;
 import com.deyatech.station.entity.Material;
 import com.deyatech.station.vo.MaterialDirectoryVo;
 import com.deyatech.station.vo.MaterialVo;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collection;
 import java.util.List;
@@ -92,4 +94,32 @@ public interface MaterialService extends BaseService<Material> {
      * @param usePlace
      */
     void markMaterialUsePlace(List<String> oldUrlList, List<String> newUrlList, String usePlace);
+
+    /**
+     * 文件上传处理
+     *
+     * @param file
+     * @param siteId
+     * @param attach
+     * @param deal
+     * @return
+     */
+    FileUploadResult uploadFileHandle(MultipartFile file, String siteId, String attach, String deal);
+
+    /**
+     * 获取文件物理路径
+     *
+     * @param siteId
+     * @param url
+     * @return
+     */
+    String getFilePath(String siteId, String url);
+
+    /**
+     * 处理水印图片
+     *
+     * @param siteId
+     * @param url
+     */
+    void watermarkHandle(String siteId, String url);
 }

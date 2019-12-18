@@ -75,9 +75,18 @@ public class Setting extends BaseEntity {
     @TableField("watermark_word")
     private String watermarkWord;
 
+    @ApiModelProperty(value = "文字大小", dataType = "Integer")
+    @TableField("watermark_point_size")
+    private Integer watermarkPointSize;
+
+    @ApiModelProperty(value = "文字颜色", dataType = "String")
+    @TableField("watermark_fill_color")
+    private String watermarkFillColor;
+
+    // center 中, north 上, south 下, west 左, east 右, northwest 左上, southwest 左下 northeast 右上 southeast 右下
     @ApiModelProperty(value = "水印位置：九宫格", dataType = "Integer", example = "1")
     @TableField("watermark_position")
-    private Integer watermarkPosition;
+    private String watermarkPosition;
 
     @ApiModelProperty(value = "ico图片url", dataType = "String")
     @TableField("ico_url")

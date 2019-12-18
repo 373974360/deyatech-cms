@@ -1,6 +1,7 @@
 package com.deyatech.resource.feign;
 
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.resource.entity.Setting;
 import com.deyatech.resource.entity.StationGroup;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,4 +33,13 @@ public interface ResourceFeign {
      */
     @RequestMapping(value = "/feign/resource/getStationGroupById")
     RestResult<StationGroup> getStationGroupById(@RequestParam("id") String id);
+
+    /**
+     * 获取站点设置
+     *
+     * @param siteId
+     * @return
+     */
+    @RequestMapping(value = "/feign/resource/getStationSetting")
+    RestResult<Setting> getStationSetting(@RequestParam(value = "siteId", required = false) String siteId);
 }

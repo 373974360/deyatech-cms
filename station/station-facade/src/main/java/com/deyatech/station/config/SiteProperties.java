@@ -23,4 +23,7 @@ public class SiteProperties {
 
     private String elasticSearchHostname;
     private Integer elasticSearchPort;
+
+    private String gmPath;
+    private String gmFont;
 }

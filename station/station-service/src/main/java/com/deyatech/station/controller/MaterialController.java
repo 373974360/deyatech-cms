@@ -1,17 +1,11 @@
 package com.deyatech.station.controller;
 
-import cn.hutool.core.date.DatePattern;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseController;
-import com.deyatech.common.entity.FileUploadResult;
 import com.deyatech.common.entity.RestResult;
-import com.deyatech.common.enums.MaterialUsePlaceEnum;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.station.entity.Material;
 import com.deyatech.station.service.MaterialService;
@@ -34,7 +28,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -222,66 +215,26 @@ public class MaterialController extends BaseController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "file", value = "文件", required = true, dataType = "MultipartFile", paramType = "query"),
             @ApiImplicitParam(name = "siteId", value = "站点编号", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "attach", value = "回传附加参数", required = true, dataType = "String", paramType = "query")
+            @ApiImplicitParam(name = "attach", value = "回传附加参数", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "deal", value = "是否处理", required = true, dataType = "String", paramType = "query")
     })
-    public RestResult uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("siteId") String siteId, @RequestParam(value = "attach", required = false) String attach) {
+    public RestResult uploadFile(@RequestParam("file") MultipartFile file,
+                                 @RequestParam("siteId") String siteId,
+                                 @RequestParam(value = "attach", required = false) String attach,
+                                 @RequestParam(value = "deal", required = false) String deal) {
         if (StrUtil.isEmpty(siteId)) {
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "站点编号不存在");
         }
-        String sitePath = materialService.getSiteUploadPath(siteId);
-        sitePath += DateUtil.format(new Date(), "yyyy/MM/dd") + "/";
-        FileUploadResult result = new FileUploadResult();
-        //判断图片是否为空
+        // 判断图片是否为空
         if (file.isEmpty()) {
             log.error("上传的文件是空文件");
             return RestResult.build(HttpStatus.HTTP_INTERNAL_ERROR, "上传的文件是空文件");
         }
-        try {
-            String originalFilename = file.getOriginalFilename();
-            int index = originalFilename.lastIndexOf(".");
-            //获取文件扩展名
-            String extName;
-            if (index != -1) {
-                extName = originalFilename.substring(index);
-            } else {
-                log.error("文件类型无法识别");
-                return RestResult.build(HttpStatus.HTTP_INTERNAL_ERROR, "文件类型无法识别");
-            }
-            String fileName = DateUtil.format(new Date(), DatePattern.PURE_DATETIME_FORMAT) + RandomUtil.randomNumbers(4) + extName;
-            //调用文件处理类FileUtil，处理文件，将文件写入指定位置
-            uploadFile(file.getBytes(), sitePath, fileName);
-            String url = Constants.UPLOAD_DEFAULT_PREFIX_URL.concat(fileName);
-            if (StrUtil.isNotBlank(url)) {
-                //转存文件
-                result.setState("SUCCESS");
-                result.setOriginal(originalFilename);
-                result.setTitle(originalFilename);
-                result.setUrl(url);
-                result.setFilePath(sitePath + fileName);// 文件存储的物理绝对地址
-                result.setAttach(attach);//前台来的参数，原样返回，内容动态表单用
-
-                MaterialVo material = new MaterialVo();
-                material.setName(originalFilename);
-                material.setType(extName);
-                material.setUrl(url);
-                material.setPath(result.getFilePath());
-                material.setSiteId(siteId);
-                material.setUsePlace(MaterialUsePlaceEnum.UNKNOWN.getCode());
-                materialService.saveOrUpdate(material);
-                material.setValue(url);
-                result.setCustomData(material);
-
-                return RestResult.build(HttpStatus.HTTP_OK, "上传成功", result);
-            } else {
-                result.setState("ERROR");
-                log.error("上传失败");
-                return RestResult.build(HttpStatus.HTTP_INTERNAL_ERROR, "上传失败", result);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.error("上传失败");
-            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "上传失败");
+        if (file.getOriginalFilename().lastIndexOf(".") == -1) {
+            log.error("文件类型无法识别");
+            return RestResult.build(HttpStatus.HTTP_INTERNAL_ERROR, "文件类型无法识别");
         }
+        return RestResult.ok(materialService.uploadFileHandle(file, siteId, attach, deal));
     }
 
     /**
@@ -298,7 +251,7 @@ public class MaterialController extends BaseController {
             @ApiImplicitParam(name = "url", value = "图片URL", required = true, dataType = "String", paramType = "query")
     })
     public void showImageBySiteIdAndUrl(String siteId, String url, HttpServletResponse response) {
-        showImage(getFilePath(siteId, url), response);
+        showImage(materialService.getFilePath(siteId, url), response);
     }
 
     /**
@@ -328,7 +281,7 @@ public class MaterialController extends BaseController {
             @ApiImplicitParam(name = "url", value = "图片URL", required = true, dataType = "String", paramType = "query")
     })
     public void downloadFileBySiteIdAndUrl(String siteId, String url, HttpServletRequest request, HttpServletResponse response) {
-        downloadFile(getFilePath(siteId, url), request, response);
+        downloadFile(materialService.getFilePath(siteId, url), request, response);
     }
 
     /**
@@ -344,28 +297,7 @@ public class MaterialController extends BaseController {
         downloadFile(filePath, request, response);
     }
 
-    /**
-     * 获取文件物理路径
-     *
-     * @param siteId
-     * @param url
-     * @return
-     */
-    private String getFilePath(String siteId, String url) {
-        String sitePath = materialService.getSiteUploadPath(siteId);
-        String fileName = url.replace(Constants.UPLOAD_DEFAULT_PREFIX_URL,"");
-        StringBuilder filePath = new StringBuilder(sitePath);
-        filePath.append(fileName.substring(0, 4));
-        filePath.append("/");
-        filePath.append(fileName.substring(4, 6));
-        filePath.append("/");
-        filePath.append(fileName.substring(6, 8));
-        filePath.append("/");
-        filePath.append(fileName);
-        return  filePath.toString();
-    }
-
-    /**
+        /**
      * 查看图片
      *
      * @param filePath

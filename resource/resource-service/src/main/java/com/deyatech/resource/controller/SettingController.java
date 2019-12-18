@@ -1,8 +1,6 @@
 package com.deyatech.resource.controller;
 
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseController;
 import com.deyatech.common.entity.RestResult;
@@ -170,20 +168,7 @@ public class SettingController extends BaseController {
     @ApiOperation(value="获取站点上传附件类型和大小", notes="获取站点上传附件类型和大小")
     @ApiImplicitParam(name = "siteId", value = "站点", required = false, dataType = "String", paramType = "query")
     public RestResult getUploadFileTypeAndSize(@RequestParam(value = "siteId", required = false) String siteId) {
-        Setting setting = null;
-        QueryWrapper<Setting> queryWrapper = new QueryWrapper<>();
-        if (StrUtil.isNotEmpty(siteId)) {
-            queryWrapper.eq("station_group_id", siteId);
-            setting = settingService.getOne(queryWrapper);
-            // 指定站点ID没有查到，再查全局配置
-            if (Objects.isNull(setting)) {
-                queryWrapper = new QueryWrapper<>();
-                queryWrapper.isNull("station_group_id");
-                setting = settingService.getOne(queryWrapper);
-            }
-        } else {
-            queryWrapper.isNull("station_group_id");
-        }
+        Setting setting = settingService.getSetting(siteId);
         List<String> types;
         int size;
         if (Objects.isNull(setting)) {
@@ -200,4 +185,18 @@ public class SettingController extends BaseController {
         return RestResult.ok(data);
     }
 
+
+
+    /**
+     * 获取站点设置
+     *
+     * @param siteId
+     * @return
+     */
+    @RequestMapping("/getStationSetting")
+    @ApiOperation(value="获取站点设置", notes="获取站点设置")
+    @ApiImplicitParam(name = "siteId", value = "站点", required = false, dataType = "String", paramType = "query")
+    public RestResult<Setting> getStationSetting(@RequestParam(value = "siteId", required = false) String siteId) {
+        return RestResult.ok(settingService.getSetting(siteId));
+    }
 }

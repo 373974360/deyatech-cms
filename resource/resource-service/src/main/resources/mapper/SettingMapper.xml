@@ -25,6 +25,8 @@
         <result column="watermark_transparency" property="watermarkTransparency" />
         <result column="watermark_url" property="watermarkUrl" />
         <result column="watermark_word" property="watermarkWord" />
+        <result column="watermark_point_size" property="watermarkPointSize" />
+        <result column="watermark_fill_color" property="watermarkFillColor" />
         <result column="watermark_position" property="watermarkPosition" />
         <result column="ico_url" property="icoUrl" />
     </resultMap>
@@ -51,6 +53,8 @@
         <result column="watermark_url" property="watermarkUrl" />
         <result column="watermark_word" property="watermarkWord" />
         <result column="watermark_position" property="watermarkPosition" />
+        <result column="watermark_point_size" property="watermarkPointSize" />
+        <result column="watermark_fill_color" property="watermarkFillColor" />
         <result column="ico_url" property="icoUrl" />
         <result column="station_group_id" property="stationGroupId" />
         <result column="station_group_name" property="stationGroupName" />
@@ -66,7 +70,7 @@
         update_by,
         update_time,
         version_,
-        station_group_id, upload_file_type, upload_file_size, thumbnail_enable, thumbnail_width, thumbnail_height, watermark_enable, watermark_type, watermark_width, watermark_height, watermark_transparency, watermark_url, watermark_word, watermark_position, ico_url
+        station_group_id, upload_file_type, upload_file_size, thumbnail_enable, thumbnail_width, thumbnail_height, watermark_enable, watermark_type, watermark_width, watermark_height, watermark_transparency, watermark_url, watermark_word, watermark_point_size, watermark_fill_color, watermark_position, ico_url
     </sql>
 
 
@@ -93,6 +97,8 @@
         s.watermark_transparency,
         s.watermark_url,
         s.watermark_word,
+        s.watermark_point_size,
+        s.watermark_fill_color,
         s.watermark_position,
         s.ico_url,
         s.station_group_id,

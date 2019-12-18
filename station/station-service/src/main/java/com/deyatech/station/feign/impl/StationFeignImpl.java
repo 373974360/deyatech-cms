@@ -97,4 +97,10 @@ public class StationFeignImpl implements StationFeign {
         siteCache.cacheSite();
         return RestResult.ok();
     }
+
+    @Override
+    public RestResult watermarkHandle(String siteId, String url) {
+        materialService.watermarkHandle(siteId, url);
+        return RestResult.ok();
+    }
 }
