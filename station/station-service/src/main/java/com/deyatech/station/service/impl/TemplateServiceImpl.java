@@ -18,6 +18,7 @@ import com.deyatech.admin.entity.User;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.admin.vo.*;
 import com.deyatech.assembly.feign.AssemblyFeign;
+import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.entity.RestResult;
@@ -594,6 +595,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         mapParams.put("author", templateVo.getAuthor());
         mapParams.put("templateId", templateVo.getId());
         mapParams.put("siteId", templateVo.getSiteId());
+        mapParams.put(Constants.VARIABLE_STASH, templateVo.getId());
         processInstanceVo.setVariables(mapParams);
         workflowFeign.startInstance(processInstanceVo);
     }
