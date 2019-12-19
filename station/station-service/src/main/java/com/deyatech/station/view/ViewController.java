@@ -23,17 +23,28 @@ import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.entity.Template;
 import com.deyatech.station.service.CatalogService;
+import com.deyatech.station.service.MaterialService;
 import com.deyatech.station.service.TemplateService;
 import com.deyatech.station.view.utils.ViewUtils;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.template.feign.TemplateFeign;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
 
 /**
@@ -43,6 +54,7 @@ import java.util.*;
  * @Date: 2019/8/26 10:12
  */
 @RestController
+@Slf4j
 @RequestMapping("/")
 public class ViewController extends BaseController {
 
@@ -63,6 +75,8 @@ public class ViewController extends BaseController {
 
     @Autowired
     RedisTemplate redisTemplate;
+    @Autowired
+    MaterialService materialService;
 
     //自定义模板的参数名  tm=模板路径
     private static final String TEMPLATE_PARAMS_NAME = "tm";
@@ -351,6 +365,99 @@ public class ViewController extends BaseController {
         }
         return RestResult.ok();
     }
+
+    /**
+     * 查看图片
+     *
+     * @param siteId 站点编号
+     * @param url 上传返回的url地址
+     * @param response
+     */
+    @GetMapping("/showImage")
+    public void showImage(String siteId, String url, HttpServletResponse response) {
+        showImage(materialService.getFilePath(siteId, url), response);
+    }
+    /**
+     * 查看图片
+     *
+     * @param filePath
+     * @param response
+     */
+    private void showImage(String filePath, HttpServletResponse response) {
+        if (StrUtil.isEmpty(filePath)) {
+            log.error("图片路径为空");
+            return;
+        }
+        File file = new File(filePath);
+        if (!file.exists()) {
+            log.error("图片不存在：" + filePath);
+            return;
+        }
+        filePath = filePath.replace("\\","/");
+        FileInputStream in = null;
+        OutputStream out = null;
+        try {
+            response.setContentType("image/jpeg");
+            in = new FileInputStream(filePath);
+            out = response.getOutputStream();
+            IOUtils.copy(in, out);
+        } catch (IOException e) {
+            log.error("图片读取失败", e);
+        } finally {
+            close(in);
+            close(out);
+        }
+    }
+
+
+    /**
+     * 下载文件
+     *
+     * @param siteId
+     * @param url
+     * @param response
+     */
+    @GetMapping("/download")
+    public void download(String siteId, String url, HttpServletRequest request, HttpServletResponse response) {
+        downloadFile(materialService.getFilePath(siteId, url), request, response);
+    }
+    /**
+     * 下载文件
+     *
+     * @param filePath
+     * @param request
+     * @param response
+     */
+    private void downloadFile(String filePath, HttpServletRequest request, HttpServletResponse response) {
+        if (StrUtil.isEmpty(filePath)) {
+            log.error("文件路径为空");
+            return;
+        }
+        File file = new File(filePath);
+        if (!file.exists()) {
+            log.error("文件不存在：" + filePath);
+            return;
+        }
+        FileInputStream in = null;
+        OutputStream out = null;
+        try {
+            String fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
+            response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
+            response.setContentType(request.getServletContext().getMimeType(filePath));
+            in = new FileInputStream(filePath);
+            out = response.getOutputStream();
+            IOUtils.copy(in, out);
+        } catch (IOException e) {
+            log.error("文件读取失败", e);
+        } finally {
+            close(in);
+            close(out);
+        }
+    }
+
+
+
+
 
 
     public String errorPage(String siteTemplateRoot,Map<String,Object> varMap){

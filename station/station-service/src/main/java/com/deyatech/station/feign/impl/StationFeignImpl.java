@@ -70,7 +70,6 @@ public class StationFeignImpl implements StationFeign {
     @Override
     public RestResult<Page<TemplateVo>> getTemplateListView(Map<String, Object> maps, Integer page, Integer pageSize) {
         IPage<TemplateVo> templates = templateService.getTemplateListView(maps,page,pageSize);
-        templates.setRecords(templateService.setVoProperties(templates.getRecords()));
         return RestResult.ok(templates);
     }
     @Override

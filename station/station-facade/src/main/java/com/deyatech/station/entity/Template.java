@@ -53,7 +53,7 @@ public class Template extends BaseEntity {
         // 0    1    2       3       4       5      6      7       8
         // 名称,字段,数据类型,数据长度,空间类型,控件长度,必填,校验方式,数据来源
         Map<String, Metadata> base = MapUtil.newHashMap();
-        base.put("101", getMetadata("101","标题","title_","string","100","inputElement","half",true,null,null, null));
+        base.put("101", getMetadata("101","标题","title_","string","100","inputElement","whole",true,null,null, null));
         base.put("102", getMetadata("102","来源","source_","string","100","inputDepartmentCascader","half",true,null,null,null));
         base.put("103", getMetadata("103","作者姓名","author_","string","30","inputElement","half",false,null,null,null));
 //        base.put("104", getMetadata("104","权重","sort_no","int","8","inputElement","half",true,"positiveInteger",null,null));

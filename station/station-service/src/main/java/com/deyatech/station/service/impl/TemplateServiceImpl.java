@@ -374,6 +374,33 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         return templateVos;
     }
 
+
+
+    /**
+     * 批量将对象转换为vo内容模板
+     * 前台专用
+     * @param templates
+     * @return
+     */
+    @Override
+    public List<TemplateVo> setViewVoProperties(Collection templates){
+        List<TemplateVo> templateVos = CollectionUtil.newArrayList();
+        if (CollectionUtil.isNotEmpty(templates)) {
+            Map<String, String> departmentNameMap = this.getDepartmentIdNameMap();
+            for (Object template : templates) {
+                TemplateVo templateVo = new TemplateVo();
+                BeanUtil.copyProperties(template, templateVo);
+                templateVo.setSourceName(departmentNameMap.get(templateVo.getSource()) == null ? templateVo.getSource() : departmentNameMap.get(templateVo.getSource()));
+                // 查询元数据结构及数据
+                this.queryMetadata(templateVo);
+                // 查询模型模板
+                this.queryModelTemplate(templateVo);
+                templateVos.add(templateVo);
+            }
+        }
+        return templateVos;
+    }
+
     /**
      * 查询模型模板
      *
@@ -962,7 +989,12 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             }
             maps.put("cmsCatalogId",cmsCatalogId);
         }
-        return baseMapper.getTemplateListView(pages,maps);
+        IPage<TemplateVo> templates = baseMapper.getTemplateListView(pages,maps);
+        //是否加载元数据字段
+        if(maps.containsKey("metadata") && Boolean.parseBoolean(maps.get("metadata").toString())){
+            templates.setRecords(setViewVoProperties(templates.getRecords()));
+        }
+        return templates;
     }
 
     @Override
