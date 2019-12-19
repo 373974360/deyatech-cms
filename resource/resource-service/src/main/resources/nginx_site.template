@@ -25,15 +25,8 @@ server {
         root /usr/share/nginx/html;
         index  index.html index.htm;
     }
-    location ~ ^/upload {
-        root /usr/share/nginx/html;
-        index  index.html index.htm;
-    }
     location ~ ^/.+\.(htm|swf|wmv|mp3|avi|wma|rar|zip|doc|docx|ppt|xls|pdf|rmvb|rm|rmi|xsl|txt|chm)$  {
         expires 30d;
-    }
-    location /upload {
-        root /usr/share/nginx/html/upload/${siteId};
     }
     error_page  500  404  /404.html;
     location = /404.html {

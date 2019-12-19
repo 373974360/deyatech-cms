@@ -139,11 +139,29 @@
 
     <select id="getTemplateListView" parameterType="map"
             resultType="com.deyatech.station.vo.TemplateVo">
-        select st.*, sm.name_ as contentModelName, sm.meta_data_collection_id as metaDataCollectionId,
-        smt.url_ as thumbnailUrl
+        select
+            st.id_,
+            st.site_id,
+            st.template_path,
+            st.cms_catalog_id,
+            sc.`name` as cmsCatalogName,
+            st.content_model_id,
+            st.content_id,
+            st.url_,
+            st.author_,
+            st.editor_,
+            st.source_,
+            st.thumbnail_ as thumbnail,
+            st.title_,
+            st.resource_summary,
+            st.keyword_,
+            st.resource_publication_date,
+            st.create_time,
+            sm.name_ as contentModelName,
+            sm.meta_data_collection_id as metaDataCollectionId
         from station_template st
         left join station_model sm on st.content_model_id = sm.id_
-        left join station_material smt on st.thumbnail_ = smt.id_
+        left join station_catalog sc on st.cms_catalog_id = sc.id_
         where st.enable_ = 1 and st.status_ = 2
         <if test="map.startTime != null and map.endTime != null  ">
             and st.resource_publication_date between #{map.startTime} and #{map.endTime}

@@ -267,17 +267,17 @@ public class MaterialServiceImpl extends BaseServiceImpl<MaterialMapper, Materia
      */
     @Override
     public String getFilePath(String siteId, String url) {
-        // 获取站点上传文件路径
-        String sitePath = getSiteUploadPath(siteId);
-        String fileName = url.replace(Constants.UPLOAD_DEFAULT_PREFIX_URL,"");
+        // 获取站点根目录
+        String sitePath = siteCache.getStationGroupRootPath(siteId);
+//        String fileName = url.substring(url.lastIndexOf("/")+1);
         StringBuilder filePath = new StringBuilder(sitePath);
-        filePath.append(fileName.substring(0, 4));
-        filePath.append("/");
-        filePath.append(fileName.substring(4, 6));
-        filePath.append("/");
-        filePath.append(fileName.substring(6, 8));
-        filePath.append("/");
-        filePath.append(fileName);
+//        filePath.append(fileName.substring(0, 4));
+//        filePath.append("/");
+//        filePath.append(fileName.substring(4, 6));
+//        filePath.append("/");
+//        filePath.append(fileName.substring(6, 8));
+//        filePath.append("/");
+        filePath.append(url);
         return  filePath.toString();
     }
 
@@ -411,13 +411,14 @@ public class MaterialServiceImpl extends BaseServiceImpl<MaterialMapper, Materia
     @Override
     public FileUploadResult uploadFileHandle(MultipartFile file, String siteId, String attach, String deal) {
         try {
+            String datePath = DateUtil.format(new Date(), "yyyy/MM/dd") + "/";
             String originalFilename = file.getOriginalFilename();
             String extName = originalFilename.substring(originalFilename.lastIndexOf("."));
             String part = DateUtil.format(new Date(), DatePattern.PURE_DATETIME_FORMAT) + RandomUtil.randomNumbers(4);
-            String sitePath = getSiteUploadPath(siteId) + DateUtil.format(new Date(), "yyyy/MM/dd") + "/";
+            String sitePath = getSiteUploadPath(siteId) + datePath;
             String filePath = sitePath + part + extName;
             uploadFile(file.getBytes(), sitePath, part + extName);
-            String url = Constants.UPLOAD_DEFAULT_PREFIX_URL.concat(part + extName);
+            String url = Constants.UPLOAD_DEFAULT_PREFIX_URL.concat(datePath + part + extName);
             //转存文件
             FileUploadResult result = new FileUploadResult();
             result.setState("SUCCESS");

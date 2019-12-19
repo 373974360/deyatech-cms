@@ -52,6 +52,14 @@ public interface TemplateService extends BaseService<Template> {
     List<TemplateVo> setVoProperties(Collection templates);
 
     /**
+     * 批量将对象转换为vo内容模板
+     * 前台专用
+     * @param templates
+     * @return
+     */
+    List<TemplateVo> setViewVoProperties(Collection templates);
+
+    /**
      * 保存或更新
      * @param templateVo
      * @return
