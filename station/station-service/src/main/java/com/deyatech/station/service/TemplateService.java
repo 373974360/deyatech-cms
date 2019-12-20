@@ -186,4 +186,12 @@ public interface TemplateService extends BaseService<Template> {
      * @return
      */
     Map<String, String> getDepartmentIdNameMap();
+
+    /**
+     * 更新并获取浏览次数
+     *
+     * @param id
+     * @return
+     * */
+    int getTemplateClickCount(String id);
 }

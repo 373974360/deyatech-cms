@@ -1252,4 +1252,25 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
      */
     public int updateFlagTopById(boolean flagTop, String id) {return baseMapper.updateFlagTopById(flagTop, id);}
 
+
+
+
+    /**
+     * 更新并获取浏览次数
+     *
+     * @param id
+     * @return
+     * */
+    @Override
+    public int getTemplateClickCount(String id) {
+        QueryWrapper queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("id_",id);
+        queryWrapper.select("ifnull(max(views_), 0) + 1 as views");
+        int views = Integer.parseInt(super.getMap(queryWrapper).get("views").toString());
+        Template template = new Template();
+        template.setId(id);
+        template.setViews(views);
+        super.updateById(template);
+        return views;
+    }
 }
