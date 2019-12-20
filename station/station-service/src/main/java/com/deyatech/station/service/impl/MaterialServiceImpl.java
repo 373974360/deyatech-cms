@@ -305,7 +305,7 @@ public class MaterialServiceImpl extends BaseServiceImpl<MaterialMapper, Materia
                     op.addImage(image);
                     op.addImage(filePath);
                     op.addImage(watermarkPath);
-                    // gm composite -gravity north -dissolve 50 watermark.png input.jpg output.jpg
+                    // gm composite -gravity center -dissolve 50 watermark.png input.jpg output.jpg
                     CompositeCmd cmd = new CompositeCmd(true);
                     cmd.setSearchPath(siteProperties.getGmPath());
                     cmd.setErrorConsumer(StandardStream.STDERR);
@@ -332,7 +332,7 @@ public class MaterialServiceImpl extends BaseServiceImpl<MaterialMapper, Materia
                     op.draw("text " + x + "," + y + " '" + new String(setting.getWatermarkWord().getBytes("utf-8"),"gbk") + "'");
                     op.addImage(filePath);
                     op.addImage(watermarkPath);
-                    // gm convert -font ArialBold -gravity north -pointsize 45 -fill red -draw "text 100,100 '水印文字'" input.jpg output.jpg
+                    // gm convert -font /usr/share/fonts/win/simsun.ttc -gravity center -pointsize 20 -fill red -draw "text 0,0 'hello水印'" input.jpg output.jpg
                     ConvertCmd cmd = new ConvertCmd(true);
                     cmd.setSearchPath(siteProperties.getGmPath());
                     cmd.setErrorConsumer(StandardStream.STDERR);
@@ -368,7 +368,7 @@ public class MaterialServiceImpl extends BaseServiceImpl<MaterialMapper, Materia
         op.quality(100d);
         op.addImage(srcFilePath);
         op.addImage(destFilePath);
-        // gm convert -resize 100×100 -sharpen 1.0 -quality 100 input.jpg output.jpg
+        // gm convert -resize 100x100 -sharpen 1.0 -quality 100 input.jpg output.jpg
         ConvertCmd cmd = new ConvertCmd(true);
         cmd.setSearchPath(siteProperties.getGmPath());
         cmd.setErrorConsumer(StandardStream.STDERR);
