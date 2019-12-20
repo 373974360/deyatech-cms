@@ -22,6 +22,7 @@ import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.entity.Template;
+import com.deyatech.station.feign.StationFeign;
 import com.deyatech.station.service.CatalogService;
 import com.deyatech.station.service.MaterialService;
 import com.deyatech.station.service.TemplateService;
@@ -364,6 +365,17 @@ public class ViewController extends BaseController {
             return RestResult.ok(assemblyFeign.insertApplyOpen(applyOpenRecord));
         }
         return RestResult.ok();
+    }
+
+    /**
+     * 更新并获取浏览次数
+     *
+     * @param id
+     * @return
+     * */
+    @GetMapping(value = "/getTemplateClickCount")
+    public RestResult getTemplateClickCount(@RequestParam("id") String id) {
+        return RestResult.ok(templateService.getTemplateClickCount(id));
     }
 
     /**
