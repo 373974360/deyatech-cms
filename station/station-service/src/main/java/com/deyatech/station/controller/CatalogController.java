@@ -189,7 +189,7 @@ public class CatalogController extends BaseController {
     @ApiOperation(value="获取栏目的tree对象", notes="获取栏目的tree对象")
     public RestResult<Collection<CatalogVo>> getCatalogTree(Catalog catalog) {
         Collection<CatalogVo> catalogTree = catalogService.getCatalogTree(catalog);
-        log.info(String.format("获取栏目的tree对象: %s ",JSONUtil.toJsonStr(catalogTree)));
+        //log.info(String.format("获取栏目的tree对象: %s ",JSONUtil.toJsonStr(catalogTree)));
         return RestResult.ok(catalogTree);
     }
 
@@ -293,7 +293,7 @@ public class CatalogController extends BaseController {
     @ApiOperation(value="获取用户栏目的tree对象", notes="获取用户栏目的tree对象")
     public RestResult<Collection<CatalogVo>> getUserCatalogTree(Catalog catalog) {
         Collection<CatalogVo> catalogTree = catalogService.getUserCatalogTree(catalog);
-        log.info(String.format("获取栏目的tree对象: %s ",JSONUtil.toJsonStr(catalogTree)));
+        //log.info(String.format("获取栏目的tree对象: %s ",JSONUtil.toJsonStr(catalogTree)));
         return RestResult.ok(catalogTree);
     }
 
