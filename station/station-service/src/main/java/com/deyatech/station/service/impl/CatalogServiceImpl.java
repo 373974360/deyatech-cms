@@ -322,8 +322,10 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
         if (BooleanUtil.isTrue(entity.getCoverage())) {
             // 装填子栏目信息
             List<Catalog> catalogList = this.coverageChildren(entity);
-            // 更新子栏目
-            children = super.updateBatchById(catalogList);
+            if (CollectionUtil.isNotEmpty(catalogList)) {
+                // 更新子栏目
+                children = super.updateBatchById(catalogList);
+            }
         }
 
         return aggregation && parent && children;
@@ -375,22 +377,25 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
 
     private void coverageChildren(Collection<CatalogVo> catalogTree, CatalogVo entity, List<Catalog> catalogList) {
         for (CatalogVo catalogVo : catalogTree) {
-            Catalog children = new Catalog();
-            // 复制对象
-            BeanUtil.copyProperties(entity, children);
-            // 一些子栏目原有属性不可修改
-            children.setId(catalogVo.getId());
-            children.setParentId(catalogVo.getParentId());
-            children.setTreePosition(catalogVo.getTreePosition());
-            children.setName(catalogVo.getName());
-            children.setAliasName(catalogVo.getAliasName());
-            children.setEname(catalogVo.getEname());
-            children.setSortNo(catalogVo.getSortNo());
-            children.setPathName(catalogVo.getPathName());
-            children.setVersion(catalogVo.getVersion());
-            // 设置路径名
-            this.setCatalogPathName(children);
-            catalogList.add(children);
+            // 非外链
+            if (catalogVo.getFlagExternal() == 0) {
+                Catalog children = new Catalog();
+                // 复制对象
+                BeanUtil.copyProperties(entity, children);
+                // 一些子栏目原有属性不可修改
+                children.setId(catalogVo.getId());
+                children.setParentId(catalogVo.getParentId());
+                children.setTreePosition(catalogVo.getTreePosition());
+                children.setName(catalogVo.getName());
+                children.setAliasName(catalogVo.getAliasName());
+                children.setEname(catalogVo.getEname());
+                children.setSortNo(catalogVo.getSortNo());
+                children.setPathName(catalogVo.getPathName());
+                children.setVersion(catalogVo.getVersion());
+                // 设置路径名
+                this.setCatalogPathName(children);
+                catalogList.add(children);
+            }
             if (CollectionUtil.isNotEmpty(catalogVo.getChildren())) {
                 this.coverageChildren(catalogVo.getChildren(), entity, catalogList);
             }
