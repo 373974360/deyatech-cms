@@ -277,12 +277,21 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 }
                 urls = urls.substring(1);
                 List<MaterialVo> materialVos = materialService.getDisplayMaterialsByUrl(urls);
+                List<MaterialVo> materialSortVos = CollectionUtil.newArrayList();
                 if(CollectionUtil.isNotEmpty(materialVos)){
                     for(MaterialVo materialVo:materialVos){
                         materialVo.setName(map.get(materialVo.getValue()));
                     }
+                    String arrayUrls[] = urls.split(",");
+                    for(String str:arrayUrls){
+                        for(MaterialVo materialVo:materialVos){
+                            if(str.equals(materialVo.getValue())){
+                                materialSortVos.add(materialVo);
+                            }
+                        }
+                    }
                 }
-                pageModel.put("imagearray_" + md.getBriefName(), materialVos);
+                pageModel.put("imagearray_" + md.getBriefName(), materialSortVos);
             }else{
                 pageModel.put("imagearray_" + md.getBriefName(), new ArrayList<>());
             }
