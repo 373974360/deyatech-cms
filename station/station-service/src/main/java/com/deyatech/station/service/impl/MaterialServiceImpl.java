@@ -329,7 +329,7 @@ public class MaterialServiceImpl extends BaseServiceImpl<MaterialMapper, Materia
                     op.gravity(gravity);
                     op.pointsize(setting.getWatermarkPointSize());
                     op.fill(setting.getWatermarkFillColor());
-                    op.draw("text " + x + "," + y + " '" + new String(setting.getWatermarkWord().getBytes("utf-8"),"gbk") + "'");
+                    op.draw("text " + x + "," + y + " '" + new String(setting.getWatermarkWord().getBytes("utf-8"),"gb2312") + "'");//gbk
                     op.addImage(filePath);
                     op.addImage(watermarkPath);
                     // gm convert -font /usr/share/fonts/win/simsun.ttc -gravity center -pointsize 20 -fill red -draw "text 0,0 'hello水印'" input.jpg output.jpg

@@ -196,4 +196,7 @@
     <update id="updateFlagTopById">
         update station_template set flag_top = #{flagTop} where id_ = #{id}
     </update>
+    <select id="countCatalogTemplate" resultType="Map">
+        select cms_catalog_id as catalogId, count(*) as number from station_template group by cms_catalog_id
+    </select>
 </mapper>

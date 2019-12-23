@@ -1273,4 +1273,14 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         super.updateById(template);
         return views;
     }
+
+    /**
+     * 统计栏目的内容数
+     *
+     * @return
+     */
+    @Override
+    public List<Map<String, Object>> countCatalogTemplate() {
+        return baseMapper.countCatalogTemplate();
+    }
 }

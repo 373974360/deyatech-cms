@@ -23,7 +23,7 @@ public interface CatalogService extends BaseService<Catalog> {
      * @return
      */
     Collection<CatalogVo> getCatalogTree(Catalog catalog);
-
+    Collection<CatalogVo> getCatalogTreeView(Catalog catalog);
     /**
      * 根据Catalog对象属性检索栏目的tree对象
      *

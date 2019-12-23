@@ -5,6 +5,7 @@ import com.deyatech.common.base.BaseMapper;
 import com.deyatech.station.vo.CatalogVo;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -54,4 +55,11 @@ public interface CatalogMapper extends BaseMapper<Catalog> {
      * @return
      */
     List<String> getAllCatalogWorkFlowId();
+
+    /**
+     * 获取画面用栏目
+     *
+     * @return
+     */
+    List<CatalogVo> getCatalogList(@Param("catalog") Catalog catalog);
 }

@@ -9,6 +9,7 @@ import cn.hutool.http.HttpStatus;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.deyatech.admin.entity.Dictionary;
 import com.deyatech.admin.entity.Role;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.admin.vo.DictionaryVo;
@@ -33,6 +34,7 @@ import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.template.feign.TemplateFeign;
 import com.deyatech.workflow.entity.IProcessDefinition;
 import com.deyatech.workflow.feign.WorkflowFeign;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,6 +56,7 @@ import java.util.stream.Collectors;
  * @since 2019-08-02
  */
 @Service
+@Slf4j
 public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> implements CatalogService {
 
     @Autowired
@@ -80,8 +83,41 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
     @Override
     public Collection<CatalogVo> getCatalogTree(Catalog catalog) {
         catalog.setSortSql("sortNo asc");
-        List<CatalogVo> catalogVos = setVoProperties(super.listByBean(catalog));
+//        List<CatalogVo> catalogVos = setVoProperties(super.listByBean(catalog));
+        List<CatalogVo> catalogVos = baseMapper.getCatalogList(catalog);
         return getTree(catalogVos);
+    }
+    @Override
+    public Collection<CatalogVo> getCatalogTreeView(Catalog catalog) {
+        long start = System.nanoTime();
+        catalog.setSortSql("sortNo asc");
+        List<CatalogVo> catalogVos = baseMapper.getCatalogList(catalog);
+        if (CollectionUtil.isNotEmpty(catalogVos)) {
+            final Map<String, String> columnTypeTreePositionMap = new HashMap<>();
+            final Map<String, Integer> catalogTemplateCountMap = new HashMap<>();
+            List<Dictionary> dictionaryList = adminFeign.getDictionaryByIndexId("column_type").getData();
+            if (CollectionUtil.isNotEmpty(dictionaryList)) {
+                dictionaryList.stream().forEach(item -> columnTypeTreePositionMap.put(item.getId(), item.getTreePosition()));
+            }
+            List<Map<String, Object>> catalogCountList = templateService.countCatalogTemplate();
+            if (CollectionUtil.isNotEmpty(catalogCountList)) {
+                catalogCountList.stream().forEach(item -> catalogTemplateCountMap.put(item.get("catalogId").toString(), Integer.parseInt(item.get("number").toString())));
+            }
+            catalogVos.stream().forEach(c -> {
+                if(StrUtil.isNotEmpty(c.getColumnType())) {
+                    c.setColumnTypeTreePosition(columnTypeTreePositionMap.get(c.getColumnType()));
+                }
+                if (Objects.isNull(catalogTemplateCountMap.get(c.getId()))) {
+                    c.setTemplateCount(0);
+                } else {
+                    c.setTemplateCount(catalogTemplateCountMap.get(c.getId()));
+                }
+            });
+        }
+        Collection<CatalogVo> tree = getTree(catalogVos);
+        long spend = System.nanoTime() - start;
+        log.info("栏目树消耗时间：" + spend + "纳秒");
+        return tree;
     }
 
     /**
@@ -100,15 +136,6 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
         List<CatalogVo> rootCatalogs = CollectionUtil.newArrayList();
         if (CollectionUtil.isNotEmpty(catalogVos)) {
             for (CatalogVo catalogVo : catalogVos) {
-                if(StrUtil.isNotEmpty(catalogVo.getColumnType())) {
-                    DictionaryVo dictionaryVo = adminFeign.getDictionaryById(catalogVo.getColumnType()).getData();
-                    if (Objects.nonNull(dictionaryVo)) {
-                        catalogVo.setColumnTypeTreePosition(dictionaryVo.getTreePosition());
-                    }
-                }
-                QueryWrapper<Template> queryWrapper = new QueryWrapper<>();
-                queryWrapper.eq("cms_catalog_id", catalogVo.getId());
-                catalogVo.setTemplateCount(templateService.count(queryWrapper));
                 catalogVo.setLabel(catalogVo.getName());
                 if(StrUtil.isNotBlank(catalogVo.getTreePosition())){
                     String[] split = catalogVo.getTreePosition().split(Constants.DEFAULT_TREE_POSITION_SPLIT);

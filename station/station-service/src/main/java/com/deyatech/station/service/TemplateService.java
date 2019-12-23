@@ -194,4 +194,10 @@ public interface TemplateService extends BaseService<Template> {
      * @return
      * */
     int getTemplateClickCount(String id);
+    /**
+     * 统计栏目的内容数
+     *
+     * @return
+     */
+    List<Map<String, Object>> countCatalogTemplate();
 }

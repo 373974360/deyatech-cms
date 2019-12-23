@@ -94,6 +94,25 @@
         <result column="column_description" property="columnDescription" />
         <result column="column_keywords" property="columnKeywords" />
         <result column="column_type" property="columnType" />
+        <result column="column_type_tree_position" property="columnTypeTreePosition" />
+        <result column="template_count" property="templateCount" />
+        <collection property="catalogAggregation" ofType="com.deyatech.station.vo.CatalogAggregationVo">
+            <result column="aggregation_id" property="id"/>
+            <result column="aggregation_enable" property="enable"/>
+            <result column="aggregation_remark" property="remark"/>
+            <result column="aggregation_create_by" property="createBy"/>
+            <result column="aggregation_create_time" property="createTime"/>
+            <result column="aggregation_update_by" property="updateBy"/>
+            <result column="aggregation_update_time" property="updateTime"/>
+            <result column="aggregation_version" property="version"/>
+            <result column="aggregation_cms_catalog_id" property="cmsCatalogId"/>
+            <result column="aggregation_keyword" property="keyword"/>
+            <result column="aggregation_publish_organization" property="publishOrganization"/>
+            <result column="aggregation_publish_time" property="publishTime"/>
+            <result column="aggregation_publisher" property="publisher"/>
+            <result column="aggregation_publish_organization_tree_position" property="publishOrganizationTreePosition"/>
+            <result column="aggregation_publisher_name" property="publisherName"/>
+        </collection>
     </resultMap>
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
@@ -135,5 +154,39 @@
 
     <select id="getAllCatalogWorkFlowId" resultType="java.lang.String">
         select distinct workflow_id from station_catalog where workflow_enable = 1 and workflow_id is not null and workflow_id != ''
+    </select>
+    <select id="getCatalogList" resultMap="BaseResultVoMap">
+        select
+        c.*,
+        agg.*
+        from station_catalog c
+        left join (
+        select
+        sca.id_ as aggregation_id,
+        sca.enable_ as aggregation_enable,
+        sca.remark_ as aggregation_remark,
+        sca.create_by as aggregation_create_by,
+        sca.create_time as aggregation_create_time,
+        sca.update_by as aggregation_update_by,
+        sca.update_time as aggregation_update_time,
+        sca.version_ as aggregation_version,
+        sca.cms_catalog_id as aggregation_cms_catalog_id,
+        sca.keyword_ as aggregation_keyword,
+        sca.publish_organization as aggregation_publish_organization,
+        sca.publish_time as aggregation_publish_time,
+        sca.publisher as aggregation_publisher,
+        ad.tree_position as aggregation_publish_organization_tree_position,
+        au.name_ as aggregation_publisher_name
+        from station_catalog_aggregation sca
+        left join admin_department ad on sca.publish_organization = ad.id_ and ad.enable_ = 1
+        left join admin_user au on sca.publisher = au.id_ and au.enable_ = 1
+        where sca.enable_ = 1
+        ) agg on c.aggregation_id = agg.aggregation_id
+        where c.enable_ = 1
+        <if test="catalog != null">
+            <if test="catalog.siteId != null and catalog.siteId != ''">
+                and c.site_id = #{catalog.siteId}
+            </if>
+        </if>
     </select>
 </mapper>

@@ -75,4 +75,11 @@ public interface TemplateMapper extends BaseMapper<Template> {
      * @return
      */
     int updateFlagTopById(@Param("flagTop") boolean flagTop, @Param("id") String id);
+
+    /**
+     * 统计栏目的内容数
+     *
+     * @return
+     */
+    List<Map<String, Object>> countCatalogTemplate();
 }
