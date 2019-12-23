@@ -143,7 +143,7 @@ public class CatalogController extends BaseController {
     public RestResult<CatalogVo> getByCatalog(Catalog catalog) {
         catalog = catalogService.getByBean(catalog);
         CatalogVo catalogVo = catalogService.setVoProperties(catalog);
-        log.info(String.format("根据id获取栏目：%s", JSONUtil.toJsonStr(catalogVo)));
+        //log.info(String.format("根据id获取栏目：%s", JSONUtil.toJsonStr(catalogVo)));
         return RestResult.ok(catalogVo);
     }
 
@@ -159,7 +159,7 @@ public class CatalogController extends BaseController {
     public RestResult<Collection<CatalogVo>> listByCatalog(Catalog catalog) {
         Collection<Catalog> catalogs = catalogService.listByBean(catalog);
         Collection<CatalogVo> catalogVos = catalogService.setVoProperties(catalogs);
-        log.info(String.format("根据Catalog对象属性检索所有栏目: %s ",JSONUtil.toJsonStr(catalogVos)));
+        //log.info(String.format("根据Catalog对象属性检索所有栏目: %s ",JSONUtil.toJsonStr(catalogVos)));
         return RestResult.ok(catalogVos);
     }
 
@@ -175,7 +175,7 @@ public class CatalogController extends BaseController {
     public RestResult<IPage<CatalogVo>> pageByCatalog(Catalog catalog) {
         IPage<CatalogVo> catalogs = catalogService.pageByBean(catalog);
         catalogs.setRecords(catalogService.setVoProperties(catalogs.getRecords()));
-        log.info(String.format("根据Catalog对象属性分页检索栏目: %s ",JSONUtil.toJsonStr(catalogs)));
+        //log.info(String.format("根据Catalog对象属性分页检索栏目: %s ",JSONUtil.toJsonStr(catalogs)));
         return RestResult.ok(catalogs);
     }
 
@@ -203,7 +203,7 @@ public class CatalogController extends BaseController {
     @ApiOperation(value="获取栏目的tree对象", notes="获取栏目的tree对象")
     public RestResult<Collection<CatalogVo>> getCatalogTreeBySiteIds(@RequestParam("siteIds[]") List<String> siteIds) {
         Collection<CatalogVo> catalogTree = catalogService.getCatalogTreeBySiteIds(siteIds);
-        log.info(String.format("获取栏目的tree对象: %s ",JSONUtil.toJsonStr(catalogTree)));
+        //log.info(String.format("获取栏目的tree对象: %s ",JSONUtil.toJsonStr(catalogTree)));
         return RestResult.ok(catalogTree);
     }
 
@@ -219,7 +219,7 @@ public class CatalogController extends BaseController {
     public RestResult<List<CascaderResult>> getCascader(Catalog catalog) {
         Collection<CatalogVo> catalogVos = catalogService.getCatalogTree(catalog);
         List<CascaderResult> cascaderResults = CascaderUtil.getResult("Id", "Name","TreePosition", catalog.getId(), catalogVos);
-        log.info(String.format("获取栏目的级联对象: %s ",JSONUtil.toJsonStr(cascaderResults)));
+        //log.info(String.format("获取栏目的级联对象: %s ",JSONUtil.toJsonStr(cascaderResults)));
         return RestResult.ok(cascaderResults);
     }
 
