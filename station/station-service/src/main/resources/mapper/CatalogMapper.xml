@@ -197,7 +197,8 @@
             c.parent_id,
             c.name,
             c.workflow_id,
-            c.workflow_key
+            c.workflow_key,
+            c.flag_external
         from
             station_catalog c
             join station_catalog_role cr on c.id_ = cr.catalog_id
