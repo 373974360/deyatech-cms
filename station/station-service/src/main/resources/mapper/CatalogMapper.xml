@@ -135,7 +135,8 @@
     </select>
     <!--根据站点ID检索栏目-->
     <select id="getCatalogBySiteIds" resultMap="BaseResultVoMap">
-        select <include refid="Base_Column_List"></include> from  station_catalog where enable_ != -1 and site_id in
+        select id_, name, parent_id
+        from  station_catalog where enable_ != -1 and site_id in
         <if test="list != null and list.size > 0">
             <foreach index="index" item="item" collection="list" open="(" separator="," close=")">
              #{item}
@@ -189,5 +190,19 @@
         from station_catalog
         where enable_ = 1  and parent_id != '0'
         group by parent_id
+    </select>
+    <select id="getUserCatalogList" resultType="com.deyatech.station.vo.CatalogVo">
+        select
+            c.id_,
+            c.parent_id,
+            c.name,
+            c.workflow_id,
+            c.workflow_key
+        from
+            station_catalog c
+            join station_catalog_role cr on c.id_ = cr.catalog_id
+            join admin_role_user ru on ru.role_id = cr.role_id and ru.user_id = #{userId}
+            join admin_role r on r.id_ = ru.role_id and r.enable_ = 1
+        where c.enable_ = 1 and c.site_id = #{catalog.siteId} and c.parent_id = #{catalog.parentId}
     </select>
 </mapper>

@@ -1,8 +1,9 @@
 package com.deyatech.station.service;
 
+import com.deyatech.common.base.BaseService;
 import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.vo.CatalogVo;
-import com.deyatech.common.base.BaseService;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -92,7 +93,7 @@ public interface CatalogService extends BaseService<Catalog> {
      * @param catalog
      * @return
      */
-    Collection<CatalogVo> getUserCatalogTree(Catalog catalog);
+    List<CatalogVo> getUserCatalogTree(Catalog catalog);
 
     /**
      * 更新隐藏

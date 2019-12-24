@@ -311,7 +311,7 @@ public class CatalogController extends BaseController {
     @GetMapping("/getUserCatalogTree")
     @ApiOperation(value="获取用户栏目的tree对象", notes="获取用户栏目的tree对象")
     public RestResult<Collection<CatalogVo>> getUserCatalogTree(Catalog catalog) {
-        Collection<CatalogVo> catalogTree = catalogService.getUserCatalogTree(catalog);
+        List<CatalogVo> catalogTree = catalogService.getUserCatalogTree(catalog);
         log.info(String.format("获取栏目的tree对象: %s ",JSONUtil.toJsonStr(catalogTree)));
         return RestResult.ok(catalogTree);
     }

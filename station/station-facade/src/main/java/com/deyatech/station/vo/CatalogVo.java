@@ -28,6 +28,7 @@ public class CatalogVo extends Catalog {
 
     @ApiModelProperty(value = "树结构中子节点个数", dataType = "String")
     private String childNum;
+    private Boolean leaf;
 
     @ApiModelProperty(value = "树结构中子节点对象集合", dataType = "List<CatalogVo>")
     private List<CatalogVo> children;

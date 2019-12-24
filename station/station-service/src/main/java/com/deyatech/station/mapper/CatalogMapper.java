@@ -64,5 +64,18 @@ public interface CatalogMapper extends BaseMapper<Catalog> {
      */
     List<CatalogVo> getCatalogList(@Param("catalog") Catalog catalog);
 
+    /**
+     * 统计栏目子节点数
+     *
+     * @return
+     */
     List<Map<String, Object>> getCountChildrenCatalog();
+
+    /**
+     * 用户分配的栏目
+     * @param catalog
+     * @param userId
+     * @return
+     */
+    List<CatalogVo> getUserCatalogList(@Param("userId") String userId, @Param("catalog") Catalog catalog);
 }

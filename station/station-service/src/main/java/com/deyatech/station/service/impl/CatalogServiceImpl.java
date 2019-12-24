@@ -12,7 +12,6 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.deyatech.admin.entity.Dictionary;
 import com.deyatech.admin.entity.Role;
 import com.deyatech.admin.feign.AdminFeign;
-import com.deyatech.admin.vo.DictionaryVo;
 import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.context.UserContextHelper;
@@ -23,7 +22,6 @@ import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.entity.CatalogAggregation;
 import com.deyatech.station.entity.CatalogRole;
-import com.deyatech.station.entity.Template;
 import com.deyatech.station.mapper.CatalogMapper;
 import com.deyatech.station.service.CatalogAggregationService;
 import com.deyatech.station.service.CatalogRoleService;
@@ -45,7 +43,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -115,7 +112,13 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
                 } else {
                     c.setLevel(Constants.DEFAULT_ROOT_LEVEL);
                 }
-                c.setChildNum(childrenCatalogCountMap.get(c.getId()));
+                if (StrUtil.isNotEmpty(childrenCatalogCountMap.get(c.getId()))) {
+                    c.setChildNum(childrenCatalogCountMap.get(c.getId()));
+                    c.setLeaf(false);
+                } else {
+                    c.setChildNum(null);
+                    c.setLeaf(true);
+                }
                 if(StrUtil.isNotEmpty(c.getColumnType())) {
                     c.setColumnTypeTreePosition(columnTypeTreePositionMap.get(c.getColumnType()));
                 }
@@ -519,51 +522,25 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
      * @return
      */
     @Override
-    public Collection<CatalogVo> getUserCatalogTree(Catalog catalog) {
-        List<CatalogVo> rootCatalogs = CollectionUtil.newArrayList();
-        RestResult<List<String>> roleResult =  adminFeign.getRoleIdsByUserId(UserContextHelper.getUserId());
-        List<String> roleIds = roleResult.getData();
-        if (CollectionUtil.isEmpty(roleIds)) {
-            throw new BusinessException( HttpStatus.HTTP_INTERNAL_ERROR, "没有分配角色");
-        }
-        QueryWrapper<CatalogRole> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in("role_id", roleIds);
-        Collection<CatalogRole> roleCatalogs = catalogRoleService.list(queryWrapper);
-
-        if (CollectionUtil.isNotEmpty(roleCatalogs)) {
-            List<String> catalogIds = roleCatalogs.stream().map(CatalogRole::getCatalogId).collect(Collectors.toList());
-
-            catalog.setSortSql("sortNo asc");
-            List<CatalogVo> catalogVos = setVoProperties(super.listByBean(catalog));
-            if (CollectionUtil.isNotEmpty(catalogVos)) {
-                List<CatalogVo> okCatalogVos = catalogVos.stream().filter(c -> catalogIds.contains(c.getId())).collect(Collectors.toList());
-
-                for (CatalogVo catalogVo : okCatalogVos) {
-                    catalogVo.setLabel(catalogVo.getName());
-                    if(StrUtil.isNotBlank(catalogVo.getTreePosition())){
-                        String[] split = catalogVo.getTreePosition().split(Constants.DEFAULT_TREE_POSITION_SPLIT);
-                        catalogVo.setLevel(split.length);
-                    }else{
-                        catalogVo.setLevel(Constants.DEFAULT_ROOT_LEVEL);
-                    }
-                    if (ObjectUtil.equal(catalogVo.getParentId(), Constants.ZERO)) {
-                        rootCatalogs.add(catalogVo);
-                    }
-                    for (CatalogVo childVo : okCatalogVos) {
-                        if (ObjectUtil.equal(childVo.getParentId(), catalogVo.getId())) {
-                            if (ObjectUtil.isNull(catalogVo.getChildren())) {
-                                List<CatalogVo> children = CollectionUtil.newArrayList();
-                                children.add(childVo);
-                                catalogVo.setChildren(children);
-                            } else {
-                                catalogVo.getChildren().add(childVo);
-                            }
-                        }
-                    }
-                }
+    public List<CatalogVo> getUserCatalogTree(Catalog catalog) {
+        List<CatalogVo> catalogs = baseMapper.getUserCatalogList(UserContextHelper.getUserId(), catalog);
+        if (CollectionUtil.isNotEmpty(catalogs)) {
+            final Map<String, String> childrenCatalogCountMap = new HashMap<>();
+            List<Map<String, Object>> childrenCatalogCountList =  baseMapper.getCountChildrenCatalog();
+            if (CollectionUtil.isNotEmpty(childrenCatalogCountList)) {
+                childrenCatalogCountList.stream().forEach(item -> childrenCatalogCountMap.put(item.get("catalogId").toString(), item.get("number").toString()));
             }
+            catalogs.stream().forEach(c -> {
+                if (StrUtil.isNotEmpty(childrenCatalogCountMap.get(c.getId()))) {
+                    c.setChildNum(childrenCatalogCountMap.get(c.getId()));
+                    c.setLeaf(false);
+                } else {
+                    c.setChildNum(null);
+                    c.setLeaf(true);
+                }
+            });
         }
-        return rootCatalogs;
+        return catalogs;
     }
 
     /**
