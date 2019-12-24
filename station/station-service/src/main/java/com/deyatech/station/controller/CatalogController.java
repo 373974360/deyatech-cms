@@ -189,8 +189,24 @@ public class CatalogController extends BaseController {
     @ApiOperation(value="获取栏目的tree对象", notes="获取栏目的tree对象")
     public RestResult<Collection<CatalogVo>> getCatalogTree(Catalog catalog) {
         long start = System.nanoTime();
-        Collection<CatalogVo> catalogTree = catalogService.getCatalogTreeView(catalog);
+        Collection<CatalogVo> catalogTree = catalogService.getCatalogTree(catalog);
         log.info(String.format("获取栏目的tree对象: %s ",JSONUtil.toJsonStr(catalogTree)));
+        long spend = System.nanoTime() - start;
+        log.info("栏目时间：" + spend + "纳秒");
+        return RestResult.ok(catalogTree);
+    }
+
+    /**
+     * 获取栏目的tree对象
+     *
+     * @param catalog
+     * @return
+     */
+    @GetMapping("/getAsyncCatalogTree")
+    @ApiOperation(value="获取栏目的tree对象", notes="获取栏目的tree对象")
+    public RestResult<Collection<CatalogVo>> getAsyncCatalogTree(Catalog catalog) {
+        long start = System.nanoTime();
+        Collection<CatalogVo> catalogTree = catalogService.getAsyncCatalogTree(catalog);
         long spend = System.nanoTime() - start;
         log.info("栏目时间：" + spend + "纳秒");
         return RestResult.ok(catalogTree);

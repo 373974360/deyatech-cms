@@ -88,22 +88,34 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
         return getTree(catalogVos);
     }
     @Override
-    public Collection<CatalogVo> getCatalogTreeView(Catalog catalog) {
+    public Collection<CatalogVo> getAsyncCatalogTree(Catalog catalog) {
         long start = System.nanoTime();
         catalog.setSortSql("sortNo asc");
         List<CatalogVo> catalogVos = baseMapper.getCatalogList(catalog);
         if (CollectionUtil.isNotEmpty(catalogVos)) {
+            final Map<String, String> childrenCatalogCountMap = new HashMap<>();
             final Map<String, String> columnTypeTreePositionMap = new HashMap<>();
             final Map<String, Integer> catalogTemplateCountMap = new HashMap<>();
+            List<Map<String, Object>> childrenCatalogCountList =  baseMapper.getCountChildrenCatalog();
+            if (CollectionUtil.isNotEmpty(childrenCatalogCountList)) {
+                childrenCatalogCountList.stream().forEach(item -> childrenCatalogCountMap.put(item.get("catalogId").toString(), item.get("number").toString()));
+            }
             List<Dictionary> dictionaryList = adminFeign.getDictionaryByIndexId("column_type").getData();
             if (CollectionUtil.isNotEmpty(dictionaryList)) {
                 dictionaryList.stream().forEach(item -> columnTypeTreePositionMap.put(item.getId(), item.getTreePosition()));
             }
-            List<Map<String, Object>> catalogCountList = templateService.countCatalogTemplate();
-            if (CollectionUtil.isNotEmpty(catalogCountList)) {
-                catalogCountList.stream().forEach(item -> catalogTemplateCountMap.put(item.get("catalogId").toString(), Integer.parseInt(item.get("number").toString())));
+            List<Map<String, Object>> catalogTemplateCountList = templateService.countCatalogTemplate();
+            if (CollectionUtil.isNotEmpty(catalogTemplateCountList)) {
+                catalogTemplateCountList.stream().forEach(item -> catalogTemplateCountMap.put(item.get("catalogId").toString(), Integer.parseInt(item.get("number").toString())));
             }
             catalogVos.stream().forEach(c -> {
+                if (StrUtil.isNotEmpty(c.getTreePosition())) {
+                    String[] split = c.getTreePosition().split(Constants.DEFAULT_TREE_POSITION_SPLIT);
+                    c.setLevel(split.length);
+                } else {
+                    c.setLevel(Constants.DEFAULT_ROOT_LEVEL);
+                }
+                c.setChildNum(childrenCatalogCountMap.get(c.getId()));
                 if(StrUtil.isNotEmpty(c.getColumnType())) {
                     c.setColumnTypeTreePosition(columnTypeTreePositionMap.get(c.getColumnType()));
                 }
@@ -114,10 +126,9 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
                 }
             });
         }
-        Collection<CatalogVo> tree = getTree(catalogVos);
         long spend = System.nanoTime() - start;
         log.info("栏目树消耗时间：" + spend + "纳秒");
-        return tree;
+        return catalogVos;
     }
 
     /**

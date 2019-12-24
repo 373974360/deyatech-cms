@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -62,4 +63,6 @@ public interface CatalogMapper extends BaseMapper<Catalog> {
      * @return
      */
     List<CatalogVo> getCatalogList(@Param("catalog") Catalog catalog);
+
+    List<Map<String, Object>> getCountChildrenCatalog();
 }
