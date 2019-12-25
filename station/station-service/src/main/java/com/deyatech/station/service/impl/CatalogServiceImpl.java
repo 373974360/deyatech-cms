@@ -80,12 +80,17 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
     @Override
     public Collection<CatalogVo> getCatalogTree(Catalog catalog) {
         catalog.setSortSql("sortNo asc");
-//        List<CatalogVo> catalogVos = setVoProperties(super.listByBean(catalog));
-        List<CatalogVo> catalogVos = baseMapper.getCatalogList(catalog);
+        List<CatalogVo> catalogVos = setVoProperties(super.listByBean(catalog));
         return getTree(catalogVos);
     }
     @Override
     public Collection<CatalogVo> getAsyncCatalogTree(Catalog catalog) {
+        if (StrUtil.isEmpty(catalog.getSiteId())) {
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "站点编号不存在");
+        }
+        if (StrUtil.isEmpty(catalog.getParentId())) {
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "站点父编号不存在");
+        }
         long start = System.nanoTime();
         catalog.setSortSql("sortNo asc");
         List<CatalogVo> catalogVos = baseMapper.getCatalogList(catalog);
@@ -523,6 +528,12 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
      */
     @Override
     public List<CatalogVo> getUserCatalogTree(Catalog catalog) {
+        if (StrUtil.isEmpty(catalog.getSiteId())) {
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "站点编号不存在");
+        }
+        if (StrUtil.isEmpty(catalog.getParentId())) {
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "站点父编号不存在");
+        }
         List<CatalogVo> catalogs = baseMapper.getUserCatalogList(UserContextHelper.getUserId(), catalog);
         if (CollectionUtil.isNotEmpty(catalogs)) {
             final Map<String, String> childrenCatalogCountMap = new HashMap<>();
