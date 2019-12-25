@@ -519,9 +519,9 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     public boolean saveOrUpdateTemplateVo(TemplateVo templateVo) {
         // 获取栏目信息
         Catalog catalog = null;
-        if (this.checkTitleExist(templateVo)) {
-            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "当前栏目中已存在该标题内容");
-        }
+//        if (this.checkTitleExist(templateVo)) {
+//            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "当前栏目中已存在该标题内容");
+//        }
         // 外链
         if (YesNoEnum.YES.getCode() == templateVo.getFlagExternal()) {
             if (StrUtil.isEmpty(templateVo.getUrl())) {
@@ -608,7 +608,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 templateVo1.setIds(templateVo.getId());
                 this.genStaticPage(templateVo1,RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
                 // 默认都创建索引, 索引任务
-                this.addIndexTask(templateVo, hasId ? RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE : RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
+                this.reindex(templateVo1, hasId ? RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE : RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
                 //发布新闻所属栏目关联的页面静态页
                 pageService.replyPageByCatalog(templateVo.getCmsCatalogId());
             }
@@ -741,29 +741,14 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
 
         // 删除索引
         for (Map map : mapList) {
-            Template template = new Template();
-            template.setId((String) map.get("id"));
-            template.setContentModelId((String) map.get("contentModelId"));
-            this.addIndexTask(template, RabbitMQConstants.MQ_CMS_INDEX_COMMAND_DELETE);
+            TemplateVo templateVo = new TemplateVo();
+            templateVo.setIds((String) map.get("id"));
+            templateVo.setContentModelId((String) map.get("contentModelId"));
+            this.reindex(templateVo, RabbitMQConstants.MQ_CMS_INDEX_COMMAND_DELETE);
         }
 
         List<String> idList = mapList.stream().map(m -> (String) m.get("id")).collect(Collectors.toList());
         return super.removeByIds(idList);
-    }
-
-    /**
-     * 添加索引任务到队列
-     * @param template
-     * @param code
-     */
-    private void addIndexTask(Template template, String code) {
-        TemplateVo templateVo = new TemplateVo();
-        BeanUtil.copyProperties(template, templateVo);
-        templateVo.setCode(code);
-        // 获取索引
-        String index = modelService.getIndexByModelId(template.getContentModelId());
-        templateVo.setIndex(index);
-        rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_NAME_INDEX_TASK, templateVo);
     }
 
     /**
@@ -819,34 +804,11 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
      */
     @Override
     public void addStaticPageTask(Map<String,Object> maps,String messageCode) {
-        log.info(String.format("新增任务：%s", JSONUtil.toJsonStr(maps)));
+        log.info(String.format("新增发布静态页任务：%s", JSONUtil.toJsonStr(maps)));
         Map<String,Object> dataMap = new HashMap<>();
         dataMap.put("maps",maps);
         dataMap.put("messageCode",messageCode);
         rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_NAME_STATIC_PAGE_TASK, dataMap);
-    }
-
-    private Collection<Template> getTemplateList(TemplateVo templateVo) {
-        QueryWrapper<Template> queryWrapper = new QueryWrapper<>();
-        // 内容为已发布状态
-//        queryWrapper.eq("status_", 2);
-        if (StrUtil.isNotEmpty(templateVo.getSiteId())) {
-            queryWrapper.eq("site_id", templateVo.getSiteId());
-        }
-        if (StrUtil.isNotEmpty(templateVo.getCmsCatalogId())) {
-            // 查询当前栏目及子栏目id
-            QueryWrapper<Catalog> catalogQueryWrapper = new QueryWrapper<>();
-            catalogQueryWrapper.select("id_").like("tree_position", templateVo.getCmsCatalogId())
-                    .or().eq("id_", templateVo.getCmsCatalogId());
-            List<Catalog> catalogList = catalogService.list(catalogQueryWrapper);
-            List<String> catalogIds = catalogList.stream().map(Catalog::getId).collect(Collectors.toList());
-            queryWrapper.in("cms_catalog_id", catalogIds);
-        }
-        if (StrUtil.isNotEmpty(templateVo.getIds())) {
-            queryWrapper.in("id_", Arrays.asList(templateVo.getIds().split(",")));
-        }
-        Collection<Template> templateList = super.list(queryWrapper);
-        return templateList;
     }
     /**
      * 生成索引
@@ -855,41 +817,42 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
      * @return
      */
     @Override
-    public boolean reindex(TemplateVo templateVo) {
-        Collection<Template> templateList = this.getTemplateList(templateVo);
-        if (CollectionUtil.isNotEmpty(templateList)) {
-            for (Template template : templateList) {
-                // 添加任务，发送MQ消息 TODO
-                try {
-                    this.addIndexTask(template, RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE);
-                } catch (Exception e) {
-                    log.error("生成索引出错", e);
-                }
-            }
+    public boolean reindex(TemplateVo templateVo,String messageCode) {
+        Map<String,Object> maps = new HashMap<>();
+        if (StrUtil.isNotEmpty(templateVo.getSiteId())) {
+            maps.put("siteId", templateVo.getSiteId());
+        }
+        if (StrUtil.isNotEmpty(templateVo.getCmsCatalogId())) {
+            // 查询当前栏目及子栏目id
+            QueryWrapper<Catalog> catalogQueryWrapper = new QueryWrapper<>();
+            catalogQueryWrapper.select("id_").like("tree_position", templateVo.getCmsCatalogId())
+                    .or().eq("id_", templateVo.getCmsCatalogId());
+            List<Catalog> catalogList = catalogService.list(catalogQueryWrapper);
+            List<String> catalogIds = catalogList.stream().map(Catalog::getId).collect(Collectors.toList());
+            maps.put("cmsCatalogId", catalogIds);
+        }
+        if (StrUtil.isNotEmpty(templateVo.getIds())) {
+            maps.put("id", Arrays.asList(templateVo.getIds().split(",")));
+        }
+        IPage<TemplateVo> templates = getTemplateListView(maps,1,1);
+        if(templates.getPages() > 0){
+            maps.put("totle",templates.getTotal());
+            this.addIndexTask(maps, messageCode);
         }
         return true;
     }
 
     /**
-     * 删除索引数据
-     *
-     * @param template
-     * @return
+     * 添加索引任务到队列
+     * @param maps
+     * @param messageCode
      */
-    @Override
-    public boolean removeIndexData(Template template) {
-        Collection<Template> templateList = this.listByBean(template);
-        if (CollectionUtil.isNotEmpty(templateList)) {
-            for (Template t : templateList) {
-                // 添加任务，发送MQ消息
-                try {
-                    this.addIndexTask(t, RabbitMQConstants.MQ_CMS_INDEX_COMMAND_DELETE);
-                } catch (Exception e) {
-                    log.error("删除索引数据出错", e);
-                }
-            }
-        }
-        return true;
+    private void addIndexTask(Map<String,Object> maps,String messageCode) {
+        log.info(String.format("新增生成索引任务：%s", JSONUtil.toJsonStr(maps)));
+        Map<String,Object> dataMap = new HashMap<>();
+        dataMap.put("maps",maps);
+        dataMap.put("messageCode",messageCode);
+        rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_NAME_INDEX_TASK, dataMap);
     }
 
     /**
@@ -1243,8 +1206,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             Collection<Template> templateList = super.listByIds(ids);
             if(CollectionUtil.isNotEmpty(templateList)){
                 for(Template template:templateList){
-                    //删除索引
-                    this.addIndexTask(template, RabbitMQConstants.MQ_CMS_INDEX_COMMAND_DELETE);
                     //发布新闻所属栏目关联的页面静态页
                     pageService.replyPageByCatalog(template.getCmsCatalogId());
                     idarr += ","+template.getId();
@@ -1253,6 +1214,8 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 TemplateVo templateVo = new TemplateVo();
                 templateVo.setIds(idarr.substring(1));
                 this.genStaticPage(templateVo, RabbitMQConstants.MQ_CMS_INDEX_COMMAND_DELETE);
+                //删除索引
+                this.reindex(templateVo, RabbitMQConstants.MQ_CMS_INDEX_COMMAND_DELETE);
             }
         }
         return baseMapper.updateStatusByIds(ids, status);

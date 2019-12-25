@@ -104,15 +104,7 @@ public interface TemplateService extends BaseService<Template> {
      * @param templateVo
      * @return
      */
-    boolean reindex(TemplateVo templateVo);
-
-    /**
-     * 删除索引数据
-     *
-     * @param template
-     * @return
-     */
-    boolean removeIndexData(Template template);
+    boolean reindex(TemplateVo templateVo,String messageCode);
 
 
     /************************************************************************************************
