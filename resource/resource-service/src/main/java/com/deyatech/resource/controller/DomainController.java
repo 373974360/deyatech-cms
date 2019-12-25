@@ -1,11 +1,14 @@
 package com.deyatech.resource.controller;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.http.HttpStatus;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseController;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.enums.EnableEnum;
+import com.deyatech.common.exception.BusinessException;
 import com.deyatech.resource.entity.Domain;
 import com.deyatech.resource.service.DomainService;
 import com.deyatech.resource.vo.DomainVo;
@@ -231,5 +234,23 @@ public class DomainController extends BaseController {
         QueryWrapper queryWrapper = new QueryWrapper<>();
         queryWrapper.select("ifnull(max(sort_no), 0) + 1 as sortNo");
         return RestResult.ok(domainService.getMap(queryWrapper).get("sortNo"));
+    }
+
+    /**
+     * 获取站点域名
+     *
+     * @return
+     */
+    @RequestMapping("/getDomainNameBySiteId")
+    @ApiOperation(value = "获取站点域名", notes = "获取站点域名")
+    public RestResult<Integer> getDomainNameBySiteId(String siteId) {
+        QueryWrapper<Domain> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("station_group_id", siteId);
+        List<Domain> list = domainService.list(queryWrapper);
+        if (CollectionUtil.isEmpty(list)) {
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "站点没有配置域名");
+        }
+        Domain domain = list.get(0);
+        return RestResult.ok(domain.getName());
     }
 }
