@@ -262,21 +262,18 @@ public class MaterialServiceImpl extends BaseServiceImpl<MaterialMapper, Materia
      * 获取文件物理路径
      *
      * @param siteId
-     * @param url
+     * @param url /upload/2019/12/25/201912250931263577.jpg
      * @return
      */
     @Override
     public String getFilePath(String siteId, String url) {
-        // 获取站点根目录
-        String sitePath = siteCache.getStationGroupRootPath(siteId);
-//        String fileName = url.substring(url.lastIndexOf("/")+1);
-        StringBuilder filePath = new StringBuilder(sitePath);
-//        filePath.append(fileName.substring(0, 4));
-//        filePath.append("/");
-//        filePath.append(fileName.substring(4, 6));
-//        filePath.append("/");
-//        filePath.append(fileName.substring(6, 8));
-//        filePath.append("/");
+        StringBuilder filePath = new StringBuilder();
+        // 站点全局配置
+        if ("0".equals(siteId)) {
+            filePath.append(this.siteProperties.getHostsRoot());
+        } else {
+            filePath.append(siteCache.getStationGroupRootPath(siteId));
+        }
         filePath.append(url);
         return  filePath.toString();
     }
