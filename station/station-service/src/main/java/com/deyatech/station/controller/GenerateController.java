@@ -64,7 +64,7 @@ public class GenerateController {
         IPage<TemplateVo> templates = templateService.getTemplateListView(maps,currPage,1);
         if(templates.getPages() > 0){
             maps.put("totle",templates.getTotal());
-            templateService.addStaticPageTask(maps, RabbitMQConstants.MQ_CMS_STATIC_PAGE_CODE_UPDATE);
+            templateService.addStaticPageTask(maps, RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE);
         }
         return RestResult.ok();
     }

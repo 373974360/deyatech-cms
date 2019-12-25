@@ -3,6 +3,7 @@ package com.deyatech.station.rabbit.consumer;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.station.entity.Template;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.index.IndexService;
@@ -45,7 +46,7 @@ public class CmsTaskQueueConsumer {
      * 处理生成静态页面任务--进度条
      * @param dataMap
      */
-    @RabbitListener(queues = RabbitMQConstants.QUEUE_NAME_STATIC_PROGRESS_PAGE_TASK)
+    @RabbitListener(queues = RabbitMQConstants.QUEUE_NAME_STATIC_PAGE_TASK)
     public void handleCmsStaticTask(Map<String,Object> dataMap) {
         log.info(String.format("处理发布静态页任务：%s", JSONUtil.toJsonStr(dataMap)));
         String messageCode = dataMap.get("messageCode").toString();
@@ -62,20 +63,12 @@ public class CmsTaskQueueConsumer {
                 templateFeign.generateStaticTemplate(templateVo,messageCode);
                 result.put("currNo",String.valueOf(i));
                 result.put("currTitle",templateVo.getTitle());
-                //向客户端发送进度
-                messagingTemplate.convertAndSend(TOPIC_STATIC_PAGE_MESSAGE, result);
+                if(messageCode.equals(RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE)){
+                    //向客户端发送进度
+                    messagingTemplate.convertAndSend(TOPIC_STATIC_PAGE_MESSAGE, result);
+                }
             }
         }
-    }
-    /**
-     * 处理生成静态页面任务
-     * @param templateVo
-     */
-    @RabbitListener(queues = RabbitMQConstants.QUEUE_NAME_STATIC_PAGE_TASK)
-    public void handleCmsStaticTask(TemplateVo templateVo) {
-        log.info(String.format("处理发布静态页任务：%s", JSONUtil.toJsonStr(templateVo)));
-        // 创建/删除、更新静态页
-        templateFeign.generateStaticTemplate(templateVo,templateVo.getCode());
     }
 
     /**

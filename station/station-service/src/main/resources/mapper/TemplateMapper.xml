@@ -163,6 +163,12 @@
                 #{id}
             </foreach>
         </if>
+        <if test="map.id != null">
+            and st.id_ in
+            <foreach collection="map.id" index="index" item="id" separator="," close=")" open="(">
+                #{id}
+            </foreach>
+        </if>
         order by st.sort_no desc,st.resource_publication_date desc
     </select>
 
