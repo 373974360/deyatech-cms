@@ -29,6 +29,16 @@ public class RabbitConfig {
     }
 
     /**
+     * 待处理生成静态页面的任务队列--进度条
+     *
+     * @return
+     */
+    @Bean
+    public Queue staticPageProgressTaskQueue() {
+        return new Queue(RabbitMQConstants.QUEUE_NAME_STATIC_PROGRESS_PAGE_TASK);
+    }
+
+    /**
      * 索引数据任务队列
      *
      * @return
@@ -38,6 +48,17 @@ public class RabbitConfig {
         return new Queue(RabbitMQConstants.QUEUE_NAME_INDEX_TASK);
     }
 
+
+    /**
+     * 自动删除匿名队列--进度条
+     * @param csmTaskTopicExchange 广播交换器
+     * @param staticPageProgressTaskQueue 自动删除队列
+     * @return
+     */
+    @Bean
+    public Binding bindingStaticPageProgressTask(TopicExchange csmTaskTopicExchange, Queue staticPageProgressTaskQueue) {
+        return BindingBuilder.bind(staticPageProgressTaskQueue).to(csmTaskTopicExchange).with(RabbitMQConstants.QUEUE_NAME_STATIC_PROGRESS_PAGE_TASK);
+    }
 
     /**
      * 自动删除匿名队列
