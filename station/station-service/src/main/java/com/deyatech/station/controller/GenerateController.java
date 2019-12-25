@@ -3,6 +3,7 @@ package com.deyatech.station.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.enums.YesNoEnum;
+import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.service.TemplateService;
 import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.template.feign.TemplateFeign;
@@ -52,7 +53,6 @@ public class GenerateController {
     })
     public RestResult createHtml(@RequestParam(value="ids[]",required=false) List<String> ids,@RequestParam(value="timeFrame[]",required=false) List<String> timeFrame) {
         Integer currPage = 1;
-        Integer pageSize = 50;
         Map<String,Object> maps = new HashMap<>();
         if(ids!= null && !ids.isEmpty()){
             maps.put("cmsCatalogId",ids);
@@ -61,19 +61,10 @@ public class GenerateController {
             maps.put("startTime",timeFrame.get(0));
             maps.put("endTime",timeFrame.get(1));
         }
-        IPage<TemplateVo> templates = templateService.getTemplateListView(maps,currPage,pageSize);
-        List<TemplateVo> list;
+        IPage<TemplateVo> templates = templateService.getTemplateListView(maps,currPage,1);
         if(templates.getPages() > 0){
-            for(int i = 1;i <= templates.getPages();i++){
-                list = templateService.getTemplateListView(maps,i,pageSize).getRecords();
-                if(list != null && !list.isEmpty()){
-                    for(TemplateVo templateVo:list){
-                        if(YesNoEnum.NO.getCode() == templateVo.getFlagExternal()){
-                            templateService.genStaticPage(templateVo);
-                        }
-                    }
-                }
-            }
+            maps.put("totle",templates.getTotal());
+            templateService.addStaticPageTask(maps, RabbitMQConstants.MQ_CMS_STATIC_PAGE_CODE_UPDATE);
         }
         return RestResult.ok();
     }

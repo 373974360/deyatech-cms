@@ -43,6 +43,10 @@ public class RabbitMQConstants {
      */
     public static final String CMS_TASK_TOPIC_EXCHANGE = "cms-task-topic-exchange";
     /**
+     * 静态页队列名称-带进度条
+     */
+    public static final String QUEUE_NAME_STATIC_PROGRESS_PAGE_TASK = "staticPageProgressTaskQueue";
+    /**
      * 静态页队列名称
      */
     public static final String QUEUE_NAME_STATIC_PAGE_TASK = "staticPageTaskQueue";

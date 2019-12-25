@@ -6,6 +6,7 @@ import com.deyatech.common.enums.ContentStatusEnum;
 import com.deyatech.station.config.AipNlpConfig;
 import com.deyatech.station.entity.Model;
 import com.deyatech.station.entity.Template;
+import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.service.ModelService;
 import com.deyatech.station.service.PageService;
 import com.deyatech.station.vo.TemplateVo;
@@ -295,8 +296,8 @@ public class TemplateController extends BaseController {
     @ApiImplicitParam(name = "templateVo", value = "内容模板Vo对象", required = false, dataType = "TemplateVo", paramType = "query")
     public RestResult<Boolean> genStaticPage(TemplateVo templateVo) {
         log.info(String.format("生成静态页: %s ", templateVo));
-        boolean result = templateService.genStaticPage(templateVo);
-        return RestResult.ok(result);
+        templateService.genStaticPage(templateVo, RabbitMQConstants.MQ_CMS_STATIC_PAGE_CODE_UPDATE);
+        return RestResult.ok(true);
     }
 
     /**
@@ -332,8 +333,7 @@ public class TemplateController extends BaseController {
         //发布新闻所属栏目关联的页面静态页
         pageService.replyPageByCatalog(template.getCmsCatalogId());
         //生成内容静态页
-        TemplateVo templateVo = templateService.setVoProperties(templateService.getById(template.getId()));
-        templateService.genStaticPage(templateVo);
+        templateService.addStaticPageTask(template,RabbitMQConstants.MQ_CMS_STATIC_PAGE_CODE_ADD);
         boolean result = templateService.updateById(template);
         return RestResult.ok(result);
     }

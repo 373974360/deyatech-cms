@@ -183,7 +183,10 @@
         left join admin_user au on sca.publisher = au.id_ and au.enable_ = 1
         where sca.enable_ = 1
         ) agg on c.aggregation_id = agg.aggregation_id
-        where c.enable_ = 1 and c.site_id = #{catalog.siteId} and c.parent_id = #{catalog.parentId}
+        where c.enable_ = 1 and c.site_id = #{catalog.siteId}
+        <if test="catalog.parentId != null">
+            and c.parent_id = #{catalog.parentId}
+        </if>
     </select>
     <select id="getCountChildrenCatalog" resultType="java.util.Map">
         select parent_id as catalogId, count(*) as number

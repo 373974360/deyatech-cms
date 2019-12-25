@@ -94,7 +94,9 @@ public interface TemplateService extends BaseService<Template> {
      * @param templateVo
      * @return
      */
-    boolean genStaticPage(TemplateVo templateVo);
+    void genStaticPage(TemplateVo templateVo,String messageCode);
+    void addStaticPageTask(Map<String,Object> maps,String messageCode);
+    void addStaticPageTask(Template template,String messageCode);
 
     /**
      * 生成索引

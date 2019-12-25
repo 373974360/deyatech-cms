@@ -2,6 +2,7 @@ package com.deyatech.station.rabbit.consumer;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.station.entity.Template;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.index.IndexService;
@@ -13,6 +14,7 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.beans.BeanMap;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Array;
@@ -23,8 +25,8 @@ import java.util.*;
  * @Author csm
  * @Date 2019/08/13
  */
-@Component
 @Slf4j
+@Component
 public class CmsTaskQueueConsumer {
 
     @Autowired
@@ -34,6 +36,37 @@ public class CmsTaskQueueConsumer {
     @Autowired
     TemplateService templateService;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
+    private final String TOPIC_STATIC_PAGE_MESSAGE = "/topic/staticPage/message/";
+
+    /**
+     * 处理生成静态页面任务--进度条
+     * @param dataMap
+     */
+    @RabbitListener(queues = RabbitMQConstants.QUEUE_NAME_STATIC_PROGRESS_PAGE_TASK)
+    public void handleCmsStaticTask(Map<String,Object> dataMap) {
+        log.info(String.format("处理发布静态页任务：%s", JSONUtil.toJsonStr(dataMap)));
+        String messageCode = dataMap.get("messageCode").toString();
+        Map<String, Object> maps = (Map<String, Object>) dataMap.get("maps");
+        IPage<TemplateVo> templates = templateService.getTemplateListView(maps,1,Integer.parseInt(maps.get("totle").toString()));
+        if(CollectionUtil.isNotEmpty(templates.getRecords())){
+            Map<String,Object> result = new HashMap();
+            result.put("totle",String.valueOf(templates.getTotal()));
+            int i = 0;
+            for(TemplateVo templateVo:templates.getRecords()){
+                i ++;
+                templateVo = templateService.setVoProperties(templateVo);
+                // 创建/删除、更新静态页
+                templateFeign.generateStaticTemplate(templateVo,messageCode);
+                result.put("currNo",String.valueOf(i));
+                result.put("currTitle",templateVo.getTitle());
+                //向客户端发送进度
+                messagingTemplate.convertAndSend(TOPIC_STATIC_PAGE_MESSAGE, result);
+            }
+        }
+    }
     /**
      * 处理生成静态页面任务
      * @param templateVo
@@ -41,9 +74,8 @@ public class CmsTaskQueueConsumer {
     @RabbitListener(queues = RabbitMQConstants.QUEUE_NAME_STATIC_PAGE_TASK)
     public void handleCmsStaticTask(TemplateVo templateVo) {
         log.info(String.format("处理发布静态页任务：%s", JSONUtil.toJsonStr(templateVo)));
-        String messageCode = templateVo.getCode();
         // 创建/删除、更新静态页
-        templateFeign.generateStaticTemplate(templateVo,messageCode);
+        templateFeign.generateStaticTemplate(templateVo,templateVo.getCode());
     }
 
     /**

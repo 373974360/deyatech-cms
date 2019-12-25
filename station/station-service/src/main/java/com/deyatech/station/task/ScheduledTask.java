@@ -48,16 +48,14 @@ public class ScheduledTask {
     @Scheduled(fixedRate = 60000)
     public void run() {
         //刷新缓存
-        siteCache.cacheSite();
+        //siteCache.cacheSite();
         //发布页面
         String currTime = DateUtil.format(new Date(),"yyyy-MM-dd HH:mm:ss");
-        System.out.println("开始执行定时任务==================："+currTime);
         List<Page> pageList = pageService.getPageListByCurrTime(currTime);
         if(CollectionUtil.isNotEmpty(pageList)){
             for(Page page:pageList){
                 System.out.println("发布页面===============："+page.getPagePath()+page.getPageEnglishName()+".html");
                 pageService.replayPage(page);
-
                 //设置下次更新时间
                 page.setLastDtime(currTime);
                 page.setNextDtime(DateUtil.format(DateUtil.offsetSecond(DateUtil.parse(currTime),page.getPageInterval()),"yyyy-MM-dd HH:mm:ss"));

@@ -402,8 +402,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 templateVo.setSourceName(departmentNameMap.get(templateVo.getSource()) == null ? templateVo.getSource() : departmentNameMap.get(templateVo.getSource()));
                 // 查询元数据结构及数据
                 this.queryMetadata(templateVo);
-                // 查询模型模板
-                this.queryModelTemplate(templateVo);
                 templateVos.add(templateVo);
             }
         }
@@ -606,7 +604,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             // 发布状态
             if (ContentStatusEnum.PUBLISH.getCode() == templateVo.getStatus()) {
                 // 生成静态页面任务
-                this.addStaticPageTask(templateVo,hasId ? RabbitMQConstants.MQ_CMS_STATIC_PAGE_CODE_UPDATE : RabbitMQConstants.MQ_CMS_STATIC_PAGE_CODE_ADD);
+                this.addStaticPageTask(templateVo,RabbitMQConstants.MQ_CMS_STATIC_PAGE_CODE_UPDATE);
                 // 默认都创建索引, 索引任务
                 this.addIndexTask(templateVo, hasId ? RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE : RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
                 //发布新闻所属栏目关联的页面静态页
@@ -752,17 +750,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     }
 
     /**
-     * 添加生成静态页面任务到队列
-     * @param template
-     */
-    private void addStaticPageTask(Template template, String code) {
-        TemplateVo templateVo = setVoProperties(template);
-        templateVo.setCode(code);
-        log.info(String.format("新增任务：%s", JSONUtil.toJsonStr(templateVo)));
-        rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_NAME_STATIC_PAGE_TASK, templateVo);
-    }
-
-    /**
      * 添加索引任务到队列
      * @param template
      * @param code
@@ -801,19 +788,36 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
      * @return
      */
     @Override
-    public boolean genStaticPage(TemplateVo templateVo) {
+    public void genStaticPage(TemplateVo templateVo,String messageCode) {
         Collection<Template> templateList = this.getTemplateList(templateVo);
         if (CollectionUtil.isNotEmpty(templateList)) {
-            for (Template template : templateList) {
-                // 添加任务，发送MQ消息 TODO
-                try {
-                    this.addStaticPageTask(template,RabbitMQConstants.MQ_CMS_STATIC_PAGE_CODE_UPDATE);
-                } catch (Exception e) {
-                    log.error("生成内容静态页出错", e);
-                }
+            for(Template template:templateList){
+                this.addStaticPageTask(template,messageCode);
             }
         }
-        return true;
+    }
+    /**
+     * 添加生成静态页面任务到队列--带进度条
+     * @param maps
+     */
+    @Override
+    public void addStaticPageTask(Map<String,Object> maps,String messageCode) {
+        log.info(String.format("新增任务：%s", JSONUtil.toJsonStr(maps)));
+        Map<String,Object> dataMap = new HashMap<>();
+        dataMap.put("maps",maps);
+        dataMap.put("messageCode",messageCode);
+        rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_NAME_STATIC_PROGRESS_PAGE_TASK, dataMap);
+    }
+    /**
+     * 添加生成静态页面任务到队列
+     * @param template
+     */
+    @Override
+    public void addStaticPageTask(Template template,String messageCode) {
+        TemplateVo templateVo = this.setVoProperties(template);
+        templateVo.setCode(messageCode);
+        log.info(String.format("新增任务：%s", JSONUtil.toJsonStr(templateVo)));
+        rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_NAME_STATIC_PAGE_TASK, templateVo);
     }
 
     private Collection<Template> getTemplateList(TemplateVo templateVo) {
