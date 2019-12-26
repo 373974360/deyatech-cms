@@ -95,8 +95,8 @@ public interface TemplateService extends BaseService<Template> {
      * @return
      */
     void genStaticPage(TemplateVo templateVo,String messageCode);
+
     void addStaticPageTask(Map<String,Object> maps,String messageCode);
-    void addStaticPageTask(Template template,String messageCode);
 
     /**
      * 生成索引
@@ -104,15 +104,7 @@ public interface TemplateService extends BaseService<Template> {
      * @param templateVo
      * @return
      */
-    boolean reindex(TemplateVo templateVo);
-
-    /**
-     * 删除索引数据
-     *
-     * @param template
-     * @return
-     */
-    boolean removeIndexData(Template template);
+    boolean reindex(TemplateVo templateVo,String messageCode);
 
 
     /************************************************************************************************

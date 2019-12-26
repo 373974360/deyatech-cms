@@ -3,10 +3,9 @@ package com.deyatech.station.rabbit.consumer;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.deyatech.interview.vo.LiveMessageVo;
-import com.deyatech.station.entity.Template;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.index.IndexService;
+import com.deyatech.station.service.ModelService;
 import com.deyatech.station.service.TemplateService;
 import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.template.feign.TemplateFeign;
@@ -36,27 +35,21 @@ public class CmsTaskQueueConsumer {
     TemplateFeign templateFeign;
     @Autowired
     TemplateService templateService;
+    @Autowired
+    ModelService modelService;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
     private final String TOPIC_STATIC_PAGE_MESSAGE = "/topic/staticPage/message/";
 
-    /**
-     * 生成内容索引编码
-     * @param param
-     */
-    @RabbitListener(queues = "#{queueResetIndexCode.name}")
-    public void handlerLiveMessage(Map<String,Object> param) {
-        log.info(String.format("生成内容索引编码：%s", JSONUtil.toJsonStr(param)));
-        templateService.resetTemplateIndexCodeHandler(param);
-    }
+    private final String TOPIC_REINDEX_MESSAGE = "/topic/reIndex/message/";
 
     /**
      * 处理生成静态页面任务--进度条
      * @param dataMap
      */
-    @RabbitListener(queues = RabbitMQConstants.QUEUE_NAME_STATIC_PROGRESS_PAGE_TASK)
+    @RabbitListener(queues = RabbitMQConstants.QUEUE_NAME_STATIC_PAGE_TASK)
     public void handleCmsStaticTask(Map<String,Object> dataMap) {
         log.info(String.format("处理发布静态页任务：%s", JSONUtil.toJsonStr(dataMap)));
         String messageCode = dataMap.get("messageCode").toString();
@@ -73,41 +66,52 @@ public class CmsTaskQueueConsumer {
                 templateFeign.generateStaticTemplate(templateVo,messageCode);
                 result.put("currNo",String.valueOf(i));
                 result.put("currTitle",templateVo.getTitle());
-                //向客户端发送进度
-                messagingTemplate.convertAndSend(TOPIC_STATIC_PAGE_MESSAGE, result);
+                if(messageCode.equals(RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE)){
+                    //向客户端发送进度
+                    messagingTemplate.convertAndSend(TOPIC_STATIC_PAGE_MESSAGE, result);
+                }
             }
         }
-    }
-    /**
-     * 处理生成静态页面任务
-     * @param templateVo
-     */
-    @RabbitListener(queues = RabbitMQConstants.QUEUE_NAME_STATIC_PAGE_TASK)
-    public void handleCmsStaticTask(TemplateVo templateVo) {
-        log.info(String.format("处理发布静态页任务：%s", JSONUtil.toJsonStr(templateVo)));
-        // 创建/删除、更新静态页
-        templateFeign.generateStaticTemplate(templateVo,templateVo.getCode());
     }
 
     /**
      * 处理索引任务
-     * @param templateVo
+     * @param dataMap
      */
     @RabbitListener(queues = RabbitMQConstants.QUEUE_NAME_INDEX_TASK)
-    public void handleCmsIndexTask(TemplateVo templateVo) {
-        log.info(String.format("处理索引任务：%s", JSONUtil.toJsonStr(templateVo)));
-        String messageCode = templateVo.getCode();
-
-        // 索引/删除、更新数据
-        if (RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD.equalsIgnoreCase(messageCode)) {
-            this.addIndex(templateVo);
-        } else if (RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE.equalsIgnoreCase(messageCode)) {
-            this.updateIndex(templateVo);
-        } else if (RabbitMQConstants.MQ_CMS_INDEX_COMMAND_DELETE.equalsIgnoreCase(messageCode)) {
-            this.deleteIndex(templateVo);
-        } else {
-            log.warn("未知的索引任务: %s ", JSONUtil.toJsonStr(templateVo));
+    public void handleCmsIndexTask(Map<String,Object> dataMap) {
+        log.info(String.format("处理索引任务：%s", JSONUtil.toJsonStr(dataMap)));
+        String messageCode = dataMap.get("messageCode").toString();
+        Map<String, Object> maps = (Map<String, Object>) dataMap.get("maps");
+        IPage<TemplateVo> templates = templateService.getTemplateListView(maps,1,Integer.parseInt(maps.get("totle").toString()));
+        if(CollectionUtil.isNotEmpty(templates.getRecords())){
+            Map<String,Object> result = new HashMap();
+            result.put("totle",String.valueOf(templates.getTotal()));
+            int i = 0;
+            for(TemplateVo templateVo:templates.getRecords()){
+                i++;
+                // 获取索引
+                String index = modelService.getIndexByModelId(templateVo.getContentModelId());
+                templateVo.setIndex(index);
+                result.put("currNo",String.valueOf(i));
+                result.put("currTitle",templateVo.getTitle());
+                // 索引/删除、更新数据
+                if (RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD.equalsIgnoreCase(messageCode)) {
+                    this.addIndex(templateVo);
+                } else if (RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE.equalsIgnoreCase(messageCode)) {
+                    this.updateIndex(templateVo);
+                    //向客户端发送进度
+                    messagingTemplate.convertAndSend(TOPIC_REINDEX_MESSAGE, result);
+                } else if (RabbitMQConstants.MQ_CMS_INDEX_COMMAND_DELETE.equalsIgnoreCase(messageCode)) {
+                    this.deleteIndex(templateVo);
+                    //向客户端发送进度
+                    messagingTemplate.convertAndSend(TOPIC_REINDEX_MESSAGE, result);
+                } else {
+                    log.warn("未知的索引任务: %s ", JSONUtil.toJsonStr(templateVo));
+                }
+            }
         }
+
     }
 
     private void addIndex(TemplateVo templateVo) {

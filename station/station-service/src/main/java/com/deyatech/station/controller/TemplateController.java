@@ -296,7 +296,7 @@ public class TemplateController extends BaseController {
     @ApiImplicitParam(name = "templateVo", value = "内容模板Vo对象", required = false, dataType = "TemplateVo", paramType = "query")
     public RestResult<Boolean> genStaticPage(TemplateVo templateVo) {
         log.info(String.format("生成静态页: %s ", templateVo));
-        templateService.genStaticPage(templateVo, RabbitMQConstants.MQ_CMS_STATIC_PAGE_CODE_UPDATE);
+        templateService.genStaticPage(templateVo, RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE);
         return RestResult.ok(true);
     }
 
@@ -311,7 +311,7 @@ public class TemplateController extends BaseController {
     @ApiImplicitParam(name = "templateVo", value = "内容模板Vo对象", required = false, dataType = "TemplateVo", paramType = "query")
     public RestResult<Boolean> reindex(TemplateVo templateVo) {
         log.info(String.format("生成索引: %s ", templateVo));
-        boolean result = templateService.reindex(templateVo);
+        boolean result = templateService.reindex(templateVo,RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE);
         return RestResult.ok(result);
     }
 
@@ -333,7 +333,9 @@ public class TemplateController extends BaseController {
         //发布新闻所属栏目关联的页面静态页
         pageService.replyPageByCatalog(template.getCmsCatalogId());
         //生成内容静态页
-        templateService.addStaticPageTask(template,RabbitMQConstants.MQ_CMS_STATIC_PAGE_CODE_ADD);
+        TemplateVo templateVo = new TemplateVo();
+        templateVo.setIds(template.getId());
+        templateService.genStaticPage(templateVo,RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
         boolean result = templateService.updateById(template);
         return RestResult.ok(result);
     }
@@ -358,15 +360,15 @@ public class TemplateController extends BaseController {
     /**
      * 删除索引数据
      *
-     * @param template
+     * @param templateVo
      * @return
      */
     @GetMapping("/removeIndexData")
     @ApiOperation(value="删除索引数据", notes="删除索引数据")
     @ApiImplicitParam(name = "template", value = "内容模板扩展对象", required = false, dataType = "Template", paramType = "query")
-    public RestResult<Boolean> removeIndexData(Template template) {
-        log.info(String.format("删除索引数据: %s ", template));
-        boolean result = templateService.removeIndexData(template);
+    public RestResult<Boolean> removeIndexData(TemplateVo templateVo) {
+        log.info(String.format("删除索引数据: %s ", templateVo));
+        boolean result = templateService.reindex(templateVo,RabbitMQConstants.MQ_CMS_INDEX_COMMAND_DELETE);
         return RestResult.ok(result);
     }
 
