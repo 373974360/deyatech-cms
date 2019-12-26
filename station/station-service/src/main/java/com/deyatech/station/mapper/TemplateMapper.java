@@ -32,6 +32,13 @@ public interface TemplateMapper extends BaseMapper<Template> {
             @Param("catalogIdList") List<String> catalogIdList,
             @Param("userIdList") List<String> userIdList);
 
+    List<Template> pageTemplateListForRestIndexCode(
+            @Param("siteId") String siteId,
+            @Param("start") String start,
+            @Param("end") String end,
+            @Param("offset") int offset,
+            @Param("size") int size
+        );
 
     /**
      * 根据ID查询对象

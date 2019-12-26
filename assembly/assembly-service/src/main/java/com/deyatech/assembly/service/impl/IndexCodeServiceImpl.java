@@ -71,6 +71,22 @@ public class IndexCodeServiceImpl extends BaseServiceImpl<IndexCodeMapper, Index
     }
 
     /**
+     * 更新站点流水号
+     *
+     * @param siteId
+     * @param value
+     */
+    @Override
+    public void updateNextSerialBySiteId(String siteId, int value) {
+        QueryWrapper<IndexCode> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("site_id", siteId);
+        IndexCode indexCode = getOne(queryWrapper);
+        if (value > 0) {
+            indexCode.setNextSerial(String.format("%0" + indexCode.getNumber() + "d", value));
+            updateById(indexCode);
+        }
+    }
+    /**
      * 索引码重置
      *
      * @param siteId
@@ -83,20 +99,8 @@ public class IndexCodeServiceImpl extends BaseServiceImpl<IndexCodeMapper, Index
         QueryWrapper<IndexCode> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("site_id", siteId);
         IndexCode indexCode = getOne(queryWrapper);
-        // 信息流水号位数
-        RestResult<String> result = stationFeign.resetTemplateIndexCode(siteId, start, end, getFixedPart(siteId, indexCode), indexCode.getNumber());
-        if (Objects.isNull(result)) {
-            return false;
-        }
-        int value = Integer.parseInt(result.getData());
-        if (value > 0) {
-            value += 1;
-            indexCode.setNextSerial(String.format("%0" + indexCode.getNumber() + "d", value));
-            updateById(indexCode);
-            return true;
-        } else {
-            return false;
-        }
+        stationFeign.resetTemplateIndexCode(siteId, start, end, getFixedPart(siteId, indexCode), indexCode.getNumber());
+        return true;
     }
 
     private String getFixedPart(String siteId, IndexCode indexCode) {

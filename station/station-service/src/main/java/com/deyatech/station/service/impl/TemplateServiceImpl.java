@@ -48,12 +48,14 @@ import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -67,7 +69,8 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Template> implements TemplateService{
-
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
     @Autowired
     private CatalogService catalogService;
     @Autowired
@@ -1175,8 +1178,25 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
      * @return
      */
     @Override
+    public void resetTemplateIndexCode(String siteId, String start, String end, String part, int number) {
+        Map<String,Object> param = new HashMap<>();
+        param.put("siteId", siteId);
+        param.put("start", start);
+        param.put("end", end);
+        param.put("part", part);
+        param.put("number", number);
+        rabbitmqTemplate.convertAndSend(RabbitMQConstants.FANOUT_EXCHANGE_RESET_INDEX_CODE, "", param);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
-    public String resetTemplateIndexCode(String siteId, String start, String end, String part, int number) {
+    public void resetTemplateIndexCodeHandler(Map<String,Object> param) {
+        String siteId = param.get("siteId").toString();
+        String start = (String) param.get("start");
+        String end = (String) param.get("end");
+        String part = (String) param.get("part");
+        int number = Integer.parseInt(param.get("number").toString());
+
         QueryWrapper<Template> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("id_");
         queryWrapper.eq("site_id", siteId);
@@ -1186,11 +1206,11 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         queryWrapper.orderByAsc("resource_publication_date");
         int total = super.count(queryWrapper);
         if (total == 0) {
-            return "0";
+            return;
         }
-        final int SIZE = 1000;
-        int totalPage = total / SIZE;
-        if (total % SIZE != 0) {
+        final int size = 10;
+        int totalPage = total / size;
+        if (total % size != 0) {
             totalPage += 1;
         }
         boolean result = true;
@@ -1198,14 +1218,12 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         format.append(number);
         format.append("d");
         int value = 1;
-        Page page = new Page();
-        page.setSize(SIZE);
         for (int p = 1; p <= totalPage; p++) {
-            page.setCurrent(p);
-            IPage<Template> resultPage = super.page(page, queryWrapper);
-            List<Template> list = resultPage.getRecords();
+            int offset = (p - 1) * size;
+            List<Template> list = baseMapper.pageTemplateListForRestIndexCode(siteId, start, end, offset, size);
             if (CollectionUtil.isNotEmpty(list)) {
                 for (Template t : list) {
+                    System.out.println(t.getId());
                     StringBuilder indexCode = new StringBuilder();
                     if (StrUtil.isNotEmpty(part)) {
                         indexCode.append(part);
@@ -1213,13 +1231,15 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                     indexCode.append(String.format(format.toString(), value++));
                     t.setIndexCode(indexCode.toString());
                 }
-                result &= super.updateBatchById(list);
+                boolean flag = super.updateBatchById(list);
+                result &= flag;
+                if (flag) {
+                    messagingTemplate.convertAndSend("/topic/reset/index/code/" + siteId + "/", (value - 1) + "," + total);
+                }
             }
         }
         if (result) {
-            return String.valueOf(total);
-        } else {
-            return "0";
+            assemblyFeign.updateNextSerialBySiteId(siteId, value);
         }
     }
 

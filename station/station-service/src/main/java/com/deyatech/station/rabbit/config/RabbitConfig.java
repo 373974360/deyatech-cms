@@ -12,6 +12,27 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class RabbitConfig {
+    /**
+     * 交换器
+     *
+     * @return
+     */
+    @Bean
+    public FanoutExchange fanoutExchangeResetIndexCode() { return new FanoutExchange(RabbitMQConstants.FANOUT_EXCHANGE_RESET_INDEX_CODE); }
+    /**
+     * 队列
+     *
+     * @return
+     */
+    @Bean
+    public Queue queueResetIndexCode() {return new AnonymousQueue();}
+    /**
+     * 绑定
+     *
+     * @return
+     */
+    @Bean
+    public Binding bindingResetIndexCode() { return BindingBuilder.bind(queueResetIndexCode()).to(fanoutExchangeResetIndexCode()); }
 
     @Bean
     public TopicExchange csmTaskTopicExchange() {

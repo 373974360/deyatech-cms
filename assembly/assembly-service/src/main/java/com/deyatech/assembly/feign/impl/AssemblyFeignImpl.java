@@ -72,4 +72,10 @@ public class AssemblyFeignImpl implements AssemblyFeign {
     public RestResult<String> getNextIndexCodeBySiteId(String siteId) {
         return RestResult.ok(indexCodeService.getNextIndexCodeBySiteId(siteId));
     }
+
+    @Override
+    public RestResult<String> updateNextSerialBySiteId(String siteId, int value) {
+        indexCodeService.updateNextSerialBySiteId(siteId, value);
+        return RestResult.ok();
+    }
 }

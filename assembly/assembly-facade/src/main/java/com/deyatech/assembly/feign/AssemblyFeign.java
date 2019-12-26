@@ -84,4 +84,13 @@ public interface AssemblyFeign {
      */
     @RequestMapping(value = "/feign/assembly/indexCode/getPartDept")
     RestResult<String> getNextIndexCodeBySiteId(@RequestParam("siteId") String siteId);
+
+    /**
+     * 更新站点索引编码规则流水号
+     *
+     * @param siteId
+     * @return
+     */
+    @RequestMapping(value = "/feign/assembly/indexCode/updateNextSerialBySiteId")
+    RestResult<String> updateNextSerialBySiteId(@RequestParam("siteId") String siteId, @RequestParam("value") int value);
 }

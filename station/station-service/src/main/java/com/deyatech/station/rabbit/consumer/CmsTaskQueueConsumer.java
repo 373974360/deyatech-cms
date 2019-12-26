@@ -3,6 +3,7 @@ package com.deyatech.station.rabbit.consumer;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.interview.vo.LiveMessageVo;
 import com.deyatech.station.entity.Template;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.index.IndexService;
@@ -40,6 +41,16 @@ public class CmsTaskQueueConsumer {
     private SimpMessagingTemplate messagingTemplate;
 
     private final String TOPIC_STATIC_PAGE_MESSAGE = "/topic/staticPage/message/";
+
+    /**
+     * 生成内容索引编码
+     * @param param
+     */
+    @RabbitListener(queues = "#{queueResetIndexCode.name}")
+    public void handlerLiveMessage(Map<String,Object> param) {
+        log.info(String.format("生成内容索引编码：%s", JSONUtil.toJsonStr(param)));
+        templateService.resetTemplateIndexCodeHandler(param);
+    }
 
     /**
      * 处理生成静态页面任务--进度条

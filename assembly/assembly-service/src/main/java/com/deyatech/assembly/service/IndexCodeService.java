@@ -50,4 +50,12 @@ public interface IndexCodeService extends BaseService<IndexCode> {
      * @return
      */
     String getNextIndexCodeBySiteId(String siteId);
+
+    /**
+     * 更新站点流水号
+     *
+     * @param siteId
+     * @param value
+     */
+    void updateNextSerialBySiteId(String siteId, int value);
 }
