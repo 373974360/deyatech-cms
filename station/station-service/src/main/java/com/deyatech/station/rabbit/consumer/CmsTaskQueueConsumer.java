@@ -46,6 +46,16 @@ public class CmsTaskQueueConsumer {
     private final String TOPIC_REINDEX_MESSAGE = "/topic/reIndex/message/";
 
     /**
+     * 生成内容索引编码
+     * @param param
+     */
+    @RabbitListener(queues = "#{queueResetIndexCode.name}")
+    public void handlerLiveMessage(Map<String,Object> param) {
+        log.info(String.format("生成内容索引编码：%s", JSONUtil.toJsonStr(param)));
+        templateService.resetTemplateIndexCodeHandler(param);
+    }
+
+    /**
      * 处理生成静态页面任务--进度条
      * @param dataMap
      */

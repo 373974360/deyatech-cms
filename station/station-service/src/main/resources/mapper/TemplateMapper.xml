@@ -191,7 +191,7 @@
         select cms_catalog_id as catalogId, count(*) as number from station_template group by cms_catalog_id
     </select>
     <select id="pageTemplateListForRestIndexCode" resultType="com.deyatech.station.entity.Template">
-        SELECT * FROM station_template
+        SELECT id_ FROM station_template
         WHERE enable_=1 AND site_id = #{siteId}
         <if test="start != null and start != '' and end != null and end != ''">
             AND DATE_FORMAT(resource_publication_date, '%Y-%m-%d') BETWEEN #{start} AND #{end}

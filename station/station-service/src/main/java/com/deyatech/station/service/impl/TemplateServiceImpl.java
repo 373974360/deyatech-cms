@@ -1165,7 +1165,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         String end = (String) param.get("end");
         String part = (String) param.get("part");
         int number = Integer.parseInt(param.get("number").toString());
-
         QueryWrapper<Template> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("id_");
         queryWrapper.eq("site_id", siteId);
@@ -1177,7 +1176,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         if (total == 0) {
             return;
         }
-        final int size = 10;
+        final int size = 100;
         int totalPage = total / size;
         if (total % size != 0) {
             totalPage += 1;
@@ -1188,11 +1187,9 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         format.append("d");
         int value = 1;
         for (int p = 1; p <= totalPage; p++) {
-            int offset = (p - 1) * size;
-            List<Template> list = baseMapper.pageTemplateListForRestIndexCode(siteId, start, end, offset, size);
+            List<Template> list = baseMapper.pageTemplateListForRestIndexCode(siteId, start, end, (p - 1) * size, size);
             if (CollectionUtil.isNotEmpty(list)) {
                 for (Template t : list) {
-                    System.out.println(t.getId());
                     StringBuilder indexCode = new StringBuilder();
                     if (StrUtil.isNotEmpty(part)) {
                         indexCode.append(part);
