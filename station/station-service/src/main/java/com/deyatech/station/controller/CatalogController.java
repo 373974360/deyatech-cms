@@ -54,10 +54,10 @@ public class CatalogController extends BaseController {
     @ApiImplicitParam(name = "catalogVo", value = "栏目扩展对象", required = true, dataType = "CatalogVo", paramType = "query")
     public RestResult saveOrUpdate(CatalogVo catalogVo) {
         log.info(String.format("保存或者更新栏目: %s ", JSONUtil.toJsonStr(catalogVo)));
-        int count = templateService.countTemplateByCatalogId(catalogVo.getParentId());
-        if (count > 0) {
-            return RestResult.error("当前栏目下已存在内容，不能添加栏目");
-        }
+//        int count = templateService.countTemplateByCatalogId(catalogVo.getParentId());
+//        if (count > 0) {
+//            return RestResult.error("当前栏目下已存在内容，不能添加栏目");
+//        }
         boolean result = catalogService.saveOrUpdate(catalogVo);
         siteCache.cacheSite(catalogVo.getSiteId());
         return RestResult.ok(result);
