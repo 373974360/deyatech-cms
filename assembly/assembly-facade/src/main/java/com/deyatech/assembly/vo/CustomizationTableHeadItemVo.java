@@ -92,7 +92,7 @@ public class CustomizationTableHeadItemVo {
         list.add(new CustomizationTableHeadItemVo("缩略图","thumbnail"));
         list.add(new CustomizationTableHeadItemVo("作者姓名","author", false, false));
         list.add(new CustomizationTableHeadItemVo("资源分类","resourceCategory", false, false));
-        list.add(new CustomizationTableHeadItemVo("模板路径","templatePath", false, false));
+//        list.add(new CustomizationTableHeadItemVo("模板路径","templatePath", false, false));
         list.add(new CustomizationTableHeadItemVo("索引编码","indexCode", false, false));
         list.add(new CustomizationTableHeadItemVo("内容模型","contentModelName", false, false));
         list.add(new CustomizationTableHeadItemVo("创建者姓名","createUserName", false, false));

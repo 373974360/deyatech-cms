@@ -53,6 +53,157 @@
         resource_category, resource_publication_date, keyword_, index_code
     </sql>
 
+
+
+
+
+    <select id="getUserIdOfUserDepartment" resultType="String">
+        select uu.id_
+        from admin_user uu
+        where uu.enable_ = 1 and uu.department_id in (
+          select u.department_id
+          from admin_user u
+          join admin_department d on d.id_ = u.department_id and d.enable_ = 1
+          where u.enable_ = 1 and u.id_ = #{userId}
+        )
+    </select>
+
+    <select id="getUserRoleAuthority" resultType="String">
+        select distinct ra.authority
+        from station_template_role_authority ra
+        join admin_role_user ru on ra.role_id = ru.role_id and ru.user_id = #{userId}
+        join admin_role r on r.id_ = ru.role_id and r.enable_ = 1
+    </select>
+
+    <select id="getUserRoleCatalog" resultType="com.deyatech.station.vo.CatalogVo">
+        select sc.id_, sc.parent_id
+        from station_catalog sc
+        join station_catalog_role cr on cr.catalog_id = sc.id_
+        join admin_role_user ru on ru.role_id = cr.role_id and ru.user_id = #{userId}
+        join admin_role r on r.id_ = ru.role_id and r.enable_ = 1
+        where sc.enable_ = 1 and sc.site_id = #{siteId}
+    </select>
+
+    <select id="countByTemplate" resultType="Map">
+        select count(1) as number
+        from station_template st
+        where st.enable_ = 1
+        <if test="template.title != null">
+            and (
+            st.title_ like concat('%', #{template.title}, '%') or
+            st.author_ like concat('%', #{template.title}, '%') or
+            st.sort_no like concat('%', #{template.title}, '%') or
+            DATE_FORMAT(st.resource_publication_date, '%Y-%m-%d %H:%i') like concat('%', #{template.title}, '%')
+            )
+        </if>
+        <if test="template.siteId != null">
+            and st.site_id = #{template.siteId}
+        </if>
+        <if test="template.status != null">
+            and st.status_ = #{template.status}
+        </if>
+        <if test="catalogIdList != null and catalogIdList.size > 0">
+            and st.cms_catalog_id in
+            <foreach item="item" index="index" collection="catalogIdList" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="userIdList != null and userIdList.size > 0">
+            and st.create_by in
+            <foreach item="item" index="index" collection="userIdList" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+    <select id="pageByTemplate" resultType="com.deyatech.station.vo.TemplateVo">
+        select
+        temp.id_,
+        temp.title_,
+        case when d.name_ is null then temp.source_ else d.name_ end as sourceName,
+        temp.resource_publication_date,
+        temp.status_,
+        temp.sort_no,
+        temp.flag_top,
+        temp.flag_external,
+        temp.thumbnail_,
+        temp.author_,
+        temp.resource_category,
+        temp.index_code,
+        temp.create_time,
+        temp.update_time,
+        temp.content_model_id,
+        temp.cms_catalog_id,
+        temp.site_id,
+        dict.code_text as resourceCategoryName,
+        sc.path_name as cmsCatalogPathName,
+        sm.name_ as contentModelName,
+        uc.name_ as createUserName,
+        uu.name_ as updateUserName,
+        dc.name_ as createUserDepartmentName,
+        du.name_ as updateUserDepartmentName
+        from (
+            select
+            st.id_,
+            st.title_,
+            st.source_,
+            st.resource_publication_date,
+            st.status_,
+            st.sort_no,
+            st.flag_top,
+            st.flag_external,
+            st.thumbnail_,
+            st.author_,
+            st.resource_category,
+            st.index_code,
+            st.create_time,
+            st.update_time,
+            st.cms_catalog_id,
+            st.create_by,
+            st.update_by,
+            st.content_model_id,
+            st.site_id
+            from station_template st
+            where st.enable_ = 1
+            <if test="template.title != null">
+                and (
+                st.title_ like concat('%', #{template.title}, '%') or
+                st.author_ like concat('%', #{template.title}, '%') or
+                st.sort_no like concat('%', #{template.title}, '%') or
+                DATE_FORMAT(st.resource_publication_date, '%Y-%m-%d %H:%i') like concat('%', #{template.title}, '%')
+                )
+            </if>
+            <if test="template.siteId != null">
+                and st.site_id = #{template.siteId}
+            </if>
+            <if test="template.status != null">
+                and st.status_ = #{template.status}
+            </if>
+            <if test="catalogIdList != null and catalogIdList.size > 0">
+                and st.cms_catalog_id in
+                <foreach item="item" index="index" collection="catalogIdList" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="userIdList != null and userIdList.size > 0">
+                and st.create_by in
+                <foreach item="item" index="index" collection="userIdList" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            order by st.update_time desc
+            limit #{offset}, #{size}
+        ) temp
+        left join station_catalog sc on sc.id_ = temp.cms_catalog_id and sc.enable_ = 1
+        left join station_model sm on sm.id_ = temp.content_model_id and sm.enable_ = 1
+        left join admin_dictionary dict on dict.id_ = temp.resource_category and dict.enable_ = 1
+        left join admin_user uc on uc.id_ = temp.create_by and uc.enable_ = 1
+        left join admin_user uu on uu.id_ = temp.update_by and uu.enable_ = 1
+        left join admin_department d on d.id_ = temp.source_ and d.enable_ = 1
+        left join (select au.id_, ad.name_ from admin_user au left join admin_department ad on au.department_id = ad.id_ and ad.enable_ = 1 where au.enable_ = 1) dc on dc.id_ = temp.create_by
+        left join (select au.id_, ad.name_ from admin_user au left join admin_department ad on au.department_id = ad.id_ and ad.enable_ = 1 where au.enable_ = 1) du on du.id_ = temp.update_by
+
+    </select>
+    <!--
     <select id="pageByTemplate" parameterType="com.deyatech.station.entity.Template" resultType="com.deyatech.station.vo.TemplateVo">
         select
             sm.name_ as contentModelName,
@@ -120,6 +271,7 @@
         </if>
         order by st.update_time desc
     </select>
+    -->
 
 
 

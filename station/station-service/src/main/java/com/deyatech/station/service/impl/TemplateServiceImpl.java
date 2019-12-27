@@ -375,11 +375,9 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     public List<TemplateVo> setVoProperties(Collection templates){
         List<TemplateVo> templateVos = CollectionUtil.newArrayList();
         if (CollectionUtil.isNotEmpty(templates)) {
-            Map<String, String> departmentNameMap = this.getDepartmentIdNameMap();
             for (Object template : templates) {
                 TemplateVo templateVo = new TemplateVo();
                 BeanUtil.copyProperties(template, templateVo);
-                templateVo.setSourceName(departmentNameMap.get(templateVo.getSource()) == null ? templateVo.getSource() : departmentNameMap.get(templateVo.getSource()));
                 templateVos.add(templateVo);
             }
         }
@@ -865,6 +863,69 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
      */
     @Override
     public IPage<TemplateVo> pageByTemplate(Template entity) {
+        long start = System.nanoTime();
+        String siteId = entity.getSiteId();
+        String userId = UserContextHelper.getUserId();
+
+        // 分配给用户的栏目
+        List<CatalogVo> catalogList = baseMapper.getUserRoleCatalog(siteId, userId);
+        if (CollectionUtil.isEmpty(catalogList)) {
+            throw new BusinessException( HttpStatus.HTTP_INTERNAL_ERROR, "没有分配栏目权限");
+        }
+        // 分配给用户的内容权限
+        List<String> authorityList = baseMapper.getUserRoleAuthority(userId);
+        if (CollectionUtil.isEmpty(authorityList)) {
+            throw new BusinessException( HttpStatus.HTTP_INTERNAL_ERROR, "没有分配内容权限");
+        }
+
+        // 检索条件: 栏目ID
+        List<String> catalogIdList = new ArrayList<>();
+        catalogIdList.add(entity.getCmsCatalogId());
+        // 加入当前栏目的子栏目ID
+        getChildrenCatalogId(entity.getCmsCatalogId(), catalogList, catalogIdList);
+
+        // 检索条件: 用户ID
+        List<String> userIdList = null;
+        // 部门权限
+        if (authorityList.contains(TemplateAuthorityEnum.DEPARTMENT.getCode())) {
+            userIdList = baseMapper.getUserIdOfUserDepartment(userId);
+        }
+        // 用户权限
+        else if (authorityList.contains(TemplateAuthorityEnum.USER.getCode())) {
+            userIdList = new ArrayList<>();
+            userIdList.add(userId);
+        }
+
+        Page<TemplateVo> result = new Page();
+        result.setCurrent(entity.getPage());
+        result.setSize(entity.getSize());
+        Map<String, Object> countResult = baseMapper.countByTemplate(entity, catalogIdList, userIdList);
+        long total = (long) countResult.get("number");
+        result.setTotal(total);
+        if (total > 0) {
+            long offset = (entity.getPage() - 1) * entity.getSize();
+            List<TemplateVo> list = baseMapper.pageByTemplate(entity, catalogIdList, userIdList, offset, entity.getSize());
+            result.setRecords(list);
+        }
+        log.info("内容检索耗时: " + getMillisTime(System.nanoTime() - start) + " 毫秒");
+        return result;
+    }
+
+    private void getChildrenCatalogId(String catalogId, Collection<CatalogVo> allCatalogList, List<String> catalogIdList) {
+        if (StrUtil.isEmpty(catalogId) || CollectionUtil.isEmpty(allCatalogList)) return;
+        for (Catalog c : allCatalogList) {
+            if (catalogId.equals(c.getParentId())) {
+                catalogIdList.add(c.getId());
+                getChildrenCatalogId(c.getId(), allCatalogList, catalogIdList);
+            }
+        }
+    }
+
+    private String getMillisTime(long time) {
+        return String.valueOf(time / 1000000);
+    }
+    /*
+    public IPage<TemplateVo> pageByTemplate(Template entity) {
         // 检索栏目ID
         List<String> catalogIdList = new ArrayList<>();
         String userId = UserContextHelper.getUserId();
@@ -929,18 +990,10 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         } else if (TemplateAuthorityEnum.USER.getCode().equals(authority)) {
             userIdList.add(userId);
         }
-        return baseMapper.pageByTemplate(getPageByBean(entity), entity, catalogIdList, userIdList);
-    }
+        IPage<TemplateVo> result = baseMapper.pageByTemplate(getPageByBean(entity), entity, catalogIdList, userIdList);
+        return result;
+    }*/
 
-    private void getChildrenCatalogId(String catalogId, Collection<Catalog> allCatalogList, List<String> childrenCatalogIds) {
-        if (StrUtil.isEmpty(catalogId) || CollectionUtil.isEmpty(allCatalogList) || childrenCatalogIds == null) return;
-        for (Catalog c : allCatalogList) {
-            if (catalogId.equals(c.getParentId())) {
-                childrenCatalogIds.add(c.getId());
-                getChildrenCatalogId(c.getId(), allCatalogList, childrenCatalogIds);
-            }
-        }
-    }
 
 
 

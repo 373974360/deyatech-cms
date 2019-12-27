@@ -134,11 +134,12 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
                 }
             });
         }
-        long spend = System.nanoTime() - start;
-        log.info("栏目树消耗时间：" + spend + "纳秒");
+        log.info("栏目检索耗时：" + getMillisTime(System.nanoTime() - start) + "毫秒");
         return catalogVos;
     }
-
+    private String getMillisTime(long time) {
+        return String.valueOf(time / 1000000);
+    }
     /**
      * 根据Catalog对象属性检索栏目的tree对象
      *

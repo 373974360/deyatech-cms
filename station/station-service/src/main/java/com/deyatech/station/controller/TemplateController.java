@@ -255,7 +255,7 @@ public class TemplateController extends BaseController {
     }
 
     /**
-     * 根据Template对象属性分页检索内容模板
+     * 翻页检索内容
      *
      * @param template
      * @return
@@ -264,9 +264,8 @@ public class TemplateController extends BaseController {
     @ApiOperation(value="根据Template对象属性分页检索内容模板", notes="根据Template对象属性分页检索内容模板信息")
     @ApiImplicitParam(name = "template", value = "内容模板对象", required = false, dataType = "Template", paramType = "query")
     public RestResult<IPage<TemplateVo>> pageByTemplate(Template template) {
+        log.info(String.format("翻页检索内容: %s ",JSONUtil.toJsonStr(template)));
         IPage<TemplateVo> templates = templateService.pageByTemplate(template);
-        templates.setRecords(templateService.setVoProperties(templates.getRecords()));
-        log.info(String.format("根据Template对象属性分页检索内容模板: %s ",JSONUtil.toJsonStr(templates)));
         return RestResult.ok(templates);
     }
 
