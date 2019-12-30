@@ -1,17 +1,13 @@
 package com.deyatech.assembly.controller;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import com.deyatech.assembly.entity.CustomizationTableHead;
 import com.deyatech.assembly.service.CustomizationFunctionService;
-import com.deyatech.assembly.vo.CustomizationTableHeadVo;
 import com.deyatech.assembly.vo.CustomizationTableHeadItemVo;
+import com.deyatech.assembly.vo.CustomizationTableHeadVo;
 import com.deyatech.common.base.BaseController;
-import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.enums.CustomizationTypeEnum;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
@@ -19,10 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -115,7 +109,7 @@ public class CustomizationFunctionController extends BaseController {
      *
      * @return
      */
-    @RequestMapping("/getTableHeadContentData")
+    @RequestMapping({"/getTableHeadContentData","/getTableHeadContentDataAlias"})
     @ApiOperation(value="内容表头", notes="内容表头")
     public RestResult<List<CustomizationTableHeadItemVo>> getTableHeadContentData () {
         return RestResult.ok(customizationFunctionService.getTableHeadData(CustomizationTypeEnum.TABLE_HEAD_CONTENT.getValue(), CustomizationTypeEnum.TABLE_HEAD_CONTENT.getCode()));
