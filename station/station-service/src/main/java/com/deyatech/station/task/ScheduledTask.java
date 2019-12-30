@@ -48,7 +48,7 @@ public class ScheduledTask {
     @Scheduled(fixedRate = 60000)
     public void run() {
         //刷新缓存
-        //siteCache.cacheSite();
+        siteCache.cacheSite();
         //发布页面
         String currTime = DateUtil.format(new Date(),"yyyy-MM-dd HH:mm:ss");
         List<Page> pageList = pageService.getPageListByCurrTime(currTime);

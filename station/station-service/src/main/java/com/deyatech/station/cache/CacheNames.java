@@ -42,6 +42,14 @@ public class CacheNames {
      */
     public static final String CATALOG_CACHE_KEY = "catalogKey";
     /**
+     * 用户 KEY = userKey ，VALUE = user
+     */
+    public static final String USER_CACHE_KEY = "userKey";
+    /**
+     * 用户 KEY = departmentKey ，VALUE = department
+     */
+    public static final String DEPARTMENT_CACHE_KEY = "departmentKey";
+    /**
      * 内容模型和栏目对应的使用的模板
      */
     public static final String CONTENT_MODEL_TEMPLATE_CACHE_KEY = "contentModelTemplate";

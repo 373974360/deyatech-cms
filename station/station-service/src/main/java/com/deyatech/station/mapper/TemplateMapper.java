@@ -2,7 +2,10 @@ package com.deyatech.station.mapper;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.deyatech.admin.entity.Department;
+import com.deyatech.admin.entity.User;
 import com.deyatech.admin.vo.UserVo;
+import com.deyatech.assembly.entity.CustomizationTableHead;
 import com.deyatech.station.entity.Template;
 import com.deyatech.common.base.BaseMapper;
 import com.deyatech.station.vo.CatalogVo;
@@ -136,8 +139,6 @@ public interface TemplateMapper extends BaseMapper<Template> {
      */
     List<String> getUserRoleAuthority(@Param("userId") String userId);
 
-
-
     /**
      * 用户所在部门的用户ID
      *
@@ -146,4 +147,17 @@ public interface TemplateMapper extends BaseMapper<Template> {
      */
     List<String> getUserIdOfUserDepartment(@Param("userId") String userId);
 
+    /**
+     * 用户
+     *
+     * @return
+     */
+    List<User> getAllUser();
+
+    /**
+     * 部门
+     *
+     * @return
+     */
+    List<Department> getAllDepartment();
 }

@@ -18,14 +18,12 @@ import com.deyatech.admin.entity.User;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.admin.vo.*;
 import com.deyatech.assembly.feign.AssemblyFeign;
+import com.deyatech.assembly.vo.CustomizationTableHeadItemVo;
 import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.entity.RestResult;
-import com.deyatech.common.enums.ContentStatusEnum;
-import com.deyatech.common.enums.MaterialUsePlaceEnum;
-import com.deyatech.common.enums.TemplateAuthorityEnum;
-import com.deyatech.common.enums.YesNoEnum;
+import com.deyatech.common.enums.*;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.common.utils.ColumnUtil;
 import com.deyatech.station.cache.SiteCache;
@@ -37,8 +35,10 @@ import com.deyatech.station.service.*;
 import com.deyatech.station.vo.*;
 import com.deyatech.workflow.feign.WorkflowFeign;
 import com.deyatech.workflow.vo.ProcessInstanceVo;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -52,6 +52,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -98,8 +99,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
 
     @Autowired
     IndexService indexService;
-    @Autowired
-    ObjectMapper objectMapper;
     @Autowired
     PageService pageService;
 
@@ -905,10 +904,47 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         if (total > 0) {
             long offset = (entity.getPage() - 1) * entity.getSize();
             List<TemplateVo> list = baseMapper.pageByTemplate(entity, catalogIdList, userIdList, offset, entity.getSize());
+            setUserDepartmentCatalogValue(list, catalogList);
             result.setRecords(list);
         }
         log.info("内容检索耗时: " + getMillisTime(System.nanoTime() - start) + " 毫秒");
         return result;
+    }
+
+    private void setUserDepartmentCatalogValue(List<TemplateVo> list, List<CatalogVo> catalogList) {
+        if (CollectionUtil.isNotEmpty(list)) {
+            Map<String, String> catalogMap = new HashMap<>();
+            Map<String, String> departmentMap = new HashMap<>();
+            Map<String, String> userMap = new HashMap<>();
+            Map<String, String> userDepartmentMap = new HashMap<>();
+            if (CollectionUtil.isNotEmpty(catalogList)) {
+                catalogList.stream().parallel().forEach(catalogVo -> catalogMap.put(catalogVo.getId(), catalogVo.getPathName()));
+            }
+            List<Department> departmentList = siteCache.getAllDepartment();
+            if (CollectionUtil.isNotEmpty(departmentList)) {
+                departmentList.stream().parallel().forEach(department -> departmentMap.put(department.getId(), department.getName()));
+            }
+            List<User> userList = siteCache.getAllUser();
+            if (CollectionUtil.isNotEmpty(userList)) {
+                userList.stream().parallel().forEach(user -> {
+                    userMap.put(user.getId(), user.getName());
+                    userDepartmentMap.put(user.getId(), departmentMap.get(user.getDepartmentId()));
+                });
+            }
+            list.stream().parallel().forEach(t -> {
+                t.setCmsCatalogPathName(catalogMap.get(t.getCmsCatalogId()));
+                String sourceName = departmentMap.get(t.getSource());
+                if (Objects.isNull(sourceName)) {
+                    t.setSourceName(t.getSource());
+                } else {
+                    t.setSourceName(sourceName);
+                }
+                t.setCreateUserName(userMap.get(t.getCreateBy()));
+                t.setUpdateUserName(userMap.get(t.getUpdateBy()));
+                t.setCreateUserDepartmentName(userDepartmentMap.get(t.getCreateBy()));
+                t.setUpdateUserDepartmentName(userDepartmentMap.get(t.getUpdateBy()));
+            });
+        }
     }
 
     private void getChildrenCatalogId(String catalogId, Collection<CatalogVo> allCatalogList, List<String> catalogIdList) {
@@ -919,6 +955,26 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 getChildrenCatalogId(c.getId(), allCatalogList, catalogIdList);
             }
         }
+    }
+
+    /**
+     * 用户
+     *
+     * @return
+     */
+    @Override
+    public List<User> getAllUser() {
+        return baseMapper.getAllUser();
+    }
+
+    /**
+     * 部门
+     *
+     * @return
+     */
+    @Override
+    public List<Department> getAllDepartment() {
+        return baseMapper.getAllDepartment();
     }
 
     private String getMillisTime(long time) {

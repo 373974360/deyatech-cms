@@ -1,11 +1,15 @@
 package com.deyatech.station.cache;
 
+import com.deyatech.admin.entity.Department;
+import com.deyatech.admin.entity.User;
 import com.deyatech.common.Constants;
 import com.deyatech.station.config.SiteProperties;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.feign.ResourceFeign;
 import com.deyatech.station.entity.Catalog;
+import com.deyatech.station.mapper.TemplateMapper;
 import com.deyatech.station.service.CatalogService;
+import com.deyatech.station.service.TemplateService;
 import com.deyatech.station.vo.CatalogVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +40,8 @@ public class SiteCache {
     SiteProperties siteProperties;
     @Autowired
     CatalogService catalogService;
+    @Autowired
+    TemplateService templateService;
 
 
     /**
@@ -111,6 +117,24 @@ public class SiteCache {
     }
 
     /**
+     * 用户信息
+     *
+     * @return
+     */
+    public List<User> getAllUser() {
+        return this.cacheManager.getCache(CacheNames.USER_CACHE_KEY).get(CacheNames.USER_CACHE_KEY, List.class);
+    }
+
+    /**
+     * 部门信息
+     *
+     * @return
+     */
+    public List<Department> getAllDepartment() {
+        return this.cacheManager.getCache(CacheNames.DEPARTMENT_CACHE_KEY).get(CacheNames.DEPARTMENT_CACHE_KEY, List.class);
+    }
+
+    /**
      * 本地缓存站点信息
      */
     public void cacheSite() {
@@ -120,6 +144,8 @@ public class SiteCache {
         //站点信息
         try {
             clearCache();
+            this.cacheManager.getCache(CacheNames.USER_CACHE_KEY).put(CacheNames.USER_CACHE_KEY, templateService.getAllUser());
+            this.cacheManager.getCache(CacheNames.DEPARTMENT_CACHE_KEY).put(CacheNames.DEPARTMENT_CACHE_KEY, templateService.getAllDepartment());
             List<StationGroup> allStationGroup = resourceFeign.getStationGroupAll().getData();
             for (StationGroup stationGroup : allStationGroup) {
                 log.debug("缓存站点信息{}", stationGroup.getId());
@@ -147,6 +173,8 @@ public class SiteCache {
         }
     }
     public void clearCache(){
+        this.cacheManager.getCache(CacheNames.USER_CACHE_KEY).clear();
+        this.cacheManager.getCache(CacheNames.DEPARTMENT_CACHE_KEY).clear();
         this.cacheManager.getCache(CacheNames.STATION_GROUP_CACHE_KEY).clear();
         this.cacheManager.getCache(CacheNames.STATION_GROUP_TEMPLATE_ROOT_CACHE_KEY).clear();
         this.cacheManager.getCache(CacheNames.STATION_GROUP_ROOT_CACHE_KEY).clear();

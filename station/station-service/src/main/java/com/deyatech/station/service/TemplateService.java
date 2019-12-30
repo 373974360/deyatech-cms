@@ -1,6 +1,8 @@
 package com.deyatech.station.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.admin.entity.Department;
+import com.deyatech.admin.entity.User;
 import com.deyatech.station.entity.Template;
 import com.deyatech.station.vo.TemplateDynamicFormVo;
 import com.deyatech.station.vo.TemplateVo;
@@ -195,4 +197,18 @@ public interface TemplateService extends BaseService<Template> {
      * @return
      */
     List<Map<String, Object>> countCatalogTemplate();
+
+    /**
+     * 用户
+     *
+     * @return
+     */
+    List<User> getAllUser();
+
+    /**
+     * 部门
+     *
+     * @return
+     */
+    List<Department> getAllDepartment();
 }
