@@ -99,7 +99,7 @@ public class PageServiceImpl extends BaseServiceImpl<PageMapper, Page> implement
         pageQuery.setPageEnglishName(page.getPageEnglishName());
         Page pageResult = super.getByBean(pageQuery);
         if (ObjectUtil.isNotNull(pageResult) && !pageResult.getId().equals(page.getId())) {
-            message = "此地址已存在当前页面";
+            message = "相同英文名称下此地址已存在";
             return message;
         }
         return null;

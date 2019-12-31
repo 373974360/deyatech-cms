@@ -576,8 +576,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 }
             }
         }
-        // 发布时间
-        //templateVo.setResourcePublicationDate(new Date());
         // 新增时生成索引码
         if (!hasId) {
             RestResult<String> resultIndexCode = assemblyFeign.getNextIndexCodeBySiteId(templateVo.getSiteId());
@@ -629,8 +627,8 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         Map<String, Object> mapParams = CollectionUtil.newHashMap();
         mapParams.put("title", templateVo.getTitle());
         mapParams.put("author", templateVo.getAuthor());
-        mapParams.put("templateId", templateVo.getId());
         mapParams.put("siteId", templateVo.getSiteId());
+        mapParams.put("templateId", templateVo.getId());
         mapParams.put(Constants.VARIABLE_STASH, templateVo.getId());
         processInstanceVo.setVariables(mapParams);
         workflowFeign.startInstance(processInstanceVo);
