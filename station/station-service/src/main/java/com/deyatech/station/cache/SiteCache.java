@@ -177,6 +177,7 @@ public class SiteCache {
         cacheSite();
     }
     public void clearCache(){
+        this.cacheManager.getCache("template_*").clear();
         this.cacheManager.getCache(CacheNames.USER_CACHE_KEY).clear();
         this.cacheManager.getCache(CacheNames.DEPARTMENT_CACHE_KEY).clear();
         this.cacheManager.getCache(CacheNames.STATION_GROUP_CACHE_KEY).clear();
@@ -184,6 +185,9 @@ public class SiteCache {
         this.cacheManager.getCache(CacheNames.STATION_GROUP_ROOT_CACHE_KEY).clear();
         this.cacheManager.getCache(CacheNames.CATALOG_CACHE_KEY).clear();
         this.cacheManager.getCache(CacheNames.SITE_PROPERTIES_CACHE_KEY).clear();
+    }
+    public void clearCache(String namePath){
+        this.cacheManager.getCache("template_"+namePath).clear();
     }
     public void cacheSite(String siteId) {
         if (inited) {

@@ -54,14 +54,6 @@ public interface TemplateService extends BaseService<Template> {
     List<TemplateVo> setVoProperties(Collection templates);
 
     /**
-     * 批量将对象转换为vo内容模板
-     * 前台专用
-     * @param templates
-     * @return
-     */
-    List<TemplateVo> setViewVoProperties(Collection templates);
-
-    /**
      * 保存或更新
      * @param templateVo
      * @return
@@ -124,9 +116,29 @@ public interface TemplateService extends BaseService<Template> {
     IPage<TemplateVo> getTemplateListView(Map<String, Object> maps, Integer page, Integer pageSize);
 
     /**
+     * 根据ID查看详情
+     * 前台专用
+     * @param id
+     * @return
+     */
+    TemplateVo getTemplateById(String id);
+    /**
+     * 批量将对象转换为vo内容模板
+     * 前台专用
+     * @param templateVo
+     * @return
+     */
+    TemplateVo setViewVoProperties(TemplateVo templateVo);
+
+    /**
+     * 批量将对象转换为vo内容模板
+     * 前台专用
+     * @param templates
+     * @return
+     */
+    List<TemplateVo> setViewVoProperties(Collection<TemplateVo> templates);
+    /**
      * 前台检索
-     *
-     *
      * */
     Map<String, Object> search(Map<String,Object> map);
 

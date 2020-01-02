@@ -64,21 +64,21 @@ public class CmsTaskQueueConsumer {
         log.info(String.format("处理发布静态页任务：%s", JSONUtil.toJsonStr(dataMap)));
         String messageCode = dataMap.get("messageCode").toString();
         Map<String, Object> maps = (Map<String, Object>) dataMap.get("maps");
-        IPage<TemplateVo> templates = templateService.getTemplateListView(maps,1,Integer.parseInt(maps.get("totle").toString()));
+        IPage<TemplateVo> templates = templateService.getTemplateListView(maps,0,Integer.parseInt(maps.get("totle").toString()));
         if(CollectionUtil.isNotEmpty(templates.getRecords())){
             Map<String,Object> result = new HashMap();
             result.put("totle",String.valueOf(templates.getTotal()));
             int i = 0;
             for(TemplateVo templateVo:templates.getRecords()){
                 i ++;
-                templateVo = templateService.setVoProperties(templateVo);
+                templateVo = templateService.setViewVoProperties(templateVo);
                 // 创建/删除、更新静态页
                 templateFeign.generateStaticTemplate(templateVo,messageCode);
                 result.put("currNo",String.valueOf(i));
                 result.put("currTitle",templateVo.getTitle());
                 if(messageCode.equals(RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE)){
                     //向客户端发送进度
-                    messagingTemplate.convertAndSend(TOPIC_STATIC_PAGE_MESSAGE, result);
+                    messagingTemplate.convertAndSend(TOPIC_STATIC_PAGE_MESSAGE + templateVo.getSiteId() + "/", result);
                 }
             }
         }
@@ -93,7 +93,7 @@ public class CmsTaskQueueConsumer {
         log.info(String.format("处理索引任务：%s", JSONUtil.toJsonStr(dataMap)));
         String messageCode = dataMap.get("messageCode").toString();
         Map<String, Object> maps = (Map<String, Object>) dataMap.get("maps");
-        IPage<TemplateVo> templates = templateService.getTemplateListView(maps,1,Integer.parseInt(maps.get("totle").toString()));
+        IPage<TemplateVo> templates = templateService.getTemplateListView(maps,0,Integer.parseInt(maps.get("totle").toString()));
         if(CollectionUtil.isNotEmpty(templates.getRecords())){
             Map<String,Object> result = new HashMap();
             result.put("totle",String.valueOf(templates.getTotal()));
@@ -111,11 +111,11 @@ public class CmsTaskQueueConsumer {
                 } else if (RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE.equalsIgnoreCase(messageCode)) {
                     this.updateIndex(templateVo);
                     //向客户端发送进度
-                    messagingTemplate.convertAndSend(TOPIC_REINDEX_MESSAGE, result);
+                    messagingTemplate.convertAndSend(TOPIC_REINDEX_MESSAGE + templateVo.getSiteId() + "/", result);
                 } else if (RabbitMQConstants.MQ_CMS_INDEX_COMMAND_DELETE.equalsIgnoreCase(messageCode)) {
                     this.deleteIndex(templateVo);
                     //向客户端发送进度
-                    messagingTemplate.convertAndSend(TOPIC_REINDEX_MESSAGE, result);
+                    messagingTemplate.convertAndSend(TOPIC_REINDEX_MESSAGE + templateVo.getSiteId() + "/", result);
                 } else {
                     log.warn("未知的索引任务: %s ", JSONUtil.toJsonStr(templateVo));
                 }

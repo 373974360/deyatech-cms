@@ -337,28 +337,15 @@
 
     <select id="queryTemplateById" parameterType="java.lang.String"
             resultType="com.deyatech.station.vo.TemplateVo">
-        select st.*, sm.name_ as contentModelName, sm.meta_data_collection_id as metaDataCollectionId,
-        smt.url_ as thumbnailUrl
+        select st.*, sm.name_ as contentModelName, sm.meta_data_collection_id as metaDataCollectionId
         from station_template st
         left join station_model sm on st.content_model_id = sm.id_
-        left join station_material smt on st.thumbnail_ = smt.id_
-        where st.enable_ = 1 and st.id_ = #{id}
+        where st.enable_ = 1 and st.status_ = 2 and st.id_ = #{id}
         order by st.update_time desc
     </select>
 
 
-
-
-    <select id="getTemplateListView" parameterType="map"
-            resultType="com.deyatech.station.vo.TemplateVo">
-        select
-            st.*,
-            sc.`name` as cmsCatalogName,
-            sm.name_ as contentModelName,
-            sm.meta_data_collection_id as metaDataCollectionId
-        from station_template st
-        left join station_model sm on st.content_model_id = sm.id_
-        left join station_catalog sc on st.cms_catalog_id = sc.id_
+    <sql id="getTemplateList_sql_conn">
         where st.enable_ = 1 and st.status_ = 2
         <if test="map.startTime != null and map.endTime != null  ">
             and st.resource_publication_date between #{map.startTime} and #{map.endTime}
@@ -367,6 +354,9 @@
             and (st.title_ like concat('%', #{map.title}, '%') or st.keyword_ like concat('%', #{map.title}, '%'))
         </if>
         <if test="map.siteId != null">
+            and st.site_id = #{map.siteId}
+        </if>
+        <if test="map.isThumb != null and map.isThumb == 'true'">
             and st.site_id = #{map.siteId}
         </if>
         <if test="map.cmsCatalogId != null">
@@ -381,7 +371,41 @@
                 #{id}
             </foreach>
         </if>
+    </sql>
+
+    <select id="getTemplateListCount" parameterType="map"
+            resultType="java.lang.Integer">
+        select
+        count(st.id_) as totle
+        from station_template st
+        <include refid="getTemplateList_sql_conn"/>
+    </select>
+
+
+    <select id="getTemplateList" parameterType="map"
+            resultType="com.deyatech.station.vo.TemplateVo">
+        select
+            st.id_,
+            st.title_,
+            st.source_,
+            st.resource_publication_date,
+            st.thumbnail_,
+            st.author_,
+            st.resource_category,
+            st.index_code,
+            st.cms_catalog_id,
+            st.url_,
+            st.site_id,
+            st.content_model_id,
+            sc.`name` as cmsCatalogName,
+            sm.name_ as contentModelName,
+            sm.meta_data_collection_id as metaDataCollectionId
+        from station_template st
+        left join station_model sm on st.content_model_id = sm.id_
+        left join station_catalog sc on st.cms_catalog_id = sc.id_
+        <include refid="getTemplateList_sql_conn"/>
         order by st.sort_no desc,st.resource_publication_date desc
+        limit #{map.page}, #{map.pageSize}
     </select>
 
     <!--更新信息状态-->

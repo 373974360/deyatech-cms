@@ -141,15 +141,10 @@ public class ViewController extends BaseController {
         Map<String,Object> varMap = new HashMap<>();
         Map<String,String> map = ViewUtils.analysisNamePath(namePath,"catagory");
         varMap.put("site",siteCache.getStationGroupById(siteId));
-        Catalog catalog = new Catalog();
-        catalog.setSiteId(siteId);
-        catalog.setPathName(map.get("pathName"));
-        catalog = catalogService.getByBean(catalog);
-        if (ObjectUtil.isNull(catalog)) {
-            varMap.put("message","栏目信息不存在!");
-            return errorPage(siteTemplateRoot,varMap);
+        CatalogVo catalogVo = getCatalogByPathName(siteId,map.get("pathName"));
+        if (ObjectUtil.isNull(catalogVo) || StrUtil.isBlank(catalogVo.getId())) {
+            return "栏目信息不存在!";
         }
-        CatalogVo catalogVo = catalogService.setVoProperties(catalog);
         varMap.put("catalog",catalogVo);
         varMap.put("rootCatalog",getRootCatalog(siteId,catalogVo.getId()));
         varMap.put("pageNo",map.get("pageNo"));
@@ -158,18 +153,19 @@ public class ViewController extends BaseController {
         String template = request.getParameter(TEMPLATE_PARAMS_NAME);
         if(StringUtils.isBlank(template)){
             if(map.get("type").equals("index")){
-                template = catalog.getIndexTemplate();
+                template = catalogVo.getIndexTemplate();
             }else{
-                template = catalog.getListTemplate();
+                template = catalogVo.getListTemplate();
             }
         }
         if(StrUtil.isBlank(template)){
-            varMap.put("message","模板读取失败!");
-            return errorPage(siteTemplateRoot,varMap);
+            return "模板读取失败!";
         }
+        varMap.put("namePath",map.get("pathName"));
         String content = templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
         return analysisInclude(content,siteTemplateRoot,varMap);
     }
+
     /**
      * 动态内容页
      *
@@ -184,27 +180,20 @@ public class ViewController extends BaseController {
         Map<String,Object> varMap = new HashMap<>();
         String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(siteId);
         varMap.put("site",siteCache.getStationGroupById(siteId));
-        Catalog catalog = new Catalog();
-        catalog.setSiteId(siteId);
-        catalog.setPathName(map.get("pathName"));
-        catalog = catalogService.getByBean(catalog);
-        if (ObjectUtil.isNull(catalog)) {
-            varMap.put("message","栏目信息不存在!");
-            return errorPage(siteTemplateRoot,varMap);
+        CatalogVo catalogVo = getCatalogByPathName(siteId,map.get("pathName"));
+        if (ObjectUtil.isNull(catalogVo) || StrUtil.isBlank(catalogVo.getId())) {
+            return "栏目信息不存在!";
         }
-        CatalogVo catalogVo = catalogService.setVoProperties(catalog);
         varMap.put("catalog",catalogVo);
         varMap.put("rootCatalog",getRootCatalog(siteId,catalogVo.getId()));
         ViewUtils.requestParams(varMap,request);
         String templatePath = "";
         //新闻详情
         if(map.get("type").equals("info")){
-            Template template = templateService.getById(map.get("infoId"));
-            if (ObjectUtil.isNull(template)) {
-                varMap.put("message","内容详情不存在!");
-                return errorPage(siteTemplateRoot,varMap);
+            TemplateVo templateVo = templateService.getTemplateById(map.get("infoId"));
+            if (ObjectUtil.isNull(templateVo) || StrUtil.isBlank(templateVo.getId())) {
+                return "内容详情不存在!";
             }
-            TemplateVo templateVo = templateService.setVoProperties(template);
             templatePath = templateVo.getTemplatePath();
             varMap.put("infoData",templateVo);
         }
@@ -219,13 +208,11 @@ public class ViewController extends BaseController {
                 recordVo = appealFeign.getAppealById(infoId).getData();
             }
             if (ObjectUtil.isNull(recordVo) || StrUtil.isBlank(recordVo.getId())) {
-                varMap.put("message","诉求详情不存在!");
-                return errorPage(siteTemplateRoot,varMap);
+                return "诉求详情不存在!";
             }
             ModelVo modelVo = appealFeign.getModelById(recordVo.getModelId()).getData();
             if (ObjectUtil.isNull(modelVo) || StrUtil.isBlank(modelVo.getId())) {
-                varMap.put("message","诉求业务模型不存在!");
-                return errorPage(siteTemplateRoot,varMap);
+                return "诉求业务模型不存在!";
             }
             varMap.put("appealData",recordVo);
             templatePath = modelVo.getViewTemplet();
@@ -241,13 +228,11 @@ public class ViewController extends BaseController {
                 applyOpenRecordVo = assemblyFeign.getApplyOpenById(map.get("infoId")).getData();
             }
             if (ObjectUtil.isNull(applyOpenRecordVo) || StrUtil.isBlank(applyOpenRecordVo.getId())) {
-                varMap.put("message","依申请公开详情不存在!");
-                return errorPage(siteTemplateRoot,varMap);
+                return "依申请公开详情不存在!";
             }
             ApplyOpenModelVo applyOpenModelVo = assemblyFeign.getApplyOpenModelById(applyOpenRecordVo.getModelId()).getData();
             if (ObjectUtil.isNull(applyOpenModelVo) || StrUtil.isBlank(applyOpenModelVo.getId())) {
-                varMap.put("message","依申请公开模型不存在!");
-                return errorPage(siteTemplateRoot,varMap);
+                return "依申请公开模型不存在!";
             }
             varMap.put("applyOpenData",applyOpenRecordVo);
             templatePath = applyOpenModelVo.getViewTemplet();
@@ -257,13 +242,11 @@ public class ViewController extends BaseController {
             String infoId = map.get("infoId");
             com.deyatech.interview.vo.ModelVo interviewVo = interviewFeign.getInterviewById(infoId).getData();
             if (ObjectUtil.isNull(interviewVo) || StrUtil.isBlank(interviewVo.getId())) {
-                varMap.put("message","在线访谈信息不存在!");
-                return errorPage(siteTemplateRoot,varMap);
+                return "在线访谈信息不存在!";
             }
             Category category = interviewFeign.getInterviewCatagoryById(interviewVo.getCategoryId()).getData();
             if (ObjectUtil.isNull(category) || StrUtil.isBlank(category.getId())) {
-                varMap.put("message","在线访谈目录不存在!");
-                return errorPage(siteTemplateRoot,varMap);
+                return "在线访谈目录不存在!";
             }
             varMap.put("interviewData",interviewVo);
             templatePath = category.getDetailPageTemplate();
@@ -274,8 +257,7 @@ public class ViewController extends BaseController {
             template = templatePath;
         }
         if(StrUtil.isBlank(template)){
-            varMap.put("message","模板读取失败!");
-            return errorPage(siteTemplateRoot,varMap);
+            return "模板读取失败!";
         }
         String content = templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
         return analysisInclude(content,siteTemplateRoot,varMap);
@@ -294,15 +276,10 @@ public class ViewController extends BaseController {
         String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(siteId);
         Map<String,Object> varMap = new HashMap<>();
         varMap.put("site",siteCache.getStationGroupById(siteId));
-        Catalog catalog = new Catalog();
-        catalog.setSiteId(siteId);
-        catalog.setPathName(map.get("pathName"));
-        catalog = catalogService.getByBean(catalog);
-        if (ObjectUtil.isNull(catalog)) {
-            varMap.put("message","栏目信息不存在!");
-            return errorPage(siteTemplateRoot,varMap);
+        CatalogVo catalogVo = getCatalogByPathName(siteId,map.get("pathName"));
+        if (ObjectUtil.isNull(catalogVo) || StrUtil.isBlank(catalogVo.getId())) {
+            return "栏目信息不存在!";
         }
-        CatalogVo catalogVo = catalogService.setVoProperties(catalog);
         varMap.put("catalog",catalogVo);
         varMap.put("rootCatalog",getRootCatalog(siteId,catalogVo.getId()));
         ViewUtils.requestParams(varMap,request);
@@ -325,8 +302,7 @@ public class ViewController extends BaseController {
             template = templatePath;
         }
         if(StrUtil.isBlank(templatePath)){
-            varMap.put("message","模板读取失败!");
-            return errorPage(siteTemplateRoot,varMap);
+            return "模板读取失败!";
         }
         String content = templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
         return analysisInclude(content,siteTemplateRoot,varMap);
@@ -468,16 +444,6 @@ public class ViewController extends BaseController {
     }
 
 
-
-
-
-
-    public String errorPage(String siteTemplateRoot,Map<String,Object> varMap){
-        String content = templateFeign.thyToString(siteTemplateRoot,templateFeign.getTemplateDefaultError().getData(),varMap).getData();
-        return analysisInclude(content,siteTemplateRoot,varMap);
-    }
-
-
     /**
      * 解析页面中的include(html)
      *
@@ -486,6 +452,7 @@ public class ViewController extends BaseController {
      * 暂时使用以下方法解决动态页不能 引入页面的问题
      * */
     public String analysisInclude(String pageContent,String rootPath,Map<String,Object> varMap){
+        varMap.put("type","include");
         rootPath = rootPath.replace("/template","");
         //获取模板中 <!--#include virtual='***.html'--> 的列表
         String array[] = pageContent.split("<!--");
@@ -537,6 +504,26 @@ public class ViewController extends BaseController {
                 break;
             }else if(ObjectUtil.isNotNull(catalogVo1.getChildren())){
                 catalogVo = getCatalog(catalogVo1.getChildren(),catalogId);
+                if(ObjectUtil.isNotNull(catalogVo)){
+                    break;
+                }
+            }
+        }
+        return catalogVo;
+    }
+    public CatalogVo getCatalogByPathName(String siteId,String pathName) {
+        Collection<CatalogVo> catalogVoCollection = siteCache.getCatalogTreeBySiteId(siteId);
+        CatalogVo catalogVo = getCatalogByPathName(catalogVoCollection,pathName);
+        return catalogVo;
+    }
+    public CatalogVo getCatalogByPathName(Collection<CatalogVo> catalogVoCollection,String pathName ){
+        CatalogVo catalogVo = null;
+        for(CatalogVo catalogVo1:catalogVoCollection){
+            if(catalogVo1.getPathName().equals(pathName)){
+                catalogVo = catalogVo1;
+                break;
+            }else if(ObjectUtil.isNotNull(catalogVo1.getChildren())){
+                catalogVo = getCatalogByPathName(catalogVo1.getChildren(),pathName);
                 if(ObjectUtil.isNotNull(catalogVo)){
                     break;
                 }
