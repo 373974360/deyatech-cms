@@ -39,6 +39,10 @@ public class RabbitMQConstants {
      */
     public static final String QUEUE_NAME_INDEX_TASK = "indexTaskQueue";
     /**
+     * 缓存列表页队列名称
+     */
+    public static final String QUEUE_NAME_LIST_PAGE_TASK = "listPageTaskQueue";
+    /**
      * 重置内容索引编码
      */
     public static final String FANOUT_EXCHANGE_RESET_INDEX_CODE = "fanout-exchange-reset-index-code";

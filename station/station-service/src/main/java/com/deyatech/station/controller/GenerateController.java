@@ -52,7 +52,7 @@ public class GenerateController {
         @ApiImplicitParam(name = "timeFrame", value = "时间范围", required = false, dataType = "timeFrame", paramType = "query")
     })
     public RestResult createHtml(@RequestParam(value="ids[]",required=false) List<String> ids,@RequestParam(value="timeFrame[]",required=false) List<String> timeFrame) {
-        Integer currPage = 1;
+        Integer currPage = 0;
         Map<String,Object> maps = new HashMap<>();
         if(ids!= null && !ids.isEmpty()){
             maps.put("cmsCatalogId",ids);

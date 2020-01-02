@@ -3,10 +3,13 @@ package com.deyatech.station.controller;
 import cn.hutool.core.util.StrUtil;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.common.enums.ContentStatusEnum;
+import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.config.AipNlpConfig;
+import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.entity.Model;
 import com.deyatech.station.entity.Template;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
+import com.deyatech.station.service.CatalogService;
 import com.deyatech.station.service.ModelService;
 import com.deyatech.station.service.PageService;
 import com.deyatech.station.vo.TemplateVo;
@@ -51,6 +54,10 @@ public class TemplateController extends BaseController {
     private ModelService modelService;
     @Autowired
     private AdminFeign adminFeign;
+    @Autowired
+    CatalogService catalogService;
+    @Autowired
+    SiteCache siteCache;
 
     /**
      * 获取字段
@@ -336,6 +343,9 @@ public class TemplateController extends BaseController {
         templateVo.setIds(template.getId());
         templateService.genStaticPage(templateVo,RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
         boolean result = templateService.updateById(template);
+        //清理页面缓存
+        template = templateService.getById(template.getId());
+        templateService.cacheCatalogList(template.getCmsCatalogId());
         return RestResult.ok(result);
     }
 

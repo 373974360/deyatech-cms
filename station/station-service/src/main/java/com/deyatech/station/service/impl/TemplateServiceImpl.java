@@ -32,7 +32,9 @@ import com.deyatech.station.index.IndexService;
 import com.deyatech.station.mapper.TemplateMapper;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.service.*;
+import com.deyatech.station.view.utils.ViewUtils;
 import com.deyatech.station.vo.*;
+import com.deyatech.template.feign.TemplateFeign;
 import com.deyatech.workflow.feign.WorkflowFeign;
 import com.deyatech.workflow.vo.ProcessInstanceVo;
 import com.fasterxml.jackson.databind.JavaType;
@@ -101,6 +103,9 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     IndexService indexService;
     @Autowired
     PageService pageService;
+    @Autowired
+    TemplateFeign templateFeign;
+
 
     /**
      * 获取字段
@@ -383,31 +388,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         return templateVos;
     }
 
-
-
-    /**
-     * 批量将对象转换为vo内容模板
-     * 前台专用
-     * @param templates
-     * @return
-     */
-    @Override
-    public List<TemplateVo> setViewVoProperties(Collection templates){
-        List<TemplateVo> templateVos = CollectionUtil.newArrayList();
-        if (CollectionUtil.isNotEmpty(templates)) {
-            Map<String, String> departmentNameMap = this.getDepartmentIdNameMap();
-            for (Object template : templates) {
-                TemplateVo templateVo = new TemplateVo();
-                BeanUtil.copyProperties(template, templateVo);
-                templateVo.setSourceName(departmentNameMap.get(templateVo.getSource()) == null ? templateVo.getSource() : departmentNameMap.get(templateVo.getSource()));
-                // 查询元数据结构及数据
-                this.queryMetadata(templateVo);
-                templateVos.add(templateVo);
-            }
-        }
-        return templateVos;
-    }
-
     /**
      * 查询模型模板
      *
@@ -601,6 +581,8 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             }
             // 发布状态
             if (ContentStatusEnum.PUBLISH.getCode() == templateVo.getStatus()) {
+                // 清除前台模板缓存
+                cacheCatalogList(catalog.getId());
                 // 生成静态页面任务
                 TemplateVo templateVo1 = new TemplateVo();
                 templateVo1.setIds(templateVo.getId());
@@ -840,6 +822,11 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         return true;
     }
 
+    @Override
+    public void cacheCatalogList(String catId) {
+        rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_NAME_LIST_PAGE_TASK, catId);
+    }
+
     /**
      * 添加索引任务到队列
      * @param maps
@@ -1067,9 +1054,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
      */
     @Override
     public IPage<TemplateVo> getTemplateListView(Map<String, Object> maps, Integer page, Integer pageSize) {
-        Page<Template> pages = getPageByBean(new Template());
-        pages.setCurrent(page);
-        pages.setSize(pageSize);
         if(maps.containsKey("catId")){
             List<String> cmsCatalogId = new ArrayList<>();
             String catIds = maps.get("catId").toString();
@@ -1081,13 +1065,83 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             }
             maps.put("cmsCatalogId",cmsCatalogId);
         }
-        IPage<TemplateVo> templates = baseMapper.getTemplateListView(pages,maps);
-        //是否加载元数据字段
-        if(maps.containsKey("metadata") && Boolean.parseBoolean(maps.get("metadata").toString())){
-            templates.setRecords(setViewVoProperties(templates.getRecords()));
+        Page<TemplateVo> pages = new Page<>();
+        pages.setCurrent(page);
+        pages.setSize(pageSize);
+        int totle = baseMapper.getTemplateListCount(maps);
+        pages.setTotal(totle);
+        if (totle > 0) {
+            maps.put("page", (page - 1) * pageSize);
+            maps.put("pageSize",pageSize);
+            List<TemplateVo> list = baseMapper.getTemplateList(maps);
+            pages.setRecords(list);
+            //是否加载元数据字段
+            if(maps.containsKey("metadata") && Boolean.parseBoolean(maps.get("metadata").toString())){
+                pages.setRecords(setViewVoProperties(pages.getRecords()));
+            }
         }
-        return templates;
+        return pages;
     }
+
+    /**
+     * 根据ID查看详情
+     * 前台专用
+     * @param id
+     * @return
+     */
+    @Override
+    public TemplateVo getTemplateById(String id) {
+        TemplateVo templateVo = baseMapper.queryTemplateById(id);
+        setViewVoProperties(templateVo);
+        return templateVo;
+    }
+    /**
+     * 批量将对象转换为vo内容模板
+     * 前台专用
+     * @param templates
+     * @return
+     */
+    @Override
+    public List<TemplateVo> setViewVoProperties(Collection<TemplateVo> templates){
+        List<TemplateVo> templateVos = CollectionUtil.newArrayList();
+        if (CollectionUtil.isNotEmpty(templates)) {
+            for (TemplateVo templateVo : templates) {
+                setViewVoProperties(templateVo);
+                templateVos.add(templateVo);
+            }
+        }
+        return templateVos;
+    }
+    /**
+     * 单个将对象转换为vo内容模板
+     * 前台专用
+     * @param templateVo
+     * @return
+     */
+    @Override
+    public TemplateVo setViewVoProperties(TemplateVo templateVo){
+        Map<String, String> departmentNameMap = this.getDepartmentIdNameMap();
+        templateVo.setSourceName(departmentNameMap.get(templateVo.getSource()) == null ? templateVo.getSource() : departmentNameMap.get(templateVo.getSource()));
+        // 查询元数据结构及数据
+        this.queryViewMetadata(templateVo);
+        // 查询模型模板
+        this.queryModelTemplate(templateVo);
+        return templateVo;
+    }
+    /**
+     * 查询元数据
+     * 前台专用
+     * @param templateVo
+     */
+    private void queryViewMetadata(TemplateVo templateVo) {
+        if (StrUtil.isNotEmpty(templateVo.getMetaDataCollectionId())
+                && StrUtil.isNotEmpty(templateVo.getContentId())) {
+            // 查询元数据记录信息
+            Map content = adminFeign.getMetadataById(templateVo.getMetaDataCollectionId(), templateVo.getContentId()).getData();
+            templateVo.setContent(content);
+        }
+    }
+
 
     @Override
     public Map<String, Object> search(Map<String, Object> map) {
@@ -1333,6 +1387,8 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                     //发布新闻所属栏目关联的页面静态页
                     pageService.replyPageByCatalog(template.getCmsCatalogId());
                     idarr += ","+template.getId();
+                    //清理页面缓存
+                    cacheCatalogList(template.getCmsCatalogId());
                 }
                 //删除静态页面
                 TemplateVo templateVo = new TemplateVo();

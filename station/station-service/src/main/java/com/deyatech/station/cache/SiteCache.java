@@ -143,7 +143,7 @@ public class SiteCache {
         }
         //站点信息
         try {
-            clearCache();
+            //clearCache();
             this.cacheManager.getCache(CacheNames.USER_CACHE_KEY).put(CacheNames.USER_CACHE_KEY, templateService.getAllUser());
             this.cacheManager.getCache(CacheNames.DEPARTMENT_CACHE_KEY).put(CacheNames.DEPARTMENT_CACHE_KEY, templateService.getAllDepartment());
             List<StationGroup> allStationGroup = resourceFeign.getStationGroupAll().getData();
@@ -172,7 +172,12 @@ public class SiteCache {
             throw new RuntimeException("缓存站点信息失败", e);
         }
     }
+    public void reloadCache(){
+        clearCache();
+        cacheSite();
+    }
     public void clearCache(){
+        this.cacheManager.getCache("template_*").clear();
         this.cacheManager.getCache(CacheNames.USER_CACHE_KEY).clear();
         this.cacheManager.getCache(CacheNames.DEPARTMENT_CACHE_KEY).clear();
         this.cacheManager.getCache(CacheNames.STATION_GROUP_CACHE_KEY).clear();
@@ -180,6 +185,9 @@ public class SiteCache {
         this.cacheManager.getCache(CacheNames.STATION_GROUP_ROOT_CACHE_KEY).clear();
         this.cacheManager.getCache(CacheNames.CATALOG_CACHE_KEY).clear();
         this.cacheManager.getCache(CacheNames.SITE_PROPERTIES_CACHE_KEY).clear();
+    }
+    public void clearCache(String namePath){
+        this.cacheManager.getCache("template_"+namePath).clear();
     }
     public void cacheSite(String siteId) {
         if (inited) {

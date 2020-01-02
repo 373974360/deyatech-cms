@@ -2,6 +2,8 @@ package com.deyatech.template.thymeleaf;
 
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
+import com.deyatech.template.cache.TemplateCache;
 import com.deyatech.template.thymeleaf.utils.CmsDialect;
 import com.deyatech.template.thymeleaf.utils.TemplateConstants;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +47,9 @@ public class ThymeleafUtil {
 
     @Autowired
     CmsDialect cmsDialect;
+
+    @Autowired
+    TemplateCache templateCache;
 
     /**
      * 通过spring的RequestContextHolder获取request
@@ -145,6 +150,7 @@ public class ThymeleafUtil {
      * @return
      */
     public String thyToString(String siteTemplateRoot, String templatePath, Map<String, Object> varMap) {
+        long start = System.nanoTime();
         parseDate(varMap);
         if (StringUtils.isBlank(templatePath)) {
             varMap.put("message","模板路径为空！");
@@ -157,17 +163,34 @@ public class ThymeleafUtil {
         context.setVariables(varMap);
         String process = null;
         try {
-            process = templateEngine.process(templatePath, context);
+            if(varMap.containsKey("namePath") && varMap.containsKey("pageNo")){
+                String cachekey = varMap.get("namePath").toString();
+                String key = varMap.get("pageNo").toString();
+                if(varMap.containsKey("type") && varMap.get("type").equals("include")){
+                    cachekey = "include";
+                    key = templatePath;
+                }
+                process = templateCache.getTemplate(cachekey,key);
+                if(StrUtil.isBlank(process)){
+                    process = templateEngine.process(templatePath, context);
+                    templateCache.cacheTemplate(cachekey,key,process);
+                }
+            }else{
+                process = templateEngine.process(templatePath, context);
+            }
+            log.info("内容检索耗时: " + getMillisTime(System.nanoTime() - start) + " 毫秒");
             return process;
         } catch (Exception e) {
-//            log.error("模板渲染错误", e);
-//            if (isDebug) {
-//                return ExceptionUtils.getStackTrace(e);
-//            }
-            varMap.put("message",ExceptionUtils.getStackTrace(e));
-            context.setVariables(varMap);
-            return templateEngine.process(TemplateConstants.TEMPLATE_DEFAULT_ERROR, context);
+            log.error("模板渲染错误", e);
+            if (isDebug) {
+                return ExceptionUtils.getStackTrace(e);
+            }
         }
+        return "";
+    }
+
+    private String getMillisTime(long time) {
+        return String.valueOf(time / 1000000);
     }
 
     /**

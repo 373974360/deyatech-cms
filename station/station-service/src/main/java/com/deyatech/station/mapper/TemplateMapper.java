@@ -43,11 +43,11 @@ public interface TemplateMapper extends BaseMapper<Template> {
 
     /**
      * 分页查询
-     * @param page
      * @param map
      * @return
      */
-    IPage<TemplateVo> getTemplateListView(@Param("page") Page<Template> page,@Param("map") Map<String,Object> map);
+    List<TemplateVo> getTemplateList(@Param("map") Map<String,Object> map);
+    int getTemplateListCount(@Param("map") Map<String,Object> map);
 
     /**
      * 更新信息状态
