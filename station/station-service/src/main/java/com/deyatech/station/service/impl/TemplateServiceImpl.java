@@ -32,7 +32,9 @@ import com.deyatech.station.index.IndexService;
 import com.deyatech.station.mapper.TemplateMapper;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.service.*;
+import com.deyatech.station.view.utils.ViewUtils;
 import com.deyatech.station.vo.*;
+import com.deyatech.template.feign.TemplateFeign;
 import com.deyatech.workflow.feign.WorkflowFeign;
 import com.deyatech.workflow.vo.ProcessInstanceVo;
 import com.fasterxml.jackson.databind.JavaType;
@@ -101,6 +103,9 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     IndexService indexService;
     @Autowired
     PageService pageService;
+    @Autowired
+    TemplateFeign templateFeign;
+
 
     /**
      * 获取字段
@@ -577,7 +582,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             // 发布状态
             if (ContentStatusEnum.PUBLISH.getCode() == templateVo.getStatus()) {
                 // 清除前台模板缓存
-                siteCache.clearCache(catalog.getPathName());
+                cacheCatalogList(catalog.getId());
                 // 生成静态页面任务
                 TemplateVo templateVo1 = new TemplateVo();
                 templateVo1.setIds(templateVo.getId());
@@ -815,6 +820,11 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             this.addIndexTask(maps, messageCode);
         }
         return true;
+    }
+
+    @Override
+    public void cacheCatalogList(String catId) {
+        rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_NAME_LIST_PAGE_TASK, catId);
     }
 
     /**
@@ -1378,8 +1388,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                     pageService.replyPageByCatalog(template.getCmsCatalogId());
                     idarr += ","+template.getId();
                     //清理页面缓存
-                    Catalog catalog = catalogService.getById(template.getCmsCatalogId());
-                    siteCache.clearCache(catalog.getPathName());
+                    cacheCatalogList(template.getCmsCatalogId());
                 }
                 //删除静态页面
                 TemplateVo templateVo = new TemplateVo();

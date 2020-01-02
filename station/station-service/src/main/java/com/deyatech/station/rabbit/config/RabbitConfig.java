@@ -50,6 +50,16 @@ public class RabbitConfig {
     }
 
     /**
+     * 待处理索引列表页的任务队列
+     *
+     * @return
+     */
+    @Bean
+    public Queue listPageTaskQueue() {
+        return new Queue(RabbitMQConstants.QUEUE_NAME_LIST_PAGE_TASK);
+    }
+
+    /**
      * 索引数据任务队列
      *
      * @return
@@ -68,6 +78,17 @@ public class RabbitConfig {
     @Bean
     public Binding bindingStaticPageTask(TopicExchange csmTaskTopicExchange, Queue staticPageTaskQueue) {
         return BindingBuilder.bind(staticPageTaskQueue).to(csmTaskTopicExchange).with(RabbitMQConstants.QUEUE_NAME_STATIC_PAGE_TASK);
+    }
+
+    /**
+     * 自动删除匿名队列
+     * @param csmTaskTopicExchange 广播交换器
+     * @param listPageTaskQueue 自动删除队列
+     * @return
+     */
+    @Bean
+    public Binding bindingListPageTask(TopicExchange csmTaskTopicExchange, Queue listPageTaskQueue) {
+        return BindingBuilder.bind(listPageTaskQueue).to(csmTaskTopicExchange).with(RabbitMQConstants.QUEUE_NAME_LIST_PAGE_TASK);
     }
 
     /**

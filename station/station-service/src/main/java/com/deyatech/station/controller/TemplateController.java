@@ -345,8 +345,7 @@ public class TemplateController extends BaseController {
         boolean result = templateService.updateById(template);
         //清理页面缓存
         template = templateService.getById(template.getId());
-        Catalog catalog = catalogService.getById(template.getCmsCatalogId());
-        siteCache.clearCache(catalog.getPathName());
+        templateService.cacheCatalogList(template.getCmsCatalogId());
         return RestResult.ok(result);
     }
 

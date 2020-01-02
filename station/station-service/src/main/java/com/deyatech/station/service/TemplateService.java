@@ -100,6 +100,11 @@ public interface TemplateService extends BaseService<Template> {
      */
     boolean reindex(TemplateVo templateVo,String messageCode);
 
+    /**
+     * 缓存前台栏目列表前10页
+     * @param catId
+     * */
+    void cacheCatalogList(String catId);
 
     /************************************************************************************************
      *
