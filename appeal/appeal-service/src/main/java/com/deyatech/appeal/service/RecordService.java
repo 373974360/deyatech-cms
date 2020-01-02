@@ -101,4 +101,18 @@ public interface RecordService extends BaseService<Record> {
      * @return String
      */
     String getAllAppealCount(Map<String, Object> maps);
+
+    /**
+     * 统计模型使用件数
+     *
+     * @return
+     */
+    List<RecordVo> countModel();
+
+    /**
+     * 统计诉求目的使用件数
+     *
+     * @return
+     */
+    List<RecordVo> countPurpose();
 }

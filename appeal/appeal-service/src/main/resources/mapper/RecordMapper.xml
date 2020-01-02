@@ -101,4 +101,10 @@
             </if>
         </where>
     </select>
+    <select id="countModel" resultType="com.deyatech.appeal.vo.RecordVo">
+        select model_id as modelId, count(0) as number from appeal_record where enable_ = 1 group by model_id
+    </select>
+    <select id="countPurpose" resultType="com.deyatech.appeal.vo.RecordVo">
+        select pur_id as purId, count(0) as number from appeal_record where enable_ = 1 group by pur_id
+    </select>
 </mapper>

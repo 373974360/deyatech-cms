@@ -157,7 +157,7 @@ public class ApplyOpenRecordServiceImpl extends BaseServiceImpl<ApplyOpenRecordM
             }
         }
         if(StrUtil.isNotBlank(applyOpenRecord.getYsqCode())){
-            queryWrapper.eq("ysq_code",applyOpenRecord.getYsqCode());
+            queryWrapper.like("ysq_code", applyOpenRecord.getYsqCode());
         }
         if(applyOpenRecord.getApplyFlag() != null){
             queryWrapper.eq("apply_flag",applyOpenRecord.getApplyFlag());

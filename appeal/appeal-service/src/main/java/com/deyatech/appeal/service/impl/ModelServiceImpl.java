@@ -53,4 +53,20 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
         }
         return modelVos;
     }
+
+    /**
+     * 返回
+     * @param departmentIds
+     * @return
+     */
+    @Override
+    public long countModelByDepartmentId(List<String> departmentIds) {
+        long total = 0;
+        if (CollectionUtil.isNotEmpty(departmentIds)) {
+            for (String id : departmentIds) {
+                total += baseMapper.countModelByDepartmentId("%" + id + "%");
+            }
+        }
+        return total;
+    }
 }

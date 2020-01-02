@@ -1,5 +1,6 @@
 package com.deyatech.assembly.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.assembly.entity.ApplyOpenModel;
 import com.deyatech.assembly.vo.ApplyOpenModelVo;
 import com.deyatech.assembly.mapper.ApplyOpenModelMapper;
@@ -52,5 +53,16 @@ public class ApplyOpenModelServiceImpl extends BaseServiceImpl<ApplyOpenModelMap
             }
         }
         return applyOpenModelVos;
+    }
+
+    /**
+     * 翻页检索
+     *
+     * @param applyOpenModel
+     * @return
+     */
+    @Override
+    public IPage<ApplyOpenModelVo> pageByApplyOpenModel(ApplyOpenModel applyOpenModel) {
+        return baseMapper.pageByApplyOpenModel(this.getPageByBean(applyOpenModel), applyOpenModel);
     }
 }

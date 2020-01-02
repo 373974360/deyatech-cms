@@ -50,5 +50,9 @@
         version_,
         site_id,model_name, participant, auto_publish, limit_day, reminder_day, yellow_day, red_day, bus_type, dept_transfer, competent_dept, part_dept, bus_code, spacera, day_code, spacerb, randomcode_count, querycode_count, workflow_type, workflow_id, form_templet, list_templet, view_templet, print_templet
     </sql>
+    <select id="countModelByDepartmentId" resultType="java.lang.Long">
+        select count(0) from appeal_model where competent_dept like #{departmentId} or part_dept like #{departmentId}
+    </select>
+
 
 </mapper>

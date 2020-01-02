@@ -1,5 +1,6 @@
 package com.deyatech.assembly.controller;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.deyatech.assembly.entity.ApplyOpenModel;
 import com.deyatech.assembly.vo.ApplyOpenModelVo;
@@ -10,6 +11,8 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.sql.Struct;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.web.bind.annotation.RestController;
@@ -136,10 +139,7 @@ public class ApplyOpenModelController extends BaseController {
     @ApiOperation(value="根据ApplyOpenModel对象属性分页检索", notes="根据ApplyOpenModel对象属性分页检索信息")
     @ApiImplicitParam(name = "applyOpenModel", value = "对象", required = false, dataType = "ApplyOpenModel", paramType = "query")
     public RestResult<IPage<ApplyOpenModelVo>> pageByApplyOpenModel(ApplyOpenModel applyOpenModel) {
-        IPage<ApplyOpenModelVo> applyOpenModels = applyOpenModelService.pageByBean(applyOpenModel);
-        applyOpenModels.setRecords(applyOpenModelService.setVoProperties(applyOpenModels.getRecords()));
-        log.info(String.format("根据ApplyOpenModel对象属性分页检索: %s ",JSONUtil.toJsonStr(applyOpenModels)));
-        return RestResult.ok(applyOpenModels);
+        return RestResult.ok(applyOpenModelService.pageByApplyOpenModel(applyOpenModel));
     }
 
 

@@ -1,8 +1,11 @@
 package com.deyatech.appeal.controller;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.deyatech.appeal.entity.Purpose;
+import com.deyatech.appeal.service.RecordService;
 import com.deyatech.appeal.vo.PurposeVo;
 import com.deyatech.appeal.service.PurposeService;
+import com.deyatech.appeal.vo.RecordVo;
 import com.deyatech.common.entity.RestResult;
 import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
@@ -12,6 +15,10 @@ import org.springframework.web.bind.annotation.*;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import org.springframework.web.bind.annotation.RestController;
 import com.deyatech.common.base.BaseController;
 import io.swagger.annotations.Api;
@@ -32,7 +39,8 @@ import io.swagger.annotations.ApiOperation;
 public class PurposeController extends BaseController {
     @Autowired
     PurposeService purposeService;
-
+    @Autowired
+    RecordService recordService;
     /**
      * 单个保存或者更新
      *
@@ -138,6 +146,14 @@ public class PurposeController extends BaseController {
     public RestResult<IPage<PurposeVo>> pageByPurpose(Purpose purpose) {
         IPage<PurposeVo> purposes = purposeService.pageByBean(purpose);
         purposes.setRecords(purposeService.setVoProperties(purposes.getRecords()));
+        List<PurposeVo> list = purposes.getRecords();
+        if (CollectionUtil.isNotEmpty(list)) {
+            List<RecordVo> usageCounts = recordService.countPurpose();
+            if (CollectionUtil.isNotEmpty(usageCounts)) {
+                Map<String, Long> usageCountMap = usageCounts.stream().collect(Collectors.toMap(RecordVo::getPurId, RecordVo::getNumber));
+                list.stream().parallel().forEach(p -> p.setUsageCount(Objects.isNull(usageCountMap.get(p.getId())) ? 0 : usageCountMap.get(p.getId())));
+            }
+        }
         log.info(String.format("根据Purpose对象属性分页检索: %s ",JSONUtil.toJsonStr(purposes)));
         return RestResult.ok(purposes);
     }

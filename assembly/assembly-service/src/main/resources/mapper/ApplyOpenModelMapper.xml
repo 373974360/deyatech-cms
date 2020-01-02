@@ -50,5 +50,22 @@
         version_,
         site_id,model_name, participant, auto_publish, limit_day, reminder_day, yellow_day, red_day, bus_type, dept_transfer, competent_dept, part_dept, bus_code, spacera, day_code, spacerb, randomcode_count, querycode_count, workflow_type, workflow_id, form_templet, list_templet, view_templet, print_templet
     </sql>
+    <select id="pageByApplyOpenModel" resultType="com.deyatech.assembly.vo.ApplyOpenModelVo">
+        select * from apply_open_model where enable_ = 1
+        <if test="model != null">
+            <if test="model.modelName != null and model.modelName != ''">
+                and ( model_name like concat('%', #{model.modelName}, '%') or limit_day like concat('%', #{model.modelName}, '%') )
+            </if>
+            <if test="model.autoPublish != null and model.autoPublish != ''">
+                and auto_publish = #{model.autoPublish}
+            </if>
+            <if test="model.busType != null and model.busType != ''">
+                and bus_type = #{model.busType}
+            </if>
+            <if test="model.deptTransfer != null and model.deptTransfer != ''">
+                and dept_transfer = #{model.deptTransfer}
+            </if>
+        </if>
+    </select>
 
 </mapper>

@@ -31,4 +31,11 @@ public interface ModelService extends BaseService<Model> {
      * @return
      */
     List<ModelVo> setVoProperties(Collection models);
+
+    /**
+     * 返回
+     * @param departmentIds
+     * @return
+     */
+    long countModelByDepartmentId(List<String> departmentIds);
 }

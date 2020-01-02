@@ -1,5 +1,6 @@
 package com.deyatech.assembly.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.assembly.entity.ApplyOpenModel;
 import com.deyatech.assembly.vo.ApplyOpenModelVo;
 import com.deyatech.common.base.BaseService;
@@ -31,4 +32,12 @@ public interface ApplyOpenModelService extends BaseService<ApplyOpenModel> {
      * @return
      */
     List<ApplyOpenModelVo> setVoProperties(Collection applyOpenModels);
+
+    /**
+     * 翻页检索
+     *
+     * @param applyOpenModel
+     * @return
+     */
+    IPage<ApplyOpenModelVo> pageByApplyOpenModel(ApplyOpenModel applyOpenModel);
 }

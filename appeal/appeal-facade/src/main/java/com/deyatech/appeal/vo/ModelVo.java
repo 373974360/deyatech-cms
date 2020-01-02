@@ -24,4 +24,8 @@ public class ModelVo extends Model {
      * 表单地址
      * */
     private String formUrl;
+    /**
+     * 使用计数
+     */
+    private long usageCount;
 }

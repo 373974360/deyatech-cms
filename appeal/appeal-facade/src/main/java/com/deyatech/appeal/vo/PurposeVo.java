@@ -20,4 +20,8 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @ApiModel(value = "扩展对象", description = "扩展对象", parent = Purpose.class)
 public class PurposeVo extends Purpose {
+    /**
+     * 使用计数
+     */
+    private long usageCount;
 }

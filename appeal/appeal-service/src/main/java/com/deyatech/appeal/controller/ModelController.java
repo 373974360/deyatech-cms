@@ -1,9 +1,12 @@
 package com.deyatech.appeal.controller;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.deyatech.appeal.entity.Model;
+import com.deyatech.appeal.service.RecordService;
 import com.deyatech.appeal.vo.ModelVo;
 import com.deyatech.appeal.service.ModelService;
+import com.deyatech.appeal.vo.RecordVo;
 import com.deyatech.common.entity.RestResult;
 import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
@@ -11,8 +14,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.springframework.web.bind.annotation.RestController;
 import com.deyatech.common.base.BaseController;
 import io.swagger.annotations.Api;
@@ -33,7 +37,8 @@ import io.swagger.annotations.ApiOperation;
 public class ModelController extends BaseController {
     @Autowired
     ModelService modelService;
-
+    @Autowired
+    RecordService recordService;
     /**
      * 单个保存或者更新
      *
@@ -139,6 +144,14 @@ public class ModelController extends BaseController {
     public RestResult<IPage<ModelVo>> pageByModel(Model model) {
         IPage<ModelVo> models = modelService.pageByBean(model);
         models.setRecords(modelService.setVoProperties(models.getRecords()));
+        List<ModelVo> list =models.getRecords();
+        if (CollectionUtil.isNotEmpty(list)) {
+            List<RecordVo> usageCounts = recordService.countModel();
+            if (CollectionUtil.isNotEmpty(usageCounts)) {
+                Map<String, Long> usageCountMap = usageCounts.stream().collect(Collectors.toMap(RecordVo::getModelId, RecordVo::getNumber));
+                list.stream().parallel().forEach(m -> m.setUsageCount(Objects.isNull(usageCountMap.get(m.getId())) ? 0 : usageCountMap.get(m.getId())));
+            }
+        }
         log.info(String.format("根据Model对象属性分页检索: %s ",JSONUtil.toJsonStr(models)));
         return RestResult.ok(models);
     }
@@ -160,5 +173,18 @@ public class ModelController extends BaseController {
         Collection<ModelVo> modelVos = modelService.setVoProperties(models);
         log.info(String.format("检索主管部门的模型: %s ",JSONUtil.toJsonStr(modelVos)));
         return RestResult.ok(modelVos);
+    }
+
+    /**
+     * 统计部门的模型件数
+     *
+     * @param departmentIds
+     * @return
+     */
+    @RequestMapping("/countModelByDepartmentId")
+    @ApiOperation(value="统计部门的模型件数", notes="统计部门的模型件数")
+    @ApiImplicitParam(name = "departmentId", value = "部门对象", required = false, dataType = "Model", paramType = "query")
+    public RestResult<Integer> countModelByDepartmentId(@RequestParam("departmentIds[]") List<String> departmentIds) {
+        return RestResult.ok(modelService.countModelByDepartmentId(departmentIds));
     }
 }

@@ -61,4 +61,6 @@ public class RecordVo extends Record {
      * 详情地址
      * */
     private String url;
+
+    private long number;
 }

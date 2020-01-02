@@ -385,4 +385,24 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
         }
         return recordMapper.getAllAppealCount(maps);
     }
+
+    /**
+     * 统计模型使用件数
+     *
+     * @return
+     */
+    @Override
+    public List<RecordVo> countModel() {
+        return baseMapper.countModel();
+    }
+
+    /**
+     * 统计诉求目的使用件数
+     *
+     * @return
+     */
+    @Override
+    public List<RecordVo> countPurpose() {
+        return baseMapper.countPurpose();
+    }
 }
