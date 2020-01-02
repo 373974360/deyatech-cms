@@ -143,7 +143,7 @@ public class SiteCache {
         }
         //站点信息
         try {
-            clearCache();
+            //clearCache();
             this.cacheManager.getCache(CacheNames.USER_CACHE_KEY).put(CacheNames.USER_CACHE_KEY, templateService.getAllUser());
             this.cacheManager.getCache(CacheNames.DEPARTMENT_CACHE_KEY).put(CacheNames.DEPARTMENT_CACHE_KEY, templateService.getAllDepartment());
             List<StationGroup> allStationGroup = resourceFeign.getStationGroupAll().getData();
@@ -171,6 +171,10 @@ public class SiteCache {
             log.error("缓存站点信息失败", e);
             throw new RuntimeException("缓存站点信息失败", e);
         }
+    }
+    public void reloadCache(){
+        clearCache();
+        cacheSite();
     }
     public void clearCache(){
         this.cacheManager.getCache(CacheNames.USER_CACHE_KEY).clear();

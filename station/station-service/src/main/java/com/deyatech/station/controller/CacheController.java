@@ -32,7 +32,7 @@ public class CacheController {
     @PostMapping("/reload")
     @ApiOperation(value = "刷新站点和栏目缓存", notes = "刷新站点和栏目缓存")
     public RestResult<Boolean> reloadCache() {
-        siteCache.cacheSite();
+        siteCache.reloadCache();
         return RestResult.ok(true);
     }
 }
