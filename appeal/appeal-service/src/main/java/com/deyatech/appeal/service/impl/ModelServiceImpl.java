@@ -1,5 +1,6 @@
 package com.deyatech.appeal.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.appeal.entity.Model;
 import com.deyatech.appeal.vo.ModelVo;
 import com.deyatech.appeal.mapper.ModelMapper;
@@ -68,5 +69,16 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
             }
         }
         return total;
+    }
+
+    /**
+     * 翻页检索
+     *
+     * @param model
+     * @return
+     */
+    @Override
+    public IPage<ModelVo> pageByModel(Model model) {
+        return baseMapper.pageByModel(this.getPageByBean(model), model);
     }
 }

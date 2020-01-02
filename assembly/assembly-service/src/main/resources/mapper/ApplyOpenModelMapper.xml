@@ -56,13 +56,13 @@
             <if test="model.modelName != null and model.modelName != ''">
                 and ( model_name like concat('%', #{model.modelName}, '%') or limit_day like concat('%', #{model.modelName}, '%') )
             </if>
-            <if test="model.autoPublish != null and model.autoPublish != ''">
+            <if test="model.autoPublish != null">
                 and auto_publish = #{model.autoPublish}
             </if>
-            <if test="model.busType != null and model.busType != ''">
+            <if test="model.busType != null">
                 and bus_type = #{model.busType}
             </if>
-            <if test="model.deptTransfer != null and model.deptTransfer != ''">
+            <if test="model.deptTransfer != null">
                 and dept_transfer = #{model.deptTransfer}
             </if>
         </if>

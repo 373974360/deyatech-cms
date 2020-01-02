@@ -142,9 +142,8 @@ public class ModelController extends BaseController {
     @ApiOperation(value="根据Model对象属性分页检索", notes="根据Model对象属性分页检索信息")
     @ApiImplicitParam(name = "model", value = "对象", required = false, dataType = "Model", paramType = "query")
     public RestResult<IPage<ModelVo>> pageByModel(Model model) {
-        IPage<ModelVo> models = modelService.pageByBean(model);
-        models.setRecords(modelService.setVoProperties(models.getRecords()));
-        List<ModelVo> list =models.getRecords();
+        IPage<ModelVo> models = modelService.pageByModel(model);
+        List<ModelVo> list = models.getRecords();
         if (CollectionUtil.isNotEmpty(list)) {
             List<RecordVo> usageCounts = recordService.countModel();
             if (CollectionUtil.isNotEmpty(usageCounts)) {

@@ -32,4 +32,6 @@ public class ApplyOpenRecordVo extends ApplyOpenRecord {
      * 详情地址
      * */
     private String url;
+
+    private long number;
 }

@@ -54,5 +54,8 @@
         version_,
         reply_content,reply_time,reply_dept_id,model_id,ysq_code,query_code,ysq_type, name, company, card_name, card_code, org_code, licence, legalperson, linkman, tel, fax, phone, email, address, postcode, content, description, is_derate, get_method, is_other, is_publish, flag
     </sql>
+    <select id="countApplyOpenModel" resultType="com.deyatech.assembly.vo.ApplyOpenRecordVo">
+        select model_id as modelId, count(0) as number from apply_open_record where enable_ = 1 group by model_id
+    </select>
 
 </mapper>

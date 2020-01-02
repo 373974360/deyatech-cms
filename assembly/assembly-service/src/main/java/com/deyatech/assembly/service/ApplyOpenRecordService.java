@@ -89,4 +89,12 @@ public interface ApplyOpenRecordService extends BaseService<ApplyOpenRecord> {
      * @return Ipage
      */
     IPage<ApplyOpenRecordVo> getApplyOpenList(Map<String, Object> maps, Integer page, Integer pageSize);
+
+    /**
+     * 模型使用统计
+     * @return
+     */
+    List<ApplyOpenRecordVo> countApplyOpenModel();
+
+
 }

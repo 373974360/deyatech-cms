@@ -25,4 +25,8 @@ public class ApplyOpenModelVo extends ApplyOpenModel {
      * 表单地址
      * */
     private String formUrl;
+    /**
+     * 使用计数
+     */
+    private long usageCount;
 }

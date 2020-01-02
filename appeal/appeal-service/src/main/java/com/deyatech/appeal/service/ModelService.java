@@ -1,5 +1,6 @@
 package com.deyatech.appeal.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.appeal.entity.Model;
 import com.deyatech.appeal.vo.ModelVo;
 import com.deyatech.common.base.BaseService;
@@ -38,4 +39,11 @@ public interface ModelService extends BaseService<Model> {
      * @return
      */
     long countModelByDepartmentId(List<String> departmentIds);
+
+    /**
+     * 翻页检索
+     * @param model
+     * @return
+     */
+    IPage<ModelVo> pageByModel(Model model);
 }

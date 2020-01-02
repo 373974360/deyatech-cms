@@ -323,4 +323,13 @@ public class ApplyOpenRecordServiceImpl extends BaseServiceImpl<ApplyOpenRecordM
         recordVoIPage.setCurrent(pages.getCurrent());
         return recordVoIPage;
     }
+
+    /**
+     * 模型使用统计
+     * @return
+     */
+    @Override
+    public List<ApplyOpenRecordVo> countApplyOpenModel() {
+        return baseMapper.countApplyOpenModel();
+    }
 }

@@ -1,10 +1,14 @@
 package com.deyatech.assembly.controller;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.deyatech.assembly.entity.ApplyOpenModel;
+import com.deyatech.assembly.entity.ApplyOpenRecord;
+import com.deyatech.assembly.service.ApplyOpenRecordService;
 import com.deyatech.assembly.vo.ApplyOpenModelVo;
 import com.deyatech.assembly.service.ApplyOpenModelService;
+import com.deyatech.assembly.vo.ApplyOpenRecordVo;
 import com.deyatech.common.entity.RestResult;
 import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
@@ -15,6 +19,10 @@ import org.springframework.web.bind.annotation.*;
 import java.sql.Struct;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import org.springframework.web.bind.annotation.RestController;
 import com.deyatech.common.base.BaseController;
 import io.swagger.annotations.Api;
@@ -35,6 +43,8 @@ import io.swagger.annotations.ApiOperation;
 public class ApplyOpenModelController extends BaseController {
     @Autowired
     ApplyOpenModelService applyOpenModelService;
+    @Autowired
+    ApplyOpenRecordService applyOpenRecordService;
 
     /**
      * 单个保存或者更新
@@ -139,7 +149,16 @@ public class ApplyOpenModelController extends BaseController {
     @ApiOperation(value="根据ApplyOpenModel对象属性分页检索", notes="根据ApplyOpenModel对象属性分页检索信息")
     @ApiImplicitParam(name = "applyOpenModel", value = "对象", required = false, dataType = "ApplyOpenModel", paramType = "query")
     public RestResult<IPage<ApplyOpenModelVo>> pageByApplyOpenModel(ApplyOpenModel applyOpenModel) {
-        return RestResult.ok(applyOpenModelService.pageByApplyOpenModel(applyOpenModel));
+        IPage<ApplyOpenModelVo> page = applyOpenModelService.pageByApplyOpenModel(applyOpenModel);
+        List<ApplyOpenModelVo> list = page.getRecords();
+        if (CollectionUtil.isNotEmpty(list)) {
+            List<ApplyOpenRecordVo> usageCounts = applyOpenRecordService.countApplyOpenModel();
+            if (CollectionUtil.isNotEmpty(usageCounts)) {
+                Map<String, Long> usageCountMap = usageCounts.stream().parallel().collect(Collectors.toMap(ApplyOpenRecordVo::getModelId, ApplyOpenRecordVo::getNumber));
+                list.stream().parallel().forEach(m -> m.setUsageCount(Objects.isNull(usageCountMap.get(m.getId())) ? 0 : usageCountMap.get(m.getId())));
+            }
+        }
+        return RestResult.ok(page);
     }
 
 
