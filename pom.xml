@@ -38,6 +38,7 @@
         <module>monitor</module>
         <module>interview</module>
         <module>assembly</module>
+        <module>cas</module>
     </modules>
 
     <build>
