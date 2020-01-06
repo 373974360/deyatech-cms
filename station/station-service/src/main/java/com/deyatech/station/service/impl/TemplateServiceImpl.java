@@ -1335,6 +1335,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         queryWrapper.orderByAsc("resource_publication_date");
         int total = super.count(queryWrapper);
         if (total == 0) {
+            messagingTemplate.convertAndSend("/topic/reset/index/code/" + siteId + "/", total + "," + total);
             return;
         }
         final int size = 100;
