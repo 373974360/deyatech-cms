@@ -44,4 +44,64 @@ public class AjaxController {
         }
         return appealFeign.getAppealList(varMap,page,pageSize);
     }
+
+
+    /**
+     * 获取诉求目的
+     *
+     * @return
+     */
+    @GetMapping(value = "/getAllPurpose")
+    @ResponseBody
+    public RestResult getAllPurpose(){
+        return appealFeign.getAllPurpose();
+    }
+
+
+    /**
+     * 满意度评价指标
+     *
+     * @return
+     */
+    @GetMapping(value = "/getAllSatisfaction")
+    @ResponseBody
+    public RestResult getAllSatisfaction(){
+        return appealFeign.getAllSatisfaction();
+    }
+
+
+    /**
+     * 根据信件ID查询满意度评价情况
+     *
+     * @return
+     */
+    @GetMapping(value = "/getAppealSatisCountByAppealId")
+    @ResponseBody
+    public RestResult getAppealSatisCountByAppealId(String appealId){
+        return appealFeign.getAppealSatisCountByAppealId(appealId);
+    }
+
+
+    /**
+     * 根据信件ID查询满意度评价情况
+     *
+     * @return
+     */
+    @GetMapping(value = "/getAppealBySqCodeAndQueryCode")
+    @ResponseBody
+    public RestResult getAppealBySqCodeAndQueryCode(String sqCode,String queryCode){
+        return appealFeign.queryAppeal(sqCode,queryCode);
+    }
+
+
+    /**
+     * 根据信件ID查询满意度评价情况
+     *
+     * @return
+     */
+    @GetMapping(value = "/getAppealById")
+    @ResponseBody
+    public RestResult getAppealById(String id){
+        return appealFeign.getAppealById(id);
+    }
 }

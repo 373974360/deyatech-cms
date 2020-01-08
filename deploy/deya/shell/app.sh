@@ -19,12 +19,13 @@ server_list[10]=statistics-service
 server_list[11]=template-service
 server_list[12]=appeal-service
 server_list[13]=assembly-service
+server_list[14]=cas-service
 #阿里云私有docker仓库地址
 docker_server=registry.cn-hangzhou.aliyuncs.com/deyatech/
 #image版本号
 today=`date +%Y%m%d`
 #docker容器内存限制大小
-xxm=400
+xxm=500
 #打印命令提示
 echo -e "\e[1;31m"	#高亮绿色显示
 printf "%s\n" "命令列表如下："
@@ -138,7 +139,7 @@ pull(){
     if [ "${index}" -lt "4" ];then
         version=master-${today}
 	  else
-		    version=master-${today}
+		version=xa-${today}
     fi
     docker pull ${docker_server}${server_list[$index]}:${version}
     echo -e "\e[1;32m"	#高亮绿色显示
@@ -176,7 +177,12 @@ run(){
     if [ "${index}" -lt "4" ];then
         version=master-${today}
 	  else
-		    version=master-${today}
+		version=xa-${today}
+    fi
+    if [ "${index}" = "9"  ];then
+        xxm=2048
+	  else
+		xxm=500
     fi
     docker run -d --restart=always --name ${server_list[$index]} --network deyatech --privileged=true -v /deya/logs/${server_list[$index]}/:/deya/logs/app/ ${upload_path} ${vhost_path} ${nginx_path} -m=${xxm}m --oom-kill-disable  ${docker_server}${server_list[$index]}:${version}
     echo -e "\e[1;32m"	#高亮绿色显示

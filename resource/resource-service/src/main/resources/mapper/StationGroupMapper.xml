@@ -96,12 +96,10 @@
         s.icp_code,
         s.police_code,
         c.name_ as station_group_classification_name,
-        c.tree_position as station_group_classification_tree_position,
-        d.name_ as department_name,
-        d.tree_position as department_tree_position
+        c.tree_position as station_group_classification_tree_position
         from resource_station_group s
              join resource_station_group_classification c on c.enable_ = 1 and s.station_group_classification_id = c.id_
-             join admin_department d on d.enable_ = 1 and s.department_id = d.id_
+
         where s.enable_ != -1
         <if test="stationGroupVo != null">
             <if test="stationGroupVo.stationGroupClassificationId != null and stationGroupVo.stationGroupClassificationId !=''">
@@ -273,12 +271,10 @@
         s.icp_code,
         s.police_code,
         c.name_ as station_group_classification_name,
-        c.tree_position as station_group_classification_tree_position,
-        d.name_ as department_name,
-        d.tree_position as department_tree_position
+        c.tree_position as station_group_classification_tree_position
         from resource_station_group s
         join resource_station_group_classification c on c.enable_ = 1 and s.station_group_classification_id = c.id_
-        join admin_department d on d.enable_ = 1 and s.department_id = d.id_
+
         where s.enable_ != -1 and s.id_ in (
           select distinct sr.station_group_id from resource_station_group_role sr
           where sr.role_id in (
