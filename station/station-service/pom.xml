@@ -42,11 +42,6 @@
         </dependency>
         <dependency>
             <groupId>com.deyatech</groupId>
-            <artifactId>content-facade</artifactId>
-            <version>${deyatech.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.deyatech</groupId>
             <artifactId>workflow-facade</artifactId>
             <version>${deyatech.version}</version>
         </dependency>

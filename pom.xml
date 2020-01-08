@@ -31,7 +31,6 @@
         <module>resource</module>
         <module>station</module>
         <module>setting</module>
-        <module>content</module>
         <module>template</module>
         <module>appeal</module>
         <module>statistics</module>
