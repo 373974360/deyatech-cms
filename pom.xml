@@ -21,7 +21,7 @@
 
     <properties>
         <!-- 镜像文件版本号 -->
-        <docker.registry.version>master</docker.registry.version>
+        <docker.registry.version>xa</docker.registry.version>
         <!-- 镜像打包之后运行的环境配置 -->
         <spring.jvm.args>-Djava.security.egd=file:/dev/./urandom -Dspring.profiles.active=prod -Duser.timezone=GMT+08 -Xms128m -Xmx400m
         </spring.jvm.args>
