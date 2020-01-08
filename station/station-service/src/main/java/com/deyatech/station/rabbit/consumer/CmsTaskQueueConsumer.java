@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.station.cache.SiteCache;
+import com.deyatech.station.entity.Template;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.index.IndexService;
 import com.deyatech.station.service.CatalogService;
@@ -14,6 +15,7 @@ import com.deyatech.station.service.TemplateService;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.template.feign.TemplateFeign;
+import com.deyatech.workflow.constant.ProcessConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -54,6 +56,58 @@ public class CmsTaskQueueConsumer {
     private final String TOPIC_STATIC_PAGE_MESSAGE = "/topic/staticPage/message/";
 
     private final String TOPIC_REINDEX_MESSAGE = "/topic/reIndex/message/";
+
+    /**
+     * 内容审核通过
+     *
+     * @param param
+     */
+    @RabbitListener(queues = ProcessConstant.QUEUE_PROCESS_FINISH)
+    public void contentFinish(Map<String,Object> param) {
+        String templateId = (String) param.get(ProcessConstant.BUSINESS_ID);
+        log.info("内容审核通过： 内容ID = " + templateId);
+        if (StrUtil.isNotEmpty(templateId)) {
+            Template template = new Template();
+            template.setId(templateId);
+            templateService.contentFinish(template);
+        }
+    }
+
+    /**
+     * 内容审核拒绝
+     *
+     * @param param
+     */
+    @RabbitListener(queues = ProcessConstant.QUEUE_PROCESS_REJECT)
+    public void contentReject(Map<String,Object> param) {
+        String templateId = (String) param.get(ProcessConstant.BUSINESS_ID);
+        String reason = (String) param.get(ProcessConstant.REASON);
+        log.info("内容审核拒绝： 内容ID = " + templateId + ", 理由：" + reason);
+        if (StrUtil.isNotEmpty(templateId)) {
+            Template template = new Template();
+            template.setId(templateId);
+            template.setReason(reason);
+            templateService.contentReject(template);
+        }
+    }
+
+    /**
+     * 内容审核撤销
+     *
+     * @param param
+     */
+    @RabbitListener(queues = ProcessConstant.QUEUE_PROCESS_CANCEL)
+    public void contentCancel(Map<String,Object> param) {
+        String templateId = (String) param.get(ProcessConstant.BUSINESS_ID);
+        String reason = (String) param.get(ProcessConstant.REASON);
+        log.info("内容审核撤销： 内容ID = " + templateId + ", 理由：" + reason);
+        if (StrUtil.isNotEmpty(templateId)) {
+            Template template = new Template();
+            template.setId(templateId);
+            template.setReason(reason);
+            templateService.contentCancel(template);
+        }
+    }
 
     /**
      * 生成内容索引编码

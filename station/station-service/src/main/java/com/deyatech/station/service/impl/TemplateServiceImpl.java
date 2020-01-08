@@ -603,16 +603,15 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         ProcessInstanceVo processInstanceVo = new ProcessInstanceVo();
         processInstanceVo.setActDefinitionKey(templateVo.getWorkflowKey());
         processInstanceVo.setActDefinitionId(templateVo.getWorkflowId());
-        processInstanceVo.setBusinessId(String.valueOf(System.currentTimeMillis()));
-        processInstanceVo.setUserId(UserContextHelper.getUserId());
         processInstanceVo.setSource("CMS");
-        Map<String, Object> mapParams = CollectionUtil.newHashMap();
-        mapParams.put("title", templateVo.getTitle());
-        mapParams.put("author", templateVo.getAuthor());
-        mapParams.put("siteId", templateVo.getSiteId());
-        mapParams.put("templateId", templateVo.getId());
-        mapParams.put(Constants.VARIABLE_STASH, templateVo.getId());
-        processInstanceVo.setVariables(mapParams);
+        processInstanceVo.setUserId(UserContextHelper.getUserId());
+        // 业务ID
+        processInstanceVo.setBusinessId(templateVo.getId());
+//        Map<String, Object> mapParams = CollectionUtil.newHashMap();
+//        mapParams.put("title", templateVo.getTitle());
+//        mapParams.put("siteId", templateVo.getSiteId());
+//        mapParams.put("templateId", templateVo.getId());
+//        processInstanceVo.setVariables(mapParams);
         workflowFeign.startInstance(processInstanceVo);
     }
 
@@ -841,6 +840,97 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     }
 
     /**
+     * 内容审核通过
+     *
+     * @param template
+     * @return
+     */
+    @Override
+    public boolean contentFinish(Template template) {
+        log.info(String.format("内容审核通过: %s ", JSONUtil.toJsonStr(template)));
+        // 修改状态为发布
+        template.setStatus(ContentStatusEnum.PUBLISH.getCode());
+        // 发布日期
+        template.setResourcePublicationDate(new Date());
+        boolean result = this.updateById(template);
+        if (result) {
+            //发布新闻所属栏目关联的页面静态页
+            pageService.replyPageByCatalog(template.getCmsCatalogId());
+            //生成内容静态页
+            TemplateVo templateVo = new TemplateVo();
+            templateVo.setIds(template.getId());
+            this.genStaticPage(templateVo,RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
+            //清理页面缓存
+            template = this.getById(template.getId());
+            this.cacheCatalogList(template.getCmsCatalogId());
+        }
+        return result;
+    }
+
+    /**
+     * 内容审核拒绝
+     *
+     * @param template
+     * @return
+     */
+    @Override
+    public boolean contentReject(Template template) {
+        log.info(String.format("内容审核拒绝: %s ", JSONUtil.toJsonStr(template)));
+        Template entity = new Template();
+        entity.setId(template.getId());
+        entity.setStatus(ContentStatusEnum.REJECT.getCode());
+        entity.setReason(template.getReason());
+        return this.updateById(entity);
+    }
+
+    /**
+     * 内容审核撤销
+     *
+     * @param template
+     * @return
+     */
+    @Override
+    public boolean contentCancel(Template template) {
+        log.info(String.format("内容审核撤销: %s ", JSONUtil.toJsonStr(template)));
+        Template entity = new Template();
+        entity.setId(template.getId());
+        entity.setStatus(ContentStatusEnum.CANCEL.getCode());
+        entity.setReason(template.getReason());
+        return this.updateById(entity);
+    }
+
+
+    /**
+     * 获取登陆用户代办理任务列表
+     *
+     * @param templateVo
+     * @return
+     */
+    @Override
+    public IPage<TemplateVo> getLoginUserTaskList(TemplateVo templateVo) {
+        Page<TemplateVo> result = new Page();
+        result.setCurrent(templateVo.getPage());
+        result.setSize(templateVo.getSize());
+        String userId = UserContextHelper.getUserId();
+        if (StrUtil.isEmpty(userId)) {
+            log.error("用户编号不存在");
+            result.setTotal(0);
+            result.setRecords(null);
+            return result;
+        }
+        templateVo.setUserId(userId);
+        // 用户部门
+        UserVo userVo = adminFeign.getUserByUserId(userId).getData();
+        if (Objects.nonNull(userVo)) {
+            templateVo.setDepartmentId(userVo.getDepartmentId());
+        }
+        // 用户角色
+        List<String> roleIdList = adminFeign.getRoleIdsByUserId(userId).getData();
+        templateVo.setRoleIdList(roleIdList);
+        return baseMapper.getLoginUserTaskList(this.getPageByBean(templateVo), templateVo);
+    }
+
+    /**
      * 分页查询
      * @param entity
      * @return
@@ -850,7 +940,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         long start = System.nanoTime();
         String siteId = entity.getSiteId();
         String userId = UserContextHelper.getUserId();
-
         // 分配给用户的栏目
         List<CatalogVo> catalogList = baseMapper.getUserRoleCatalog(siteId, userId);
         if (CollectionUtil.isEmpty(catalogList)) {
@@ -898,12 +987,32 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
 
     private void setUserDepartmentCatalogValue(List<TemplateVo> list, List<CatalogVo> catalogList) {
         if (CollectionUtil.isNotEmpty(list)) {
-            Map<String, String> catalogMap = new HashMap<>();
+            Map<String, String> catalogPathNameMap = new HashMap<>();
+            Map<String, String> catalogLevelNameMap = new HashMap<>();
             Map<String, String> departmentMap = new HashMap<>();
             Map<String, String> userMap = new HashMap<>();
             Map<String, String> userDepartmentMap = new HashMap<>();
             if (CollectionUtil.isNotEmpty(catalogList)) {
-                catalogList.stream().parallel().forEach(catalogVo -> catalogMap.put(catalogVo.getId(), catalogVo.getPathName()));
+                catalogList.stream().parallel().forEach(catalogVo -> {
+                    catalogPathNameMap.put(catalogVo.getId(), catalogVo.getPathName());
+                    StringBuilder levelName = new StringBuilder();
+                    String treePosition = catalogVo.getTreePosition();
+                    if (StrUtil.isNotEmpty(treePosition)) {
+                        String[] ids = treePosition.substring(1).split("&");
+                        for (String id : ids) {
+                            for (CatalogVo c : catalogList) {
+                                if (id.equals(c.getId())) {
+                                    levelName.append("＼");
+                                    levelName.append(c.getName());
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    levelName.append("＼");
+                    levelName.append(catalogVo.getName());
+                    catalogLevelNameMap.put(catalogVo.getId(), levelName.toString().substring(1));
+                });
             }
             List<Department> departmentList = siteCache.getAllDepartment();
             if (CollectionUtil.isNotEmpty(departmentList)) {
@@ -917,7 +1026,8 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 });
             }
             list.stream().parallel().forEach(t -> {
-                t.setCmsCatalogPathName(catalogMap.get(t.getCmsCatalogId()));
+                t.setCmsCatalogPathName(catalogPathNameMap.get(t.getCmsCatalogId()));
+                t.setCatalogLevelName(catalogLevelNameMap.get(t.getCmsCatalogId()));
                 String sourceName = departmentMap.get(t.getSource());
                 if (Objects.isNull(sourceName)) {
                     t.setSourceName(t.getSource());

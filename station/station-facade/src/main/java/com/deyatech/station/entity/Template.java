@@ -109,9 +109,13 @@ public class Template extends BaseEntity {
     @TableField("content_id")
     private String contentId;
 
-    @ApiModelProperty(value = "内容发布状态：1-草稿，2-已发布", dataType = "Integer", example = "1")
+    @ApiModelProperty(value = "内容发布状态", dataType = "Integer", example = "1")
     @TableField("status_")
     private Integer status;
+
+    @ApiModelProperty(value = "还原状态", dataType = "Integer", example = "1")
+    @TableField("original_status")
+    private Integer originalStatus;
 
     @ApiModelProperty(value = "内容模型模板ID", dataType = "String")
     @TableField("content_model_template_id")
@@ -187,7 +191,7 @@ public class Template extends BaseEntity {
     @TableField("index_code")
     private String indexCode;
 
-
-
-
+    @ApiModelProperty(value = "审核理由", dataType = "String")
+    @TableField("reason_")
+    private String reason;
 }

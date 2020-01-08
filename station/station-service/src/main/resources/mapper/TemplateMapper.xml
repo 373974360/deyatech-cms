@@ -80,7 +80,7 @@
     </select>
 
     <select id="getUserRoleCatalog" resultType="com.deyatech.station.vo.CatalogVo">
-        select sc.id_, sc.parent_id, sc.path_name
+        select sc.id_, sc.parent_id, sc.path_name, sc.tree_position, sc.name
         from station_catalog sc
         join station_catalog_role cr on cr.catalog_id = sc.id_
         join admin_role_user ru on ru.role_id = cr.role_id and ru.user_id = #{userId}
@@ -173,6 +173,48 @@
         </if>
     </select>
 
+    <select id="getLoginUserTaskList" resultType="com.deyatech.station.vo.TemplateVo">
+        select
+        st.*,
+        temp.taskId
+        from
+        station_template st
+        inner join
+        (
+            select distinct
+            exe.BUSINESS_KEY_ as templateId,
+            task.ID_ as taskId
+            from
+            ACT_RU_EXECUTION exe
+            inner join
+            (
+                select RES.ID_, RES.PROC_INST_ID_
+                from ACT_RU_TASK RES
+                inner join ACT_RU_IDENTITYLINK I on I.TASK_ID_ = RES.ID_
+                where RES.ASSIGNEE_ is null and I.TYPE_ = 'candidate'
+                and (
+                  I.USER_ID_ = #{templateVo.userId}
+                  <if test="templateVo.roleIdList != null and templateVo.roleIdList.size > 0">
+                      or I.GROUP_ID_ IN
+                      <foreach item="item" index="index" collection="templateVo.roleIdList" open="(" separator="," close=")">
+                          #{item}
+                      </foreach>
+                  </if>
+                )
+                <if test="templateVo.departmentId != null and templateVo.departmentId != ''">
+                    union all
+
+                    select RES.ID_, RES.PROC_INST_ID_
+                    from ACT_RU_TASK RES
+                    inner join ACT_RU_VARIABLE A0 on RES.ID_ = A0.TASK_ID_
+                    where A0.NAME_= 'department' and A0.TYPE_ = 'string' and A0.TEXT_ LIKE concat('%', #{templateVo.departmentId}, '%')
+                </if>
+            ) task on task.PROC_INST_ID_ = exe.PROC_INST_ID_
+
+        ) temp on st.id_ = temp.templateId
+        where st.enable_ = 1
+
+    </select>
     <!--
     <select id="pageByTemplate" resultType="com.deyatech.station.vo.TemplateVo">
         select

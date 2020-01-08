@@ -1,36 +1,33 @@
 package com.deyatech.station.controller;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.admin.feign.AdminFeign;
+import com.deyatech.common.base.BaseController;
+import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.enums.ContentStatusEnum;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.config.AipNlpConfig;
-import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.entity.Model;
 import com.deyatech.station.entity.Template;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.service.CatalogService;
 import com.deyatech.station.service.ModelService;
 import com.deyatech.station.service.PageService;
-import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.station.service.TemplateService;
-import com.deyatech.common.entity.RestResult;
+import com.deyatech.station.vo.TemplateVo;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
-
-import org.springframework.web.bind.annotation.RestController;
-import com.deyatech.common.base.BaseController;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiOperation;
 
 /**
  * <p>
@@ -322,51 +319,6 @@ public class TemplateController extends BaseController {
     }
 
     /**
-     * 发布内容
-     *
-     * @param template
-     * @return
-     */
-    @PostMapping("/updateContentStatusPublish")
-    @ApiOperation(value="发布内容", notes="发布内容")
-    @ApiImplicitParam(name = "template", value = "内容模板对象", required = true, dataType = "Template", paramType = "query")
-    public RestResult<Boolean> updateContentStatusPublish(Template template) {
-        log.info(String.format("发布内容: %s ", JSONUtil.toJsonStr(template)));
-        // 修改状态为发布
-        template.setStatus(ContentStatusEnum.PUBLISH.getCode());
-        // 发布日期
-        template.setResourcePublicationDate(new Date());
-        //发布新闻所属栏目关联的页面静态页
-        pageService.replyPageByCatalog(template.getCmsCatalogId());
-        //生成内容静态页
-        TemplateVo templateVo = new TemplateVo();
-        templateVo.setIds(template.getId());
-        templateService.genStaticPage(templateVo,RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
-        boolean result = templateService.updateById(template);
-        //清理页面缓存
-        template = templateService.getById(template.getId());
-        templateService.cacheCatalogList(template.getCmsCatalogId());
-        return RestResult.ok(result);
-    }
-
-    /**
-     * 发布内容
-     *
-     * @param template
-     * @return
-     */
-    @PostMapping("/updateContentStatusReject")
-    @ApiOperation(value="发布内容", notes="发布内容")
-    @ApiImplicitParam(name = "template", value = "内容模板对象", required = true, dataType = "Template", paramType = "query")
-    public RestResult<Boolean> updateContentStatusReject(Template template) {
-        log.info(String.format("发布内容: %s ", JSONUtil.toJsonStr(template)));
-        // 修改状态为发布
-        template.setStatus(ContentStatusEnum.REJECT.getCode());
-        boolean result = templateService.updateById(template);
-        return RestResult.ok(result);
-    }
-
-    /**
      * 删除索引数据
      *
      * @param templateVo
@@ -473,5 +425,18 @@ public class TemplateController extends BaseController {
             return RestResult.error(res.getString("error_msg"));
         }
         return RestResult.ok(res.getString("summary"));
+    }
+
+    /**
+     * 获取登陆用户代办理任务列表
+     *
+     * @param templateVo
+     * @return
+     */
+    @GetMapping("/getLoginUserTaskList")
+    @ApiOperation(value="获取登陆用户代办理任务列表", notes="获取登陆用户代办理任务列表")
+    @ApiImplicitParam(name = "template", value = "内容模板扩展对象", required = false, dataType = "Template", paramType = "query")
+    RestResult<IPage<TemplateVo>> getLoginUserTaskList(TemplateVo templateVo) {
+        return RestResult.ok(templateService.getLoginUserTaskList(templateVo));
     }
 }
