@@ -83,12 +83,13 @@ public interface TemplateMapper extends BaseMapper<Template> {
      */
     List<Map<String, Object>> countCatalogTemplate();
 
-
-
-
-
-
-//==================================
+    /**
+     * 获取登陆用户代办理任务列表
+     *
+     * @param templateVo
+     * @return
+     */
+    IPage<TemplateVo> getLoginUserTaskList(@Param("page") Page page, @Param("templateVo") TemplateVo templateVo);
 
     /**
      * 分页查询

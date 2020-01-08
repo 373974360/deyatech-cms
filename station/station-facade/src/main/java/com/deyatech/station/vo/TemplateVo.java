@@ -99,6 +99,11 @@ public class TemplateVo extends Template {
     private String cmsCatalogPathName;
 
     /**
+     * 内容所属栏目的层级路径名
+     */
+    private String catalogLevelName;
+
+    /**
      * 资源名
      */
     private String resourceCategoryName;
@@ -128,4 +133,23 @@ public class TemplateVo extends Template {
      */
     private String updateUserDepartmentName;
 
+    /**
+     * 任务ID
+     */
+    private String taskId;
+
+    /**
+     * 用户ID
+     */
+    private String userId;
+
+    /**
+     * 角色ID
+     */
+    private List<String> roleIdList;
+
+    /**
+     * 用户部门
+     */
+    private String departmentId;
 }

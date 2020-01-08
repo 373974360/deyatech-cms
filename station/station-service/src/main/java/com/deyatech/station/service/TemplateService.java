@@ -228,4 +228,36 @@ public interface TemplateService extends BaseService<Template> {
      * @return
      */
     List<Department> getAllDepartment();
+
+    /**
+     * 获取登陆用户代办理任务列表
+     *
+     * @param templateVo
+     * @return
+     */
+    IPage<TemplateVo> getLoginUserTaskList(TemplateVo templateVo);
+
+    /**
+     * 内容审核通过
+     *
+     * @param template
+     * @return
+     */
+    boolean contentFinish(Template template);
+
+    /**
+     * 内容审核拒绝
+     *
+     * @param template
+     * @return
+     */
+    boolean contentReject(Template template);
+
+    /**
+     * 内容审核撤销
+     *
+     * @param template
+     * @return
+     */
+    boolean contentCancel(Template template);
 }

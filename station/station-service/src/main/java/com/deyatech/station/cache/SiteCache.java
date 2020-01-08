@@ -115,7 +115,6 @@ public class SiteCache {
         }
         return catalogVoCollection;
     }
-
     /**
      * 用户信息
      *
