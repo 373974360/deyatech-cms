@@ -38,8 +38,6 @@ public class ScheduledTask {
     @Autowired
     SiteCache siteCache;
     @Autowired
-    WorkflowFeign workflowFeign;
-    @Autowired
     TemplateService templateService;
 
     /**
