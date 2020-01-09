@@ -42,6 +42,7 @@ public class SyncController {
         log.info(String.format("接收的用户数据: %s ", JSONUtil.toJsonStr(data)));
         //数据解密。为 null，数据解密失败。
         data = DecodeData.decrypt(data);
+        log.info(String.format("接收的用户数据-解密后: %s ", JSONUtil.toJsonStr(data)));
         int successNum = 0;
         if(data != null) {
             //转化为json对象。
@@ -74,6 +75,7 @@ public class SyncController {
         log.info(String.format("接收的用户数据: %s ", JSONUtil.toJsonStr(data)));
         //数据解密。为 null，数据解密失败。
         data = DecodeData.decrypt(data);
+        log.info(String.format("接收的用户数据-解密后: %s ", JSONUtil.toJsonStr(data)));
         int successNum = 0;
         if(data != null) {
             //转化为json对象。
@@ -109,6 +111,7 @@ public class SyncController {
         log.info(String.format("接收的部门数据: %s ", JSONUtil.toJsonStr(data)));
         //数据解密。为 null，数据解密失败。
         data = DecodeData.decrypt(data);
+        log.info(String.format("接收的部门数据-解密后: %s ", JSONUtil.toJsonStr(data)));
         int successNum = 0;
         if(data != null) {
             //转化为json对象。
@@ -140,6 +143,7 @@ public class SyncController {
         log.info(String.format("接收的部门数据: %s ", JSONUtil.toJsonStr(data)));
         //数据解密。为 null，数据解密失败。
         data = DecodeData.decrypt(data);
+        log.info(String.format("接收的部门数据-解密后: %s ", JSONUtil.toJsonStr(data)));
         int successNum = 0;
         if(data != null) {
             //转化为json对象。
