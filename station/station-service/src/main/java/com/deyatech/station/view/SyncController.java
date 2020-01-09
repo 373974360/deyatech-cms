@@ -7,6 +7,7 @@ import com.deyatech.admin.entity.Department;
 import com.deyatech.admin.entity.User;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.common.enums.GenderEnum;
 import com.deyatech.station.view.utils.DecodeData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -174,6 +175,8 @@ public class SyncController {
         department.setCode(jo.getStr("codeNum"));
         //名称
         department.setName(jo.getStr("name"));
+        //简称
+        department.setShortName(jo.getStr("name"));
         //父节点ID
         department.setParentId(jo.getStr("parentId"));
         //备注
@@ -194,6 +197,7 @@ public class SyncController {
         user.setPassword(jo.getStr("enPwd"));
         //电话
         user.setPhone(jo.getStr("mobile"));
+        user.setGender(GenderEnum.UNKNOWN.getCode());
         //归属部门
         user.setDepartmentId(jo.getStr("userDeptIds"));
         String status = jo.getStr("status");
