@@ -39,6 +39,7 @@ public class SyncController {
     public RestResult syncUser(HttpServletRequest request, HttpServletResponse response){
         //获取请求中的数据。
         String data = request.getParameter("data");
+        log.info(String.format("接收的用户数据: %s ", JSONUtil.toJsonStr(data)));
         //数据解密。为 null，数据解密失败。
         data = DecodeData.decrypt(data);
         int successNum = 0;
@@ -70,6 +71,7 @@ public class SyncController {
     public RestResult deleteUser(HttpServletRequest request, HttpServletResponse response){
         //获取请求中的数据。
         String data = request.getParameter("data");
+        log.info(String.format("接收的用户数据: %s ", JSONUtil.toJsonStr(data)));
         //数据解密。为 null，数据解密失败。
         data = DecodeData.decrypt(data);
         int successNum = 0;
@@ -104,6 +106,7 @@ public class SyncController {
     public RestResult syncDepartment(HttpServletRequest request, HttpServletResponse response){
         //获取请求中的数据。
         String data = request.getParameter("data");
+        log.info(String.format("接收的部门数据: %s ", JSONUtil.toJsonStr(data)));
         //数据解密。为 null，数据解密失败。
         data = DecodeData.decrypt(data);
         int successNum = 0;
@@ -134,6 +137,7 @@ public class SyncController {
     public RestResult deleteDepartment(HttpServletRequest request, HttpServletResponse response){
         //获取请求中的数据。
         String data = request.getParameter("data");
+        log.info(String.format("接收的部门数据: %s ", JSONUtil.toJsonStr(data)));
         //数据解密。为 null，数据解密失败。
         data = DecodeData.decrypt(data);
         int successNum = 0;

@@ -10,7 +10,7 @@ docker run -d --restart=always -m=1800m  --name mysql --network deyatech -e MYSQ
 #启动rabbitmq，并且设置默认用户名和密码
 docker run -d --restart=always -m=1g --name rabbitmq --network deyatech -e RABBITMQ_DEFAULT_USER=deyatech -e RABBITMQ_DEFAULT_PASS=88352636 rabbitmq:3-management
 #启动nginx，挂载默认配置，并且开放80端口
-docker run -d --restart=always -m=512m --name nginx --network deyatech -p 80:80 --privileged=true -v /deya/data/nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro -v /deya/data/nginx/html:/usr/share/nginx/html:ro -v /deya/data/nginx/conf/nginx.d:/etc/nginx/conf.d:ro -v /deya/vhost:/deya/vhost:ro -v /deya/logs/nginx:/var/log/nginx nginx
+docker run -d --restart=always -m=512m --name nginx --network deyatech -p 8501:8501 --privileged=true -v /deya/data/nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro -v /deya/data/nginx/html:/usr/share/nginx/html:ro -v /deya/data/nginx/conf/nginx.d:/etc/nginx/conf.d:ro -v /deya/vhost:/deya/vhost:ro -v /deya/logs/nginx:/var/log/nginx nginx
 #导入consul配置
 docker exec -d consul consul kv import --http-addr=http://127.0.0.1:8500  @/consul/kv/consul_kv.json
 
