@@ -23,7 +23,7 @@ public class DecodeData {
      * @return 解密后字符串
      */
     public static String decrypt(String str) {
-        String secretKey = "11azxsw23e";	// 解密密钥
+        String secretKey = "11azxsw23ealfgjs";	// 解密密钥
         try {
             return decodeData(str, secretKey);
         } catch (Exception e) {
