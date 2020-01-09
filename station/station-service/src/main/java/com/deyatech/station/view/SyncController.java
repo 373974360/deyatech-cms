@@ -48,7 +48,7 @@ public class SyncController {
             //转化为json对象。
             JSONObject jo = JSONUtil.parseObj(data);
             if(null != jo.get("userId") && Validator.isNotNull(jo.get("userId").toString())) {
-                boolean bool = (Boolean) adminFeign.insertUser(initUser(jo)).getData();
+                boolean bool = adminFeign.insertUser(initUser(jo)).getData();
                 if(bool){
                     successNum += 1;
                 }
