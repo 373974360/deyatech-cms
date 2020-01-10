@@ -68,15 +68,19 @@ public class CasLoginController {
             //获取用户登录名
             String loginName = assertion.getPrincipal().getName();
             UserVo userVo = adminFeign.getByUser(new User().setAccount(loginName)).getData();
-            JwtInfo jwtInfo = new JwtInfo(userVo.getId(), userVo.getAccount(), userVo.getName(), null);
-            String token = JwtUtil.generateToken(jwtInfo, jwtConfig.getPriKeyPath(), jwtConfig.getXpire());
-            userVo.setToken(token);
-            userVo.setPassword(null);
-            RestResult<String[]> allPermissionsByUserId = adminFeign.getAllPermissionsByUserId(userVo.getId());
-            if (allPermissionsByUserId != null && allPermissionsByUserId.isOk()) {
-                userVo.setPermissions(allPermissionsByUserId.getData());
+            if(StrUtil.isNotBlank(userVo.getId())){
+                JwtInfo jwtInfo = new JwtInfo(userVo.getId(), userVo.getAccount(), userVo.getName(), null);
+                String token = JwtUtil.generateToken(jwtInfo, jwtConfig.getPriKeyPath(), jwtConfig.getXpire());
+                userVo.setToken(token);
+                userVo.setPassword(null);
+                RestResult<String[]> allPermissionsByUserId = adminFeign.getAllPermissionsByUserId(userVo.getId());
+                if (allPermissionsByUserId != null && allPermissionsByUserId.isOk()) {
+                    userVo.setPermissions(allPermissionsByUserId.getData());
+                }
+                return RestResult.ok(userVo);
+            }else{
+                return RestResult.error("用户未同步");
             }
-            return RestResult.ok(userVo);
         } else {
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "调用userFeign根据用户名查找用户出错", object);
         }
