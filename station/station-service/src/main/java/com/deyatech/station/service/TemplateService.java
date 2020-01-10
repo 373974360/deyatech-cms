@@ -3,10 +3,11 @@ package com.deyatech.station.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.admin.entity.Department;
 import com.deyatech.admin.entity.User;
+import com.deyatech.common.base.BaseService;
 import com.deyatech.station.entity.Template;
 import com.deyatech.station.vo.TemplateDynamicFormVo;
 import com.deyatech.station.vo.TemplateVo;
-import com.deyatech.common.base.BaseService;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -168,15 +169,6 @@ public interface TemplateService extends BaseService<Template> {
     void resetTemplateIndexCodeHandler(Map<String,Object> param);
 
     /**
-     * 更新信息状态
-     *
-     * @param ids
-     * @param status
-     * @return
-     */
-    int updateStatusByIds(List<String> ids, int status);
-
-    /**
      * 更新权重
      *
      * @param sortNo
@@ -254,10 +246,65 @@ public interface TemplateService extends BaseService<Template> {
     boolean contentReject(Template template);
 
     /**
-     * 内容审核撤销
+     * 删除内容到回收站
      *
-     * @param template
+     * @param ids
      * @return
      */
-    boolean contentCancel(Template template);
+    boolean recycleByIds(List<String> ids);
+
+    /**
+     * 从回收站还原内容
+     *
+     * @param ids
+     * @return
+     */
+    boolean backByIds(List<String> ids);
+
+    /**
+     * 退稿的再送审
+     *
+     * @param ids
+     * @return
+     */
+    boolean verifyByIds(List<String> ids);
+
+    /**
+     * 撤销
+     *
+     * @param ids
+     * @return
+     */
+    boolean cancelByIds(List<String> ids);
+
+    /**
+     * 发布
+     *
+     * @param ids
+     * @return
+     */
+    boolean publishByIds(List<String> ids);
+
+    /**
+     * 删除静态页和索引
+     *
+     * @param templateVo
+     * @return
+     */
+    void deletePageAndIndexById(TemplateVo templateVo);
+
+    /**
+     * 添加静态页和索引
+     *
+     * @param templateVo
+     * @return
+     */
+    void addPageAndIndexById(TemplateVo templateVo);
+
+    /**
+     * 启动工作流
+     *
+     * @param templateVo
+     */
+    void startWorkflow(TemplateVo templateVo);
 }

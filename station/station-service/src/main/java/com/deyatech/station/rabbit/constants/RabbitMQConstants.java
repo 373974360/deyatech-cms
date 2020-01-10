@@ -46,4 +46,9 @@ public class RabbitMQConstants {
      * 重置内容索引编码
      */
     public static final String FANOUT_EXCHANGE_RESET_INDEX_CODE = "fanout-exchange-reset-index-code";
+
+    /**
+     * 内容状态切换处理: 静态页、索引、工作流
+     */
+    public static final String QUEUE_CONTENT_STATUS_SWITCH_HANDLE = "queue.content.status.switch.handle";
 }

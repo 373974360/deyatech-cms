@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.common.base.BaseController;
 import com.deyatech.common.entity.RestResult;
-import com.deyatech.common.enums.ContentStatusEnum;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.config.AipNlpConfig;
 import com.deyatech.station.entity.Model;
@@ -169,12 +168,24 @@ public class TemplateController extends BaseController {
     @ApiImplicitParam(name = "ids", value = "内容模板对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
     public RestResult<Boolean> recycleByIds(@RequestParam("ids[]") List<String> ids) {
         log.info(String.format("删除内容到回收站: %s ", JSONUtil.toJsonStr(ids)));
-        int count = templateService.updateStatusByIds(ids, ContentStatusEnum.RECYCLE.getCode());
-        return RestResult.ok(count > 0 ? true : false);
+        return RestResult.ok(templateService.recycleByIds(ids));
+    }
+    /**
+     * 从回收站还原内容
+     *
+     * @param ids
+     * @return
+     */
+    @RequestMapping("/backByIds")
+    @ApiOperation(value="从回收站还原内容", notes="从回收站还原内容")
+    @ApiImplicitParam(name = "ids", value = "内容模板对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
+    public RestResult<Boolean> backByIds(@RequestParam("ids[]") List<String> ids) {
+        log.info(String.format("从回收站还原内容: %s ", JSONUtil.toJsonStr(ids)));
+        return RestResult.ok(templateService.backByIds(ids));
     }
 
     /**
-     * 撤销内容
+     * 撤销
      *
      * @param ids
      * @return
@@ -184,8 +195,35 @@ public class TemplateController extends BaseController {
     @ApiImplicitParam(name = "ids", value = "内容模板对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
     public RestResult<Boolean> cancelByIds(@RequestParam("ids[]") List<String> ids) {
         log.info(String.format("撤销内容: %s ", JSONUtil.toJsonStr(ids)));
-        int count = templateService.updateStatusByIds(ids, ContentStatusEnum.CANCEL.getCode());
-        return RestResult.ok(count > 0 ? true : false);
+        return RestResult.ok(templateService.cancelByIds(ids));
+    }
+
+    /**
+     * 发布
+     *
+     * @param ids
+     * @return
+     */
+    @RequestMapping("/publishByIds")
+    @ApiOperation(value="发布", notes="发布")
+    @ApiImplicitParam(name = "ids", value = "内容模板对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
+    public RestResult<Boolean> publishByIds(@RequestParam("ids[]") List<String> ids) {
+        log.info(String.format("发布: %s ", JSONUtil.toJsonStr(ids)));
+        return RestResult.ok(templateService.publishByIds(ids));
+    }
+
+    /**
+     * 送审
+     *
+     * @param ids
+     * @return
+     */
+    @RequestMapping("/verifyByIds")
+    @ApiOperation(value="送审", notes="送审")
+    @ApiImplicitParam(name = "ids", value = "内容模板对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
+    public RestResult<Boolean> verifyByIds(@RequestParam("ids[]") List<String> ids) {
+        log.info(String.format("送审: %s ", JSONUtil.toJsonStr(ids)));
+        return RestResult.ok(templateService.verifyByIds(ids));
     }
 
     /**

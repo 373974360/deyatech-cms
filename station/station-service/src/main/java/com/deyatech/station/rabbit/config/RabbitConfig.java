@@ -69,6 +69,17 @@ public class RabbitConfig {
         return new Queue(RabbitMQConstants.QUEUE_NAME_INDEX_TASK);
     }
 
+
+    /**
+     * 内容状态切换处理
+     *
+     * @return
+     */
+    @Bean
+    public Queue queueContentStatusSwitchHandle() {
+        return new Queue(RabbitMQConstants.QUEUE_CONTENT_STATUS_SWITCH_HANDLE);
+    }
+
     /**
      * 自动删除匿名队列
      * @param csmTaskTopicExchange 广播交换器
@@ -102,4 +113,15 @@ public class RabbitConfig {
         return BindingBuilder.bind(indexTaskQueue).to(csmTaskTopicExchange).with(RabbitMQConstants.QUEUE_NAME_INDEX_TASK);
     }
 
+    /**
+     * 内容状态切换处理: 静态页、索引、工作流
+     *
+     * @param csmTaskTopicExchange
+     * @param queueContentStatusSwitchHandle
+     * @return
+     */
+    @Bean
+    public Binding bindingContentStatusSwitchHandle(TopicExchange csmTaskTopicExchange, Queue queueContentStatusSwitchHandle) {
+        return BindingBuilder.bind(queueContentStatusSwitchHandle).to(csmTaskTopicExchange).with(RabbitMQConstants.QUEUE_CONTENT_STATUS_SWITCH_HANDLE);
+    }
 }
