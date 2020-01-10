@@ -287,7 +287,7 @@ public class CmsTaskQueueConsumer {
         log.info(String.format("处理索引任务：%s", JSONUtil.toJsonStr(dataMap)));
         String messageCode = dataMap.get("messageCode").toString();
         Map<String, Object> maps = (Map<String, Object>) dataMap.get("maps");
-        IPage<TemplateVo> templates = templateService.getTemplateListView(maps,0,Integer.parseInt(maps.get("totle").toString()));
+        IPage<TemplateVo> templates = templateService.getTemplateListView(maps,1,Integer.parseInt(maps.get("totle").toString()));
         if(CollectionUtil.isNotEmpty(templates.getRecords())){
             Map<String,Object> result = new HashMap();
             result.put("totle",String.valueOf(templates.getTotal()));
