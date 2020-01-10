@@ -57,7 +57,7 @@ import java.util.*;
 public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> implements CatalogService {
 
     @Autowired
-    private CatalogAggregationService catalogAggregationService;
+    CatalogAggregationService catalogAggregationService;
     @Autowired
     TemplateService templateService;
     @Autowired
@@ -67,7 +67,7 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
     @Autowired
     TemplateFeign templateFeign;
     @Autowired
-    private SiteCache siteCache;
+    SiteCache siteCache;
     @Autowired
     WorkflowFeign workflowFeign;
 

@@ -1,21 +1,27 @@
 package com.deyatech.station.rabbit.consumer;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.common.enums.ContentStatusEnum;
+import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.station.cache.SiteCache;
+import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.entity.Template;
-import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.index.IndexService;
+import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.service.CatalogService;
 import com.deyatech.station.service.ModelService;
+import com.deyatech.station.service.PageService;
 import com.deyatech.station.service.TemplateService;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.template.feign.TemplateFeign;
 import com.deyatech.workflow.constant.ProcessConstant;
+import com.deyatech.workflow.feign.WorkflowFeign;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -49,6 +55,10 @@ public class CmsTaskQueueConsumer {
     CatalogService catalogService;
     @Autowired
     SiteCache siteCache;
+    @Autowired
+    WorkflowFeign workflowFeign;
+    @Autowired
+    PageService pageService;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
@@ -58,7 +68,106 @@ public class CmsTaskQueueConsumer {
     private final String TOPIC_REINDEX_MESSAGE = "/topic/reIndex/message/";
 
     /**
+     * 内容状态切换处理: 静态页、索引、工作流
+     *
+     * @param param
+     */
+    @RabbitListener(queues = RabbitMQConstants.QUEUE_CONTENT_STATUS_SWITCH_HANDLE)
+    public void contentStatusSwitchHandle(Map<String,Object> param) {
+        try {
+            String action = (String) param.get("action");
+            String templateId = (String) param.get("templateId");
+            Integer fromStatus = (Integer) param.get("fromStatus");
+            Integer status = (Integer) param.get("status");
+            TemplateVo templateVo = new TemplateVo();
+            BeanUtil.copyProperties(templateService.getById(templateId), templateVo);
+            // 检索内容所属栏目
+            Catalog catalog = catalogService.getById(templateVo.getCmsCatalogId());
+            // 设置工作流ID
+            templateVo.setWorkflowId(catalog.getWorkflowId());
+            // 设置工作流Key
+            templateVo.setWorkflowKey(catalog.getWorkflowKey());
+            // 是否工作流
+            boolean hasWorkflow = false;
+            // 栏目有工作流
+            if(YesNoEnum.YES.getCode().equals(catalog.getWorkflowEnable()) && StrUtil.isNotEmpty(catalog.getWorkflowId())) {
+                hasWorkflow = true;
+            }
+            switch (action) {
+                // 删除到回收站
+                case "recycle":
+                    // 已发布
+                    if (ContentStatusEnum.PUBLISH.getCode() == fromStatus) {
+                        // 删除静态页和索引
+                        templateService.deletePageAndIndexById(templateVo);
+                    }
+                    // 删除流程
+                    workflowFeign.deleteInstanceByBusinessId(templateVo.getId(), "删除内容");
+                    break;
+
+                // 从回收站还原内容
+                case "back":
+                    // 栏目有工作流
+                    if(hasWorkflow) {
+                        // 还原到发布状态 或者 待审状态 时不做处理
+                        if (ContentStatusEnum.PUBLISH.getCode() == status || ContentStatusEnum.VERIFY.getCode() == status) {
+                            // 启动工作流
+                            templateService.startWorkflow(templateVo);
+                        } else {
+                            // 已发布
+                            if (ContentStatusEnum.PUBLISH.getCode() == fromStatus) {
+                                // 添加静态页和索引
+                                templateService.addPageAndIndexById(templateVo);
+                            }
+                        }
+                    } else {
+                        // 已发布
+                        if (ContentStatusEnum.PUBLISH.getCode() == fromStatus) {
+                            // 添加静态页和索引
+                            templateService.addPageAndIndexById(templateVo);
+                        }
+                    }
+                    break;
+
+                // 再送审
+                case "verify":
+                    // 栏目有工作流
+                    if(hasWorkflow) {
+                        // 启动工作流
+                        templateService.startWorkflow(templateVo);
+                    }
+                    break;
+
+                // 撤销
+                case "cancel":
+                    // 已发布
+                    if (ContentStatusEnum.PUBLISH.getCode() == fromStatus) {
+                        // 删除静态页和索引
+                        templateService.deletePageAndIndexById(templateVo);
+                    }
+                    // 删除流程
+                    workflowFeign.deleteInstanceByBusinessId(templateVo.getId(), "撤销内容");
+                    break;
+
+                // 发布
+                case "publish":
+                    // 已发布
+                    if (ContentStatusEnum.PUBLISH.getCode() == fromStatus) {
+                        // 删除静态页和索引
+                        templateService.addPageAndIndexById(templateVo);
+                    }
+                    break;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("内容状态切换处理异常: " + e.getMessage());
+        }
+    }
+
+    /**
      * 内容审核通过
+     * 注意：通过审核页面操作
      *
      * @param param
      */
@@ -75,6 +184,7 @@ public class CmsTaskQueueConsumer {
 
     /**
      * 内容审核拒绝
+     * 注意：通过审核页面操作
      *
      * @param param
      */
@@ -91,23 +201,18 @@ public class CmsTaskQueueConsumer {
         }
     }
 
-    /**
-     * 内容审核撤销
-     *
-     * @param param
-     */
-    @RabbitListener(queues = ProcessConstant.QUEUE_PROCESS_CANCEL)
-    public void contentCancel(Map<String,Object> param) {
-        String templateId = (String) param.get(ProcessConstant.BUSINESS_ID);
-        String reason = (String) param.get(ProcessConstant.REASON);
-        log.info("内容审核撤销： 内容ID = " + templateId + ", 理由：" + reason);
-        if (StrUtil.isNotEmpty(templateId)) {
-            Template template = new Template();
-            template.setId(templateId);
-            template.setReason(reason);
-            templateService.contentCancel(template);
-        }
-    }
+//    /**
+//     * 内容审核删除
+//     * 注意：通过审核页面操作
+//     *
+//     * @param param
+//     */
+//    @RabbitListener(queues = ProcessConstant.QUEUE_PROCESS_DELETE)
+//    public void contentDelete(Map<String,Object> param) {
+//        String templateId = (String) param.get(ProcessConstant.BUSINESS_ID);
+//        String reason = (String) param.get(ProcessConstant.REASON);
+//        log.info("内容审核删除： 内容ID = " + templateId + ", 理由：" + reason);
+//    }
 
     /**
      * 生成内容索引编码
@@ -153,7 +258,7 @@ public class CmsTaskQueueConsumer {
         log.info(String.format("处理发布静态页任务：%s", JSONUtil.toJsonStr(dataMap)));
         String messageCode = dataMap.get("messageCode").toString();
         Map<String, Object> maps = (Map<String, Object>) dataMap.get("maps");
-        IPage<TemplateVo> templates = templateService.getTemplateListView(maps,0,Integer.parseInt(maps.get("totle").toString()));
+        IPage<TemplateVo> templates = templateService.getTemplateListView(maps,1, Integer.parseInt(maps.get("totle").toString()));
         if(CollectionUtil.isNotEmpty(templates.getRecords())){
             Map<String,Object> result = new HashMap();
             result.put("totle",String.valueOf(templates.getTotal()));
@@ -162,7 +267,7 @@ public class CmsTaskQueueConsumer {
                 i ++;
                 templateVo = templateService.setViewVoProperties(templateVo);
                 // 创建/删除、更新静态页
-                templateFeign.generateStaticTemplate(templateVo,messageCode);
+                templateFeign.generateStaticTemplate(templateVo, messageCode);
                 result.put("currNo",String.valueOf(i));
                 result.put("currTitle",templateVo.getTitle());
                 if(messageCode.equals(RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE)){

@@ -80,7 +80,7 @@
     </select>
 
     <select id="getUserRoleCatalog" resultType="com.deyatech.station.vo.CatalogVo">
-        select sc.id_, sc.parent_id, sc.path_name, sc.tree_position, sc.name
+        select sc.id_, sc.parent_id, sc.path_name, sc.tree_position, sc.name, sc.workflow_id
         from station_catalog sc
         join station_catalog_role cr on cr.catalog_id = sc.id_
         join admin_role_user ru on ru.role_id = cr.role_id and ru.user_id = #{userId}
