@@ -1,6 +1,8 @@
 package com.deyatech.station.view;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.deyatech.admin.vo.DepartmentVo;
+import com.deyatech.appeal.entity.Record;
 import com.deyatech.appeal.feign.AppealFeign;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.station.view.utils.ViewUtils;
@@ -125,6 +127,17 @@ public class AjaxController {
         }
         return appealFeign.getPartDept(modelId);
     }
+
+    @PostMapping(value = "/addAppeal")
+    public RestResult addAppeal(HttpServletRequest request) {
+        Map<String,Object> varMap = new HashMap<>();
+        ViewUtils.requestParams(varMap,request);
+        Record record = new Record();
+        BeanUtil.copyProperties(varMap,record);
+        return RestResult.ok(appealFeign.addAppeal(record).getData());
+    }
+
+
 
     public static List<DepartmentVo> getAllPartDept(List<DepartmentVo> departmentVos,List<DepartmentVo> resultList){
         if(departmentVos != null && !departmentVos.isEmpty()){

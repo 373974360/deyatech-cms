@@ -115,4 +115,15 @@ public interface RecordService extends BaseService<Record> {
      * @return
      */
     List<RecordVo> countPurpose();
+
+
+
+
+    /**
+     * 录入诉求信息
+     *
+     * @param record
+     * @return Record
+     */
+    boolean addAppeal(Record record);
 }

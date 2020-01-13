@@ -94,4 +94,9 @@ public class AppealFeignImpl implements AppealFeign {
     public RestResult<String> getAllAppealCount(Map<String, Object> maps) {
         return RestResult.ok(recordService.getAllAppealCount(maps));
     }
+
+    @Override
+    public RestResult addAppeal(Record record) {
+        return RestResult.ok(recordService.addAppeal(record));
+    }
 }

@@ -130,4 +130,12 @@ public interface AppealFeign {
     @RequestMapping(value = "/feign/appeal/getAllAppealCount")
     RestResult<String> getAllAppealCount(@RequestBody Map<String, Object> maps);
 
+
+    /**
+     * 诉求录入
+     * @param record
+     * @return
+     */
+    @RequestMapping(value = "/feign/appeal/addAppeal")
+    RestResult addAppeal(@RequestBody Record record);
 }

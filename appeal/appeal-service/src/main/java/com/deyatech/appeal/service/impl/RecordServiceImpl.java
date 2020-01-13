@@ -405,4 +405,22 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
     public List<RecordVo> countPurpose() {
         return baseMapper.countPurpose();
     }
+
+    @Override
+    public boolean addAppeal(Record record) {
+        Model model = modelService.getById(record.getModelId());
+        record.setSqCode(getAppealCode(model.getId()));
+        record.setQueryCode(getQueryCode(model.getId()));
+        if(model.getAutoPublish().equals(YesNoEnum.YES.getCode())){
+            record.setIsPublish(YesNoEnum.YES.getCode());
+        }else{
+            record.setIsPublish(YesNoEnum.NO.getCode());
+        }
+        record.setIsBack(0);
+        record.setLimitFlag(0);
+        record.setAlarmFlag(0);
+        //设置信件截止处理日期
+        record.setTimeLimit(adminFeign.workDayAfter(new Date(),model.getLimitDay()).getData());
+        return super.save(record);
+    }
 }
