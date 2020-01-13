@@ -68,6 +68,9 @@
             <if test="model.deptTransfer != null">
                 and dept_transfer = #{model.deptTransfer}
             </if>
+            <if test="model.siteId != null">
+                and site_id = #{model.siteId}
+            </if>
         </if>
     </select>
 
