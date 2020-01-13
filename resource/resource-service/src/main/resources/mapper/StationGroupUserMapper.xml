@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.resource.mapper.StationGroupUserMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.deyatech.resource.entity.StationGroupUser">
+        <result column="id_" property="id" />
+        <result column="station_group_id" property="stationGroupId" />
+        <result column="user_id" property="userId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id_,
+        station_group_id, user_id
+    </sql>
+
+    <!--已选择的用户-->
+    <select id="selectedUser" resultType="com.deyatech.resource.vo.StationGroupUserVo">
+        SELECT
+        au.id_ AS userId,
+        au.name_ AS name,
+        au.gender_ AS gender,
+        au.emp_no AS empNo,
+        au.account_ AS account,
+        au.admin_ as admin,
+        ad.id_ AS departmentId,
+        ad.name_ AS departmentName,
+        case when ad.parent_id = 0 then concat('&amp;', ad.id_) else concat(ad.tree_position, '&amp;', ad.id_) end as userTreePositionId
+        FROM resource_station_group_user su
+        INNER JOIN admin_user au ON au.enable_ = 1 and au.id_ = su.user_id
+        INNER JOIN admin_department ad ON ad.enable_ = 1 and ad.id_ = au.department_id
+        WHERE su.station_group_id = #{stationGroupId}
+        order by userTreePositionId asc
+    </select>
+
+    <!--未选择的用户-->
+    <select id="unselectedUser" resultType="com.deyatech.resource.vo.StationGroupUserVo">
+        SELECT
+        au.id_ AS userId,
+        au.name_ AS name,
+        au.gender_ AS gender,
+        au.emp_no AS empNo,
+        au.account_ AS account,
+        au.admin_ as admin,
+        ad.id_ AS departmentId,
+        ad.name_ AS departmentName,
+        case when ad.parent_id = 0 then concat('&amp;', ad.id_) else concat(ad.tree_position, '&amp;', ad.id_) end as userTreePositionId
+        FROM admin_user au
+        INNER JOIN admin_department ad ON ad.enable_ = 1 and ad.id_ = au.department_id
+		WHERE au.enable_ = 1 and au.id_ not in (
+		  SELECT su.user_id FROM resource_station_group_user su where su.station_group_id = #{stationGroupId}
+		)
+		order by userTreePositionId asc
+    </select>
+
+    <select id="unselectedUserDefault" resultType="com.deyatech.resource.vo.StationGroupUserVo">
+        SELECT
+        au.id_ AS userId,
+        au.name_ AS name,
+        au.gender_ AS gender,
+        au.emp_no AS empNo,
+        au.account_ AS account,
+        au.admin_ as admin,
+        ad.id_ AS departmentId,
+        ad.name_ AS departmentName,
+        case when ad.parent_id = 0 then concat('&amp;', ad.id_) else concat(ad.tree_position, '&amp;', ad.id_) end as userTreePositionId
+        FROM admin_user au
+        INNER JOIN admin_department ad ON ad.enable_ = 1 and ad.id_ = au.department_id
+		WHERE au.enable_ = 1 and au.id_ not in (
+		  SELECT au.id_
+          FROM admin_user au
+          INNER JOIN admin_department ad ON ad.enable_ = 1 and ad.id_ = au.department_id and ad.id_ in (
+		  	select d.id_ from admin_department d where d.enable_ = 1 and d.id_ = #{departmentId} or d.tree_position like concat('%', #{departmentId}, '%')
+		  )
+		WHERE au.enable_ = 1
+		)
+		order by userTreePositionId asc
+    </select>
+
+    <!--所有的用户-->
+    <select id="departmentAndSubsidiaryDepartmentUser" resultType="com.deyatech.resource.vo.StationGroupUserVo">
+        SELECT
+        au.id_ AS userId,
+        au.name_ AS name,
+        au.gender_ AS gender,
+        au.emp_no AS empNo,
+        au.account_ AS account,
+        au.admin_ as admin,
+        ad.id_ AS departmentId,
+        ad.name_ AS departmentName,
+        case when ad.parent_id = 0 then concat('&amp;', ad.id_) else concat(ad.tree_position, '&amp;', ad.id_) end as userTreePositionId
+        FROM admin_user au
+        INNER JOIN admin_department ad ON ad.enable_ = 1 and ad.id_ = au.department_id and ad.id_ in (
+		  	select d.id_ from admin_department d where d.enable_ = 1 and d.id_ = #{departmentId} or d.tree_position like concat('%', #{departmentId}, '%')
+		  )
+		WHERE au.enable_ = 1
+		order by userTreePositionId asc
+    </select>
+
+    <!--删除站点关联的用户-->
+    <update id="removeByStationGroupId">
+        delete from resource_station_group_user where station_group_id in
+        <foreach index="index" item="item" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+</mapper>
