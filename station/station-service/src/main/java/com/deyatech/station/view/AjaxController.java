@@ -1,5 +1,6 @@
 package com.deyatech.station.view;
 
+import com.deyatech.admin.vo.DepartmentVo;
 import com.deyatech.appeal.feign.AppealFeign;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.station.view.utils.ViewUtils;
@@ -8,7 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,7 +43,7 @@ public class AjaxController {
             page = Integer.parseInt(varMap.get("page").toString());
         }
         if (varMap.containsKey("pageSize")) {
-            pageSize = 10;
+            pageSize = Integer.parseInt(varMap.get("pageSize").toString());
         }
         return appealFeign.getAppealList(varMap,page,pageSize);
     }
@@ -77,13 +80,13 @@ public class AjaxController {
      */
     @GetMapping(value = "/getAppealSatisCountByAppealId")
     @ResponseBody
-    public RestResult getAppealSatisCountByAppealId(String appealId){
-        return appealFeign.getAppealSatisCountByAppealId(appealId);
+    public RestResult getAppealSatisCountByAppealId(String id){
+        return appealFeign.getAppealSatisCountByAppealId(id);
     }
 
 
     /**
-     * 根据信件ID查询满意度评价情况
+     * 根据信件编码和查询码查询诉求详情
      *
      * @return
      */
@@ -95,7 +98,7 @@ public class AjaxController {
 
 
     /**
-     * 根据信件ID查询满意度评价情况
+     * 根据信件ID查询诉求详情
      *
      * @return
      */
@@ -103,5 +106,36 @@ public class AjaxController {
     @ResponseBody
     public RestResult getAppealById(String id){
         return appealFeign.getAppealById(id);
+    }
+
+
+    /**
+     * 根据模型ID获取参与部门
+     *
+     * @return
+     */
+    @GetMapping(value = "/getPartDept")
+    @ResponseBody
+    public RestResult getPartDept(String modelId,String type){
+        if(type.equals("list")){
+            List<DepartmentVo> resultList = new ArrayList<>();
+            List<DepartmentVo> departmentVos = appealFeign.getPartDept(modelId).getData();
+            resultList = getAllPartDept(departmentVos,resultList);
+            return RestResult.ok(resultList);
+        }
+        return appealFeign.getPartDept(modelId);
+    }
+
+    public static List<DepartmentVo> getAllPartDept(List<DepartmentVo> departmentVos,List<DepartmentVo> resultList){
+        if(departmentVos != null && !departmentVos.isEmpty()){
+            for(DepartmentVo departmentVo:departmentVos){
+                if(departmentVo.getChildren() != null && !departmentVo.getChildren().isEmpty()){
+                    getAllPartDept(departmentVo.getChildren(),resultList);
+                }else{
+                    resultList.add(departmentVo);
+                }
+            }
+        }
+        return resultList;
     }
 }
