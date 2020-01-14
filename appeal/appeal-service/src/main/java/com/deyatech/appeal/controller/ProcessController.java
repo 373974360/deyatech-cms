@@ -60,8 +60,7 @@ public class ProcessController extends BaseController {
     @ApiImplicitParam(name = "process", value = "对象", required = true, dataType = "Process", paramType = "query")
     public RestResult<Boolean> saveOrUpdate(Process process,Record record) {
         log.info(String.format("保存或者更新: %s ", JSONUtil.toJsonStr(process)));
-        processService.doProcess(process,record);
-        return RestResult.ok(true);
+        return RestResult.ok(processService.doProcess(process,record));
     }
 
     /**
@@ -157,6 +156,20 @@ public class ProcessController extends BaseController {
         processs.setRecords(processService.setVoProperties(processs.getRecords()));
         log.info(String.format("根据Process对象属性分页检索: %s ",JSONUtil.toJsonStr(processs)));
         return RestResult.ok(processs);
+    }
+
+
+    /**
+     * 根据ID数组 把信件置为重复件
+     *
+     * @param ids
+     * @return
+     */
+    @PostMapping("/setRepeatProcess")
+    @ApiOperation(value="把信件置为重复件", notes="把信件置为重复件")
+    @ApiImplicitParam(name = "ids", value = "对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
+    public RestResult<Boolean> setRepeatProcess(@RequestParam("ids[]") List<String> ids) {
+        return RestResult.ok(processService.setRepeatProcess(ids));
     }
 
 }

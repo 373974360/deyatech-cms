@@ -37,6 +37,16 @@ public interface RecordService extends BaseService<Record> {
     List<RecordVo> setVoProperties(Collection records);
 
 
+
+    /**
+     * 根据条件查询重复的诉求列表
+     *
+     * @param record
+     * @return
+     */
+    List<RecordVo> listRepeatByRecord(Record record);
+
+
     IPage<RecordVo> pageRecordByBean(Record record,String[] timeFrame, String userDepartmentId);
 
     /**
