@@ -90,6 +90,21 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
         return recordVos;
     }
 
+    @Override
+    public List<RecordVo> listRepeatByRecord(Record record) {
+        QueryWrapper<Record> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ne("id_",record.getId());
+        queryWrapper.ne("sq_flag",1);
+        if(StrUtil.isNotBlank(record.getUserName())){
+            queryWrapper.eq("user_name",record.getUserName());
+        }
+        if(StrUtil.isNotBlank(record.getTitle())){
+            queryWrapper.eq("title",record.getTitle());
+        }
+        List<Record> list = super.list(queryWrapper);
+        return setVoProperties(list);
+    }
+
     private Map<String, Department> getDepartmentMap() {
         RestResult<List<Department>> result = adminFeign.getAllDepartments();
         if (result != null && CollectionUtil.isNotEmpty(result.getData())) {
@@ -202,6 +217,9 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
         }
         if(record.getAlarmFlag() != null){
             queryWrapper.eq("alarm_flag",record.getAlarmFlag());
+        }
+        if(record.getSuperviseFlag() != null){
+            queryWrapper.eq("supervise_flag",record.getSuperviseFlag());
         }
         IPage<RecordVo> recordVoIPage = new Page<>(record.getPage(),record.getSize());
         IPage<Record> pages = super.page(getPageByBean(record), queryWrapper);

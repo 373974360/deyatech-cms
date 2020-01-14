@@ -106,6 +106,10 @@ public class Record extends BaseEntity {
     @TableField("time_limit")
     private Date timeLimit;
 
+    @ApiModelProperty(value = "督办标识 0：未督办 1：已督办", dataType = "Integer")
+    @TableField("supervise_flag")
+    private Integer superviseFlag;
+
     @ApiModelProperty(value = "超期未办警示标识 0：正常 1：预警 2：黄牌 3：红牌", dataType = "Integer")
     @TableField("alarm_flag")
     private Integer alarmFlag;

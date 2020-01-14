@@ -124,12 +124,11 @@ public class ProcessServiceImpl extends BaseServiceImpl<ProcessMapper, Process> 
     }
 
     @Override
-    public void doProcess(Process process, Record record) {
+    public boolean doProcess(Process process, Record record) {
         UserVo userVo = adminFeign.getUserByUserId(UserContextHelper.getUserId()).getData();
         process.setProDeptId(userVo.getDepartmentId());
         Record oldRecord = recordService.getById(process.getSqId());
         Model model = modelService.getById(oldRecord.getModelId());
-        boolean result = false;
         //办理状态为 转办信件（1）
         if(process.getProType() == 1){
             //办理中
@@ -182,16 +181,6 @@ public class ProcessServiceImpl extends BaseServiceImpl<ProcessMapper, Process> 
             oldRecord.setProDeptId(oldRecord.getDeptId());
             process.setToDeptId(oldRecord.getDeptId());
         }
-        //办理状态为 信件判重（5）
-        if(process.getProType() == 5){
-            //信件状态 已办结
-            oldRecord.setSqStatus(3);
-            //信件标识 为无效件
-            oldRecord.setSqFlag(1);
-            oldRecord.setReplyDeptId(userVo.getDepartmentId());
-            oldRecord.setReplyTime(new Date());
-            oldRecord.setReplyContent(process.getProContent());
-        }
         //办理状态为 置为无效（6）
         if(process.getProType() == 6){
             //信件状态 已办结
@@ -219,7 +208,38 @@ public class ProcessServiceImpl extends BaseServiceImpl<ProcessMapper, Process> 
             oldRecord.setReplyTime(new Date());
             oldRecord.setReplyContent(process.getProContent());
         }
-        recordService.saveOrUpdate(oldRecord);
-        super.saveOrUpdate(process);
+        //办理状态为 不予受理（督办）
+        if(process.getProType() == 9){
+            //督办状态 为已督办
+            oldRecord.setSuperviseFlag(1);
+        }
+        if(recordService.saveOrUpdate(oldRecord)){
+            return super.saveOrUpdate(process);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean setRepeatProcess(List<String> ids) {
+        Process process = new Process();
+        if(CollectionUtil.isNotEmpty(ids)){
+            for(String id:ids){
+                Record oldRecord = recordService.getById(id);
+
+                UserVo userVo = adminFeign.getUserByUserId(UserContextHelper.getUserId()).getData();
+                process.setProDeptId(userVo.getDepartmentId());
+                process.setSqId(id);
+                process.setProType(5);
+                //信件状态 已办结
+                oldRecord.setSqStatus(3);
+                //信件标识 为重复件
+                oldRecord.setSqFlag(1);
+
+                if(recordService.saveOrUpdate(oldRecord)){
+                    super.saveOrUpdate(process);
+                }
+            }
+        }
+        return true;
     }
 }
