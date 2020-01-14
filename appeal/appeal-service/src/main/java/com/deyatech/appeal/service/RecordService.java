@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.admin.entity.Department;
 import com.deyatech.admin.vo.DepartmentVo;
 import com.deyatech.appeal.entity.Record;
+import com.deyatech.appeal.vo.RecordMenuVo;
 import com.deyatech.appeal.vo.RecordVo;
 import com.deyatech.common.base.BaseService;
 import java.util.Collection;
@@ -125,4 +126,14 @@ public interface RecordService extends BaseService<Record> {
      * @return
      */
     List<RecordVo> countPurpose();
+
+
+
+    /**
+     * 得到所有未办结的信件,条件1：未办结的信件　条件2：巳是超期，但不是红牌的
+     * @return
+     */
+    List<Record> getNotEndSQList();
+
+    List<RecordMenuVo> resetTreeLabel(String userDepartmentId);
 }

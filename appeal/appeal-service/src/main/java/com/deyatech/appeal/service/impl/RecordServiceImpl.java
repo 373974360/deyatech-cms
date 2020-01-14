@@ -3,6 +3,9 @@ package com.deyatech.appeal.service.impl;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -14,6 +17,7 @@ import com.deyatech.appeal.entity.Purpose;
 import com.deyatech.appeal.entity.Record;
 import com.deyatech.appeal.service.ModelService;
 import com.deyatech.appeal.service.PurposeService;
+import com.deyatech.appeal.vo.RecordMenuVo;
 import com.deyatech.appeal.vo.RecordVo;
 import com.deyatech.appeal.mapper.RecordMapper;
 import com.deyatech.appeal.service.RecordService;
@@ -51,6 +55,9 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
     RecordMapper recordMapper;
 
     private static final String DEFAULT_RANDON_STR = "A-Z0-9";
+
+
+    private static final String TREE_DATA = "{\"treeData\":[{\"label\":\"发布管理\",\"children\":[{\"label\":\"未发布\",\"isPublish\":0,\"sqFlag\":0,\"sqStatus\":\"\",\"isBack\":\"\",\"limitFlag\":\"\",\"alarmFlag\":\"\",\"superviseFlag\":\"\"},{\"label\":\"已发布\",\"isPublish\":1,\"sqFlag\":0,\"sqStatus\":\"\",\"isBack\":\"\",\"limitFlag\":\"\",\"alarmFlag\":\"\",\"superviseFlag\":\"\"}]},{\"label\":\"信件管理\",\"children\":[{\"label\":\"待处理\",\"isPublish\":\"\",\"sqFlag\":0,\"sqStatus\":0,\"isBack\":0,\"limitFlag\":\"\",\"alarmFlag\":\"\",\"superviseFlag\":\"\"},{\"label\":\"退回件\",\"isPublish\":\"\",\"sqFlag\":0,\"sqStatus\":\"\",\"isBack\":1,\"limitFlag\":\"\",\"alarmFlag\":\"\",\"superviseFlag\":\"\"},{\"label\":\"办理中\",\"isPublish\":\"\",\"sqFlag\":0,\"sqStatus\":1,\"isBack\":0,\"limitFlag\":\"\",\"alarmFlag\":\"\",\"superviseFlag\":\"\"},{\"label\":\"已办结\",\"isPublish\":\"\",\"sqFlag\":0,\"sqStatus\":3,\"isBack\":0,\"limitFlag\":\"\",\"alarmFlag\":\"\",\"superviseFlag\":\"\"}]},{\"label\":\"督查督办\",\"children\":[{\"label\":\"督办件\",\"isPublish\":\"\",\"sqFlag\":0,\"sqStatus\":\"\",\"isBack\":\"\",\"limitFlag\":\"\",\"alarmFlag\":\"\",\"superviseFlag\":1},{\"label\":\"预警件\",\"isPublish\":\"\",\"sqFlag\":0,\"sqStatus\":\"\",\"isBack\":\"\",\"limitFlag\":\"\",\"alarmFlag\":1,\"superviseFlag\":\"\"},{\"label\":\"黄牌件\",\"isPublish\":\"\",\"sqFlag\":0,\"sqStatus\":\"\",\"isBack\":\"\",\"limitFlag\":\"\",\"alarmFlag\":2,\"superviseFlag\":\"\"},{\"label\":\"红牌件\",\"isPublish\":\"\",\"sqFlag\":0,\"sqStatus\":\"\",\"isBack\":\"\",\"limitFlag\":\"\",\"alarmFlag\":3,\"superviseFlag\":\"\"}]},{\"label\":\"已处理信件\",\"children\":[{\"label\":\"不予受理\",\"isPublish\":\"\",\"sqFlag\":2,\"sqStatus\":\"\",\"isBack\":\"\",\"limitFlag\":\"\",\"alarmFlag\":\"\",\"superviseFlag\":\"\"},{\"label\":\"无效件\",\"isPublish\":\"\",\"sqFlag\":-1,\"sqStatus\":\"\",\"isBack\":\"\",\"limitFlag\":\"\",\"alarmFlag\":\"\",\"superviseFlag\":\"\"},{\"label\":\"重复件\",\"isPublish\":\"\",\"sqFlag\":1,\"sqStatus\":\"\",\"isBack\":\"\",\"limitFlag\":\"\",\"alarmFlag\":\"\",\"superviseFlag\":\"\"}]},{\"label\":\"延期审核\",\"children\":[{\"label\":\"已审核\",\"isPublish\":\"\",\"sqFlag\":0,\"sqStatus\":\"\",\"isBack\":\"\",\"limitFlag\":1,\"alarmFlag\":\"\",\"superviseFlag\":\"\"},{\"label\":\"待审核\",\"isPublish\":\"\",\"sqFlag\":0,\"sqStatus\":\"\",\"isBack\":\"\",\"limitFlag\":2,\"alarmFlag\":\"\",\"superviseFlag\":\"\"}]}]}";
 
     /**
      * 单个将对象转换为vo
@@ -364,6 +371,7 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
         record.setIsBack(0);
         record.setLimitFlag(0);
         record.setAlarmFlag(0);
+        record.setSuperviseFlag(0);
         //如果业务模式为转发 或者网民选择了 "我不知道部门" 则处理部门全部为 主管部门，由主管部门转发给办理部门
         if(model.getBusType() == 1 || record.getDeptId().equals("-1") || StrUtil.isBlank(record.getDeptId())){
             record.setDeptId(competentDept[competentDept.length-1]);
@@ -422,5 +430,80 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
     @Override
     public List<RecordVo> countPurpose() {
         return baseMapper.countPurpose();
+    }
+
+    @Override
+    public List<Record> getNotEndSQList() {
+        QueryWrapper<Record> queryWrapper = new QueryWrapper<>();
+        queryWrapper.lt("sq_status",3)
+                .lt("alarm_flag",3)
+                .eq("sq_flag",0);
+        return super.list(queryWrapper);
+    }
+
+    @Override
+    public List<RecordMenuVo> resetTreeLabel(String userDepartmentId) {
+        List<RecordMenuVo> result = new ArrayList<>();
+        JSONObject obj = JSONUtil.parseObj(TREE_DATA);
+        obj.getJSONArray("treeData").forEach(obj1 -> {
+            JSONObject obj2 = JSONUtil.parseObj(obj1);
+            RecordMenuVo recordMenuVo = new RecordMenuVo();
+            recordMenuVo.setLabel(obj2.getStr("label"));
+            List<RecordMenuVo> childrenList = new ArrayList<>();
+            obj2.getJSONArray("children").forEach(obj3 -> {
+                JSONObject children = JSONUtil.parseObj(obj3);
+                RecordMenuVo recordMenuVo1 = new RecordMenuVo();
+                recordMenuVo1.setIsPublish(children.getInt("isPublish"));
+                recordMenuVo1.setSqFlag(children.getInt("sqFlag"));
+                recordMenuVo1.setSqStatus(children.getInt("sqStatus"));
+                recordMenuVo1.setIsBack(children.getInt("isBack"));
+                recordMenuVo1.setLimitFlag(children.getInt("limitFlag"));
+                recordMenuVo1.setAlarmFlag(children.getInt("alarmFlag"));
+                recordMenuVo1.setSuperviseFlag(children.getInt("superviseFlag"));
+                int count = getAppealCount(userDepartmentId,recordMenuVo1);
+                if(count>0){
+                    recordMenuVo1.setLabel(children.getStr("label")+"("+count+")");
+                }else{
+                    recordMenuVo1.setLabel(children.getStr("label"));
+                }
+                childrenList.add(recordMenuVo1);
+            });
+            recordMenuVo.setChildren(childrenList);
+            result.add(recordMenuVo);
+        });
+        return result;
+    }
+
+    private int getAppealCount(String userDepartmentId,RecordMenuVo recordMenuVo){
+        Map<String,Object> map = new HashMap<>();
+        QueryWrapper<Model> query = new QueryWrapper<>();
+        query.likeLeft("competent_dept", userDepartmentId);
+        Collection<Model> models = modelService.list(query);
+        if(CollectionUtil.isNotEmpty(models)){
+            map.put("model_id", models.stream().map(Model::getId).collect(Collectors.toList()));
+        }
+        map.put("pro_dept_id",userDepartmentId);
+        if(ObjectUtil.isNotNull(recordMenuVo.getSqFlag())){
+            map.put("sq_flag",recordMenuVo.getSqFlag());
+        }
+        if(ObjectUtil.isNotNull(recordMenuVo.getSqStatus())){
+            map.put("sq_status",recordMenuVo.getSqStatus());
+        }
+        if(ObjectUtil.isNotNull(recordMenuVo.getIsBack())){
+            map.put("is_back",recordMenuVo.getIsBack());
+        }
+        if(ObjectUtil.isNotNull(recordMenuVo.getLimitFlag())){
+            map.put("limit_flag",recordMenuVo.getLimitFlag());
+        }
+        if(ObjectUtil.isNotNull(recordMenuVo.getIsPublish())){
+            map.put("is_publish",recordMenuVo.getIsPublish());
+        }
+        if(ObjectUtil.isNotNull(recordMenuVo.getAlarmFlag())){
+            map.put("alarm_flag",recordMenuVo.getAlarmFlag());
+        }
+        if(ObjectUtil.isNotNull(recordMenuVo.getSuperviseFlag())){
+            map.put("supervise_flag",recordMenuVo.getSuperviseFlag());
+        }
+        return recordMapper.getAppealCount(map);
     }
 }
