@@ -1,9 +1,11 @@
 package com.deyatech.station.view;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.deyatech.admin.vo.DepartmentVo;
 import com.deyatech.appeal.entity.Record;
 import com.deyatech.appeal.feign.AppealFeign;
+import com.deyatech.appeal.vo.RecordVo;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.station.view.utils.ViewUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -95,7 +97,11 @@ public class AjaxController {
     @GetMapping(value = "/getAppealBySqCodeAndQueryCode")
     @ResponseBody
     public RestResult getAppealBySqCodeAndQueryCode(String sqCode,String queryCode){
-        return appealFeign.queryAppeal(sqCode,queryCode);
+        RecordVo recordVo = appealFeign.queryAppeal(sqCode,queryCode).getData();
+        if(ObjectUtil.isNotNull(recordVo)){
+            return RestResult.ok(recordVo);
+        }
+        return RestResult.error("诉求信息不存在！");
     }
 
 
@@ -107,7 +113,11 @@ public class AjaxController {
     @GetMapping(value = "/getAppealById")
     @ResponseBody
     public RestResult getAppealById(String id){
-        return appealFeign.getAppealById(id);
+        RecordVo recordVo = appealFeign.getAppealById(id).getData();
+        if(ObjectUtil.isNotNull(recordVo)){
+            return RestResult.ok(recordVo);
+        }
+        return RestResult.error("诉求信息不存在！");
     }
 
 
