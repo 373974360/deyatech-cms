@@ -43,6 +43,14 @@ public interface StationGroupUserService extends BaseService<StationGroupUser> {
     void setStationGroupUsers(String stationGroupId, List<String> userIds);
 
     /**
+     * 设置站点部门用户
+     *
+     * @param stationGroupId
+     * @param departmentId
+     */
+    void setStationGroupDepartmentUsers(String stationGroupId, String departmentId);
+
+    /**
      * 删除站点用户关联根据站点编号
      *
      * @param stationSroupId
@@ -69,7 +77,8 @@ public interface StationGroupUserService extends BaseService<StationGroupUser> {
      * 获取站点用户数据，已选择和未选择
      *
      * @param stationGroupId
+     * @param departmentId
      * @return
      */
-    Map<String, Object> getStationGroupUser(String stationGroupId);
+    Map<String, Object> getStationGroupUser(String stationGroupId, String departmentId);
 }

@@ -54,7 +54,7 @@
 		order by userTreePositionId asc
     </select>
 
-    <select id="unselectedUserDefault" resultType="com.deyatech.resource.vo.StationGroupUserVo">
+    <!--<select id="unselectedUserDefault" resultType="com.deyatech.resource.vo.StationGroupUserVo">
         SELECT
         au.id_ AS userId,
         au.name_ AS name,
@@ -76,9 +76,9 @@
 		WHERE au.enable_ = 1
 		)
 		order by userTreePositionId asc
-    </select>
+    </select>-->
 
-    <!--所有的用户-->
+    <!--部门及子部门所有的用户-->
     <select id="departmentAndSubsidiaryDepartmentUser" resultType="com.deyatech.resource.vo.StationGroupUserVo">
         SELECT
         au.id_ AS userId,

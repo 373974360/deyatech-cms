@@ -69,4 +69,9 @@ public class StationGroupUserVo extends StationGroupUser {
      * 用户所在部门层级名称
      */
     private String userTreePositionName;
+
+    /**
+     * 是否可以选择
+     */
+    private Boolean selectable = true;
 }

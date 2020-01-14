@@ -16,6 +16,7 @@ import com.deyatech.resource.entity.StationGroupRole;
 import com.deyatech.resource.mapper.StationGroupMapper;
 import com.deyatech.resource.service.*;
 import com.deyatech.resource.vo.StationGroupClassificationVo;
+import com.deyatech.resource.vo.StationGroupUserVo;
 import com.deyatech.resource.vo.StationGroupVo;
 import com.deyatech.station.feign.StationFeign;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,8 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     StationGroupRoleService stationGroupRoleService;
     @Autowired
     AdminFeign adminFeign;
+    @Autowired
+    StationGroupUserService stationGroupUserService;
 
     @Override
     public Collection<StationGroupClassificationVo> getRoleStationCascader(String roleId) {
@@ -336,6 +339,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
     @Override
     public boolean saveOrUpdateAndNginx(StationGroup stationGroup) {
         String hostRootDir = this.getHostsRootDir();
+        boolean setDepartmentUserFlag = false;
         boolean flag;
         // 编辑
         if (StrUtil.isNotEmpty(stationGroup.getId())) {
@@ -348,6 +352,10 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
             }
             flag = baseMapper.updateStationGroupById(stationGroup) > 0 ? true : false;
             if (flag) {
+                // 部门变更时
+                if (!oldStationGroup.getDepartmentId().equals(stationGroup.getDepartmentId())) {
+                    setDepartmentUserFlag = true;
+                }
                 // 文件夹重命名
                 if(StrUtil.isNotBlank(oldStationGroupEnglishName)){
                     File src = new File(hostRootDir, oldStationGroupEnglishName);
@@ -359,6 +367,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
         } else {
             flag = super.save(stationGroup);
             if (flag) {
+                setDepartmentUserFlag = true;
                 //给"系统角色"默认加上站点权限，其他角色则需要单独授权
                 systemRoleAddStationGroup(stationGroup);
                 File dir = new File(hostRootDir, stationGroup.getEnglishName());
@@ -367,6 +376,16 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
                 }
             }
 
+        }
+        if (!setDepartmentUserFlag) {
+            List<StationGroupUserVo> selectedList = stationGroupUserService.selectedUser(stationGroup.getId());
+            // 没有部门默认用户追加
+            if (CollectionUtil.isEmpty(selectedList)) {
+                setDepartmentUserFlag = true;
+            }
+        }
+        if (setDepartmentUserFlag) {
+            stationGroupUserService.setStationGroupDepartmentUsers(stationGroup.getId(), stationGroup.getDepartmentId());
         }
         return flag;
     }

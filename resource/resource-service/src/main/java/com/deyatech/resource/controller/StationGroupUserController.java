@@ -38,9 +38,12 @@ public class StationGroupUserController extends BaseController {
      */
     @RequestMapping("/getStationGroupUser")
     @ApiOperation(value="获取站点用户，已选择和未选择", notes="获取站点用户，已选择和未选择")
-    @ApiImplicitParam(name = "stationGroupId", value = "站点ID", required = false, dataType = "String", paramType = "query")
-    public RestResult getStationGroupUser(String stationGroupId) {
-        return RestResult.ok(stationGroupUserService.getStationGroupUser(stationGroupId));
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "stationGroupId", value = "站点ID", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "departmentId", value = "部门ID", required = true, dataType = "String", paramType = "query")
+    })
+    public RestResult getStationGroupUser(String stationGroupId, String departmentId) {
+        return RestResult.ok(stationGroupUserService.getStationGroupUser(stationGroupId, departmentId));
     }
 
     /**
