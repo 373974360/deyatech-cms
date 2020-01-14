@@ -31,14 +31,15 @@ public interface StationGroupUserMapper extends BaseMapper<StationGroupUser> {
      * @return
      */
     List<StationGroupUserVo> unselectedUser(String stationGroupId);
-    List<StationGroupUserVo> unselectedUserDefault(String departmentId);
+//    List<StationGroupUserVo> unselectedUserDefault(String departmentId);
 
     /**
      * 部门及子部门所有的用户
      *
+     * @param departmentId
      * @return
      */
-    List<StationGroupUserVo> departmentAndSubsidiaryDepartmentUser(String stationGroupId);
+    List<StationGroupUserVo> departmentAndSubsidiaryDepartmentUser(String departmentId);
 
     /**
      * 删除站点关联的用户

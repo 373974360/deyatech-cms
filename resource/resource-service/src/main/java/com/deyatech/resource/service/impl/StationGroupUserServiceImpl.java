@@ -92,6 +92,32 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
     }
 
     /**
+     * 设置站点部门用户
+     *
+     * @param stationGroupId
+     * @param departmentId
+     */
+    @Override
+    public void setStationGroupDepartmentUsers(String stationGroupId, String departmentId) {
+        StationGroupUser stationGroupUser = new StationGroupUser();
+        stationGroupUser.setStationGroupId(stationGroupId);
+        // 根据站点ID删除
+        this.removeByBean(stationGroupUser);
+        // 站点部门及子部门所有的用户
+        List<StationGroupUserVo> selectedUserList = baseMapper.departmentAndSubsidiaryDepartmentUser(departmentId);
+        if (CollectionUtil.isNotEmpty(selectedUserList)) {
+            List<StationGroupUser> list = new ArrayList<>();
+            for (StationGroupUserVo user : selectedUserList) {
+                StationGroupUser sgu = new StationGroupUser();
+                sgu.setStationGroupId(stationGroupId);
+                sgu.setUserId(user.getUserId());
+                list.add(sgu);
+            }
+            this.saveOrUpdateBatch(list);
+        }
+    }
+
+    /**
      * 删除站点用户关联根据站点编号
      *
      * @param stationSroupId
@@ -124,15 +150,16 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
         return baseMapper.unselectedUser(stationGroupId);
     }
 
+
     /**
      * 获取站点用户数据，已选择和未选择
      *
      * @param stationGroupId
+     * @param departmentId
      * @return
      */
     @Override
-    public Map<String, Object> getStationGroupUser(String stationGroupId) {
-        StationGroup stationGroup = stationGroupService.getById(stationGroupId);
+    public Map<String, Object> getStationGroupUser(String stationGroupId, String departmentId) {
         // 部门名称映射
         Map<String, String> departmentNameMap = new HashMap<>();
         List<Department> departmentList = adminFeign.getAllDepartments().getData();
@@ -140,29 +167,39 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
             departmentNameMap = departmentList.stream().collect(Collectors.toMap(Department::getId, Department::getName));
         }
         Map<String, Object> data = new HashMap<>();
-        boolean selectDefault = false;
         // 已选择用户
-        List<StationGroupUserVo> selectedUserList = baseMapper.selectedUser(stationGroupId);
-        if (CollectionUtil.isEmpty(selectedUserList)) {
-            selectDefault = true;
+        List<StationGroupUserVo> selectedUserList = this.selectedUser(stationGroupId);
+        if (CollectionUtil.isNotEmpty(selectedUserList)) {
             // 站点部门及子部门所有的用户
-            selectedUserList = baseMapper.departmentAndSubsidiaryDepartmentUser(stationGroup.getDepartmentId());
+            List<StationGroupUserVo> departmentUserList = baseMapper.departmentAndSubsidiaryDepartmentUser(departmentId);
+            if (CollectionUtil.isNotEmpty(departmentUserList)) {
+                selectedUserList.stream().parallel().forEach(sgu -> {
+                    boolean exists = departmentUserList.stream().parallel().anyMatch(u -> u.getUserId().equals(sgu.getUserId()));
+                    sgu.setSelectable(!exists);
+                });
+            }
         }
         setUserTreePositionName(selectedUserList, departmentNameMap);
         data.put("selectedUserList", selectedUserList);
 
         // 未选择用户
-        List<StationGroupUserVo> unselectedUserList = selectDefault ? baseMapper.unselectedUserDefault(stationGroup.getDepartmentId()) : baseMapper.unselectedUser(stationGroupId);
+        List<StationGroupUserVo> unselectedUserList = this.unselectedUser(stationGroupId);
         setUserTreePositionName(unselectedUserList, departmentNameMap);
         data.put("unselectedUserList", unselectedUserList);
         return data;
     }
 
+    /**
+     * 设置用户部门层级
+     *
+     * @param list
+     * @param departmentNameMap
+     */
     private void setUserTreePositionName(List<StationGroupUserVo> list, Map<String, String> departmentNameMap) {
         if (CollectionUtil.isEmpty(list) || Objects.isNull(departmentNameMap)) {
             return;
         }
-        for(StationGroupUserVo item : list) {
+        list.stream().parallel().forEach(item -> {
             StringBuilder userTreePositionName = new StringBuilder();
             String ids[] = item.getUserTreePositionId().substring(1).split("&");
             if (Objects.nonNull(ids)) {
@@ -174,6 +211,6 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
                 }
             }
             item.setUserTreePositionName(userTreePositionName.toString());
-        }
+        });
     }
 }
