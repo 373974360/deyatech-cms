@@ -128,6 +128,16 @@ public interface RecordService extends BaseService<Record> {
 
 
 
+    /**
+     * 得到所有未办结的信件,条件1：未办结的信件　条件2：巳是超期，但不是红牌的
+     * @return
+     */
+    List<Record> getNotEndSQList();
+
+    List<RecordMenuVo> resetTreeLabel(String userDepartmentId);
+
+
+
 
     /**
      * 录入诉求信息

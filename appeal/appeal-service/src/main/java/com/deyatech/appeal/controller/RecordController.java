@@ -187,4 +187,19 @@ public class RecordController extends BaseController {
         log.info(String.format("根据条件查询重复的诉求列表: %s ",JSONUtil.toJsonStr(recordVos)));
         return RestResult.ok(recordVos);
     }
+
+
+
+    /**
+     * 初始化树菜单
+     *
+     * @param userDepartmentId
+     * @return
+     */
+    @GetMapping("/reloadTreeData")
+    @ApiOperation(value="根据条件查询重复的诉求列表", notes="初始化树菜单")
+    @ApiImplicitParam(name = "userDepartmentId", value = "部门ID", required = false, dataType = "String", paramType = "query")
+    public RestResult reloadTreeData(String userDepartmentId) {
+        return RestResult.ok(recordService.resetTreeLabel(userDepartmentId));
+    }
 }

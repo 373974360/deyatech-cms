@@ -19,6 +19,7 @@ import java.util.Map;
 public interface RecordMapper extends BaseMapper<Record> {
 
     String getAllAppealCount(@Param("map") Map<String,Object> map);
+    int getAppealCount(@Param("map") Map<String,Object> map);
 
     List<RecordVo> countModel();
     List<RecordVo> countPurpose();
