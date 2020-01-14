@@ -326,19 +326,19 @@ public class ViewController extends BaseController {
         if(actionType.equals("insertAppeal")){
             Record record = new Record();
             BeanUtil.copyProperties(varMap,record);
-            return RestResult.ok(appealFeign.insertAppeal(record));
+            return RestResult.ok(appealFeign.insertAppeal(record).getData());
         }
         //诉求满意度提交
         if(actionType.equals("insertAppealSatis")){
             RecordSatisfaction recordSatisfaction = new RecordSatisfaction();
             BeanUtil.copyProperties(varMap,recordSatisfaction);
-            return RestResult.ok(appealFeign.insertAppealSatis(recordSatisfaction));
+            return RestResult.ok(appealFeign.insertAppealSatis(recordSatisfaction).getData());
         }
         //依申请公开提交
         if(actionType.equals("insertApplyOpen")){
             ApplyOpenRecord applyOpenRecord = new ApplyOpenRecord();
             BeanUtil.copyProperties(varMap,applyOpenRecord);
-            return RestResult.ok(assemblyFeign.insertApplyOpen(applyOpenRecord));
+            return RestResult.ok(assemblyFeign.insertApplyOpen(applyOpenRecord).getData());
         }
         return RestResult.ok();
     }
