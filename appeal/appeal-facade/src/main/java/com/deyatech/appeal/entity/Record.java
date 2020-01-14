@@ -132,7 +132,7 @@ public class Record extends BaseEntity {
 
     @ApiModelProperty(value = "延期时间", dataType = "LocalDateTime")
     @TableField("limit_flag_time")
-    private Integer limitFlagTime;
+    private Date limitFlagTime;
 
 
 }
