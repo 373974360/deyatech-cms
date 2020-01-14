@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.admin.entity.Department;
 import com.deyatech.admin.vo.DepartmentVo;
 import com.deyatech.appeal.entity.Record;
+import com.deyatech.appeal.vo.RecordMenuVo;
 import com.deyatech.appeal.vo.RecordVo;
 import com.deyatech.common.base.BaseService;
 import java.util.Collection;
