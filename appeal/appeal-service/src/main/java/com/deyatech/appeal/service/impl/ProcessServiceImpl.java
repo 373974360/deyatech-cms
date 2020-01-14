@@ -10,7 +10,6 @@ import com.deyatech.appeal.entity.Process;
 import com.deyatech.appeal.entity.Record;
 import com.deyatech.appeal.service.ModelService;
 import com.deyatech.appeal.service.RecordService;
-import com.deyatech.appeal.vo.ModelVo;
 import com.deyatech.appeal.vo.ProcessVo;
 import com.deyatech.appeal.mapper.ProcessMapper;
 import com.deyatech.appeal.service.ProcessService;
@@ -20,14 +19,12 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.workflow.feign.WorkflowFeign;
-import com.deyatech.workflow.vo.ProcessInstanceVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * <p>
@@ -197,6 +194,7 @@ public class ProcessServiceImpl extends BaseServiceImpl<ProcessMapper, Process> 
             oldRecord.setSqStatus(1);
             //延期标识为 申请延期
             oldRecord.setLimitFlag(2);
+            oldRecord.setLimitFlagTime(process.getProTime());
         }
         //办理状态为 不予受理（8）
         if(process.getProType() == 8){
@@ -208,10 +206,19 @@ public class ProcessServiceImpl extends BaseServiceImpl<ProcessMapper, Process> 
             oldRecord.setReplyTime(new Date());
             oldRecord.setReplyContent(process.getProContent());
         }
-        //办理状态为 不予受理（督办）
+        //办理状态为 督办（9）
         if(process.getProType() == 9){
             //督办状态 为已督办
             oldRecord.setSuperviseFlag(1);
+        }
+        //办理状态为 延时审核
+        if(process.getProType() >= 10){
+            //延时申请标识为 1已审核
+            oldRecord.setLimitFlag(1);
+            //同意延时
+            if(process.getProType() == 11){
+                oldRecord.setTimeLimit(oldRecord.getLimitFlagTime());
+            }
         }
         if(recordService.saveOrUpdate(oldRecord)){
             return super.saveOrUpdate(process);
