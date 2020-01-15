@@ -2,12 +2,16 @@ package com.deyatech.appeal.controller;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.appeal.entity.Model;
 import com.deyatech.appeal.service.RecordService;
 import com.deyatech.appeal.vo.ModelVo;
 import com.deyatech.appeal.service.ModelService;
 import com.deyatech.appeal.vo.RecordVo;
+import com.deyatech.common.entity.CascaderResult;
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.resource.entity.StationGroup;
+import com.deyatech.resource.feign.ResourceFeign;
 import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -39,6 +43,10 @@ public class ModelController extends BaseController {
     ModelService modelService;
     @Autowired
     RecordService recordService;
+    @Autowired
+    AdminFeign adminFeign;
+    @Autowired
+    ResourceFeign resourceFeign;
     /**
      * 单个保存或者更新
      *
@@ -185,5 +193,21 @@ public class ModelController extends BaseController {
     @ApiImplicitParam(name = "departmentId", value = "部门对象", required = false, dataType = "Model", paramType = "query")
     public RestResult<Integer> countModelByDepartmentId(@RequestParam("departmentIds[]") List<String> departmentIds) {
         return RestResult.ok(modelService.countModelByDepartmentId(departmentIds));
+    }
+
+    /**
+     * 根据站点ID获取组织机构树
+     *
+     * @param siteId
+     * @return
+     */
+    @GetMapping("/getDepartmentTreeBySiteId")
+    @ApiOperation(value="获取系统部门信息的级联对象", notes="获取系统部门信息的级联对象")
+    @ApiImplicitParam(name = "siteId", value = "站点ID", required = false, dataType = "Department", paramType = "query")
+    public RestResult<List<CascaderResult>> getDepartmentTreeBySiteId(String siteId, Integer layer) {
+        StationGroup stationGroup = resourceFeign.getStationGroupById(siteId).getData();
+        List<CascaderResult> cascaderResults = adminFeign.getDepartmentTreeByParentId(stationGroup.getDepartmentId(),layer).getData();
+        log.info(String.format("获取系统部门信息的级联对象: %s ",JSONUtil.toJsonStr(cascaderResults)));
+        return RestResult.ok(cascaderResults);
     }
 }
