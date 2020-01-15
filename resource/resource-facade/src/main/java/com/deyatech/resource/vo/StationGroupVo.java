@@ -45,4 +45,9 @@ public class StationGroupVo extends StationGroup {
     @ApiModelProperty(value = "部门树结构索引位置", dataType = "String")
     private String departmentTreePosition;
 
+    /**
+     * 站点关联的用户
+     */
+    private Integer userCount;
+
 }

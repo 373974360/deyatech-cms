@@ -74,4 +74,19 @@ public class StationGroupUserVo extends StationGroupUser {
      * 是否可以选择
      */
     private Boolean selectable = true;
+
+    /**
+     * 栏目数量
+     */
+    private Integer catalogCount;
+
+    /**
+     * 栏目数量
+     */
+    private Integer roleCount;
+
+    /**
+     * 数据权限
+     */
+    private String authority;
 }

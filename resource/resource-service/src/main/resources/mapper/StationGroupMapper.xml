@@ -47,6 +47,7 @@
         <result column="site_code" property="siteCode" />
         <result column="icp_code" property="icpCode" />
         <result column="police_code" property="policeCode" />
+        <result column="user_count" property="userCount" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
@@ -98,7 +99,8 @@
         c.name_ as station_group_classification_name,
         c.tree_position as station_group_classification_tree_position,
         d.name_ as department_name,
-        d.tree_position as department_tree_position
+        d.tree_position as department_tree_position,
+        (select count(1) from resource_station_group_user rsgu where rsgu.station_group_id = s.id_ ) as user_count
         from resource_station_group s
              join resource_station_group_classification c on c.enable_ = 1 and s.station_group_classification_id = c.id_
              join admin_department d on d.enable_ = 1 and s.department_id = d.id_
@@ -279,12 +281,9 @@
         from resource_station_group s
         join resource_station_group_classification c on c.enable_ = 1 and s.station_group_classification_id = c.id_
         join admin_department d on d.enable_ = 1 and s.department_id = d.id_
-        where s.enable_ != -1 and s.id_ in (
-          select distinct sr.station_group_id from resource_station_group_role sr
-          where sr.role_id in (
-            select distinct ru.role_id from admin_role_user ru join admin_role r on r.id_ = ru.role_id and r.enable_ = 1 where ru.user_id = #{userId}
-          )
-        )
+        join resource_station_group_user sr on sr.station_group_id = s.id_ and sr.user_id = #{userId}
+        join admin_user au on au.enable_ = 1 and sr.user_id = au.id_
+        where s.enable_ != -1
         order by s.sort_no asc, s.update_time desc
     </select>
 

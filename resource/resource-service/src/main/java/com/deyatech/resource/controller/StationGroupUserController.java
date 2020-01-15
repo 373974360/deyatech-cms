@@ -1,8 +1,10 @@
 package com.deyatech.resource.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseController;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.resource.service.StationGroupUserService;
+import com.deyatech.resource.vo.StationGroupUserVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -64,4 +66,16 @@ public class StationGroupUserController extends BaseController {
         return RestResult.ok();
     }
 
+    /**
+     * 翻页检索站点用户列表
+     *
+     * @param stationGroupUserVo
+     * @return
+     */
+    @RequestMapping("/pageStationGroupUser")
+    @ApiOperation(value="翻页检索站点用户列表", notes="翻页检索站点用户列表")
+    @ApiImplicitParam(name = "stationGroupUserVo", value = "站点ID", required = true, dataType = "StationGroupUserVo", paramType = "query")
+    public RestResult<IPage<StationGroupUserVo>> pageStationGroupUser(StationGroupUserVo stationGroupUserVo) {
+        return RestResult.ok(stationGroupUserService.pageStationGroupUser(stationGroupUserVo));
+    }
 }

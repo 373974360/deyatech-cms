@@ -105,4 +105,35 @@
             #{item}
         </foreach>
     </update>
+
+    <!--翻页检索站点用户列表-->
+    <select id="pageStationGroupUser" resultType="com.deyatech.resource.vo.StationGroupUserVo">
+        SELECT
+        au.id_ AS userId,
+        au.name_ AS name,
+        au.gender_ AS gender,
+        au.emp_no AS empNo,
+        au.account_ AS account,
+        au.admin_ as admin,
+        ad.id_ AS departmentId,
+        ad.name_ AS departmentName,
+        case when ad.parent_id = 0 then concat('&amp;', ad.id_) else concat(ad.tree_position, '&amp;', ad.id_) end as userTreePositionId,
+        (select count(1) from station_catalog_user cu where cu.user_id = su.user_id) as catalogCount,
+        (select count(1) from admin_role_user ru where ru.user_id = su.user_id) as roleCount,
+        (select distinct authority from station_template_user_authority ua where ua.user_id = su.user_id) as authority
+        FROM resource_station_group_user su
+        INNER JOIN admin_user au ON au.enable_ = 1 and au.id_ = su.user_id
+        INNER JOIN admin_department ad ON ad.enable_ = 1 and ad.id_ = au.department_id
+        WHERE su.station_group_id = #{stationGroupUserVo.stationGroupId}
+        <if test="stationGroupUserVo.name != null and stationGroupUserVo.name != ''">
+            and (
+              au.name_ like concat('%', #{stationGroupUserVo.name}, '%') or
+              au.account_ like concat('%', #{stationGroupUserVo.name}, '%')
+            )
+        </if>
+        <if test="stationGroupUserVo.departmentId != null and stationGroupUserVo.departmentId != ''">
+            and au.department_id = #{stationGroupUserVo.departmentId}
+        </if>
+        order by userTreePositionId asc, au.update_time desc
+    </select>
 </mapper>

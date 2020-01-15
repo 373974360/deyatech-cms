@@ -1,8 +1,10 @@
 package com.deyatech.resource.mapper;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseMapper;
 import com.deyatech.resource.entity.StationGroupUser;
 import com.deyatech.resource.vo.StationGroupUserVo;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -48,4 +50,13 @@ public interface StationGroupUserMapper extends BaseMapper<StationGroupUser> {
      * @return
      */
     int removeByStationGroupId(String stationSroupId);
+
+    /**
+     * 翻页检索站点用户列表
+     * 
+     * @param page
+     * @param stationGroupUserVo
+     * @return
+     */
+    IPage<StationGroupUserVo> pageStationGroupUser(@Param("page") IPage page, @Param("stationGroupUserVo") StationGroupUserVo stationGroupUserVo);
 }

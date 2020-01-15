@@ -2,6 +2,7 @@ package com.deyatech.resource.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.admin.entity.Department;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.common.base.BaseServiceImpl;
@@ -161,11 +162,7 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
     @Override
     public Map<String, Object> getStationGroupUser(String stationGroupId, String departmentId) {
         // 部门名称映射
-        Map<String, String> departmentNameMap = new HashMap<>();
-        List<Department> departmentList = adminFeign.getAllDepartments().getData();
-        if (CollectionUtil.isNotEmpty(departmentList)) {
-            departmentNameMap = departmentList.stream().collect(Collectors.toMap(Department::getId, Department::getName));
-        }
+        Map<String, String> departmentNameMap = this.getDepartmentNameMap();
         Map<String, Object> data = new HashMap<>();
         // 已选择用户
         List<StationGroupUserVo> selectedUserList = this.selectedUser(stationGroupId);
@@ -212,5 +209,35 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
             }
             item.setUserTreePositionName(userTreePositionName.toString());
         });
+    }
+
+    /**
+     * 部门ID和名称映射
+     *
+     * @return
+     */
+    private Map<String, String> getDepartmentNameMap() {
+        // 部门名称映射
+        Map<String, String> departmentNameMap = new HashMap<>();
+        List<Department> departmentList = adminFeign.getAllDepartments().getData();
+        if (CollectionUtil.isNotEmpty(departmentList)) {
+            departmentNameMap = departmentList.stream().collect(Collectors.toMap(Department::getId, Department::getName));
+        }
+        return departmentNameMap;
+    }
+
+    /**
+     * 翻页检索站点用户列表
+     *
+     * @param stationGroupUserVo
+     * @return
+     */
+    @Override
+    public IPage<StationGroupUserVo> pageStationGroupUser(StationGroupUserVo stationGroupUserVo) {
+        Map<String, String> departmentNameMap = this.getDepartmentNameMap();
+        IPage<StationGroupUserVo> page = baseMapper.pageStationGroupUser(this.getPageByBean(stationGroupUserVo), stationGroupUserVo);
+        List<StationGroupUserVo> list = page.getRecords();
+        setUserTreePositionName(list, departmentNameMap);
+        return page;
     }
 }

@@ -1,5 +1,6 @@
 package com.deyatech.resource.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseService;
 import com.deyatech.resource.entity.StationGroupUser;
 import com.deyatech.resource.vo.StationGroupUserVo;
@@ -81,4 +82,12 @@ public interface StationGroupUserService extends BaseService<StationGroupUser> {
      * @return
      */
     Map<String, Object> getStationGroupUser(String stationGroupId, String departmentId);
+
+    /**
+     * 翻页检索站点用户列表
+     *
+     * @param stationGroupUserVo
+     * @return
+     */
+    IPage<StationGroupUserVo> pageStationGroupUser(StationGroupUserVo stationGroupUserVo);
 }
