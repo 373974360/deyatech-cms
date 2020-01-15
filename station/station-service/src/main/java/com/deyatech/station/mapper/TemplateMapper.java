@@ -6,6 +6,7 @@ import com.deyatech.admin.entity.Department;
 import com.deyatech.admin.entity.User;
 import com.deyatech.admin.vo.UserVo;
 import com.deyatech.assembly.entity.CustomizationTableHead;
+import com.deyatech.station.entity.CatalogAggregation;
 import com.deyatech.station.entity.Template;
 import com.deyatech.common.base.BaseMapper;
 import com.deyatech.station.vo.CatalogVo;
@@ -131,6 +132,7 @@ public interface TemplateMapper extends BaseMapper<Template> {
      * @return
      */
     List<CatalogVo> getUserRoleCatalog(@Param("siteId") String siteId, @Param("userId") String userId);
+    List<CatalogVo> getUserCatalog(@Param("siteId") String siteId, @Param("userId") String userId);
 
     /**
      * 用户角色权限
@@ -139,6 +141,7 @@ public interface TemplateMapper extends BaseMapper<Template> {
      * @return
      */
     List<String> getUserRoleAuthority(@Param("userId") String userId);
+    List<String> getUserAuthority(@Param("siteId") String siteId, @Param("userId") String userId);
 
     /**
      * 用户所在部门的用户ID
@@ -161,4 +164,12 @@ public interface TemplateMapper extends BaseMapper<Template> {
      * @return
      */
     List<Department> getAllDepartment();
+
+    /**
+     * 获取栏目聚合的内容ID
+     *
+     * @param aggregation
+     * @return
+     */
+    List<String> getCatalogAggregationTemplateId(CatalogAggregation aggregation);
 }

@@ -80,6 +80,16 @@ public class RabbitConfig {
         return new Queue(RabbitMQConstants.QUEUE_CONTENT_STATUS_SWITCH_HANDLE);
     }
 
+//    /**
+//     * 栏目内容聚合
+//     *
+//     * @return
+//     */
+//    @Bean
+//    public Queue catalogContentAggregationQueue() {
+//        return new Queue(RabbitMQConstants.QUEUE_CATALOG_CONTENT_AGGREGATION);
+//    }
+
     /**
      * 自动删除匿名队列
      * @param csmTaskTopicExchange 广播交换器
@@ -124,4 +134,16 @@ public class RabbitConfig {
     public Binding bindingContentStatusSwitchHandle(TopicExchange csmTaskTopicExchange, Queue queueContentStatusSwitchHandle) {
         return BindingBuilder.bind(queueContentStatusSwitchHandle).to(csmTaskTopicExchange).with(RabbitMQConstants.QUEUE_CONTENT_STATUS_SWITCH_HANDLE);
     }
+
+//    /**
+//     * 栏目内容聚合
+//     *
+//     * @param csmTaskTopicExchange
+//     * @param catalogContentAggregationQueue
+//     * @return
+//     */
+//    @Bean
+//    public Binding bindingCatalogContentAggregation(TopicExchange csmTaskTopicExchange, Queue catalogContentAggregationQueue) {
+//        return BindingBuilder.bind(catalogContentAggregationQueue).to(csmTaskTopicExchange).with(RabbitMQConstants.QUEUE_CATALOG_CONTENT_AGGREGATION);
+//    }
 }

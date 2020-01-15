@@ -65,11 +65,12 @@ public class TemplateUserAuthorityServiceImpl extends BaseServiceImpl<TemplateUs
      * @return
      */
     @Override
-    public String getUsersAuthority(List<String> userIds) {
+    public String getUsersAuthority(String siteId, List<String> userIds) {
         if (CollectionUtil.isEmpty(userIds)) {
             return null;
         }
         QueryWrapper<TemplateUserAuthority> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("site_id", siteId);
         queryWrapper.in("user_id", userIds);
         List<TemplateUserAuthority> all = super.list(queryWrapper);
         if (CollectionUtil.isEmpty(all)) {
@@ -108,11 +109,12 @@ public class TemplateUserAuthorityServiceImpl extends BaseServiceImpl<TemplateUs
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void setUsersAuthority(List<String> userIds, String authority) {
+    public void setUsersAuthority(String siteId, List<String> userIds, String authority) {
         if (CollectionUtil.isNotEmpty(userIds)) {
             for (String userId : userIds) {
                 // 删除原来的
                 TemplateUserAuthority templateUserAuthority = new TemplateUserAuthority();
+                templateUserAuthority.setSiteId(siteId);
                 templateUserAuthority.setUserId(userId);
                 super.removeByBean(templateUserAuthority);
                 // 添加新的

@@ -22,17 +22,18 @@ import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.entity.CatalogAggregation;
 import com.deyatech.station.entity.CatalogRole;
+import com.deyatech.station.entity.CatalogTemplate;
 import com.deyatech.station.mapper.CatalogMapper;
-import com.deyatech.station.service.CatalogAggregationService;
-import com.deyatech.station.service.CatalogRoleService;
-import com.deyatech.station.service.CatalogService;
-import com.deyatech.station.service.TemplateService;
+import com.deyatech.station.rabbit.constants.RabbitMQConstants;
+import com.deyatech.station.service.*;
 import com.deyatech.station.vo.CatalogAggregationVo;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.template.feign.TemplateFeign;
 import com.deyatech.workflow.entity.IProcessDefinition;
 import com.deyatech.workflow.feign.WorkflowFeign;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,6 +71,10 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
     SiteCache siteCache;
     @Autowired
     WorkflowFeign workflowFeign;
+    @Autowired
+    private AmqpTemplate rabbitmqTemplate;
+    @Autowired
+    CatalogTemplateService catalogTemplateService;
 
     /**
      * 根据Catalog对象属性检索栏目的tree对象
@@ -297,7 +302,7 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
         if (this.existsEname(entity)) {
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "当前栏目中已存在相同英文名称");
         }
-
+//        boolean isNeedAggregation = this.isNeedAggregation(entity);
         // 设置排序号
         if (ObjectUtil.isNull(entity.getSortNo())) {
             int maxSortNo = baseMapper.selectMaxSortNo();
@@ -336,6 +341,13 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
             if(StrUtil.isBlank(catId)){
                 systemRoleAddCatalog(entity);
             }
+
+//            if (isNeedAggregation) {
+//                Map<String, String> param = new HashMap<>();
+//                param.put("catalogId", entity.getId());
+//                param.put("aggregationId", entity.getAggregationId());
+//                rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_CATALOG_CONTENT_AGGREGATION, param);
+//            }
         }
         // 覆盖子栏目
         boolean children = true;
@@ -349,6 +361,109 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
         }
 
         return aggregation && parent && children;
+    }
+
+//    /**
+//     * 栏目内容聚合消息处理
+//     *
+//     * @param param
+//     */
+//    @RabbitListener(queues = RabbitMQConstants.QUEUE_CATALOG_CONTENT_AGGREGATION)
+//    public void catalogContentAggregationHandle(Map<String,Object> param) {
+//        String catalogId = (String) param.get("catalogId");
+//        String aggregationId = (String) param.get("aggregationId");
+//    }
+
+    /**
+     * 判断是否需要聚合
+     *
+     * @param entity
+     * @return
+     */
+    private boolean isNeedAggregation(CatalogVo entity) {
+        boolean isNeed = false;
+        if (YesNoEnum.YES.getCode().equals(entity.getFlagAggregation())) {
+            // 新增
+            if (StrUtil.isEmpty(entity.getId())) {
+                isNeed = true;
+            } else {
+                // 编辑
+                if (StrUtil.isNotEmpty(entity.getAggregationId())) {
+                    String newCatalogId = "";
+                    String oldCatalogId = "";
+
+                    String newKeyword = "";
+                    String oldKeyword = "";
+
+                    String newOrganization = "";
+                    String oldOrganization = "";
+
+                    String newTime = "";
+                    String oldTime = "";
+
+                    String newPublisher = "";
+                    String oldPublisher = "";
+
+                    CatalogAggregation newAgg = JSONUtil.toBean(entity.getCatalogAggregationInfo(), CatalogAggregation.class);
+                    CatalogAggregation oldAgg = catalogAggregationService.getById(entity.getAggregationId());
+                    if (Objects.nonNull(newAgg)) {
+                        newCatalogId = Objects.isNull(newAgg.getCmsCatalogId()) ? "" : newAgg.getCmsCatalogId();
+                        newKeyword = Objects.isNull(newAgg.getKeyword()) ? "" : newAgg.getKeyword();
+                        newOrganization = Objects.isNull(newAgg.getPublishOrganization()) ? "" : newAgg.getPublishOrganization();
+                        newPublisher = Objects.isNull(newAgg.getPublisher()) ? "" : newAgg.getPublisher();
+                        newTime = Objects.isNull(newAgg.getPublishTime()) ? "" : newAgg.getPublishTime();
+                    }
+                    if (Objects.nonNull(oldAgg)) {
+                        oldCatalogId = Objects.isNull(oldAgg.getCmsCatalogId()) ? "" : oldAgg.getCmsCatalogId();
+                        oldKeyword = Objects.isNull(oldAgg.getKeyword()) ? "" : oldAgg.getKeyword();
+                        oldOrganization = Objects.isNull(oldAgg.getPublishOrganization()) ? "" : oldAgg.getPublishOrganization();
+                        oldTime = Objects.isNull(oldAgg.getPublishTime()) ? "" : oldAgg.getPublishTime();
+                        oldPublisher = Objects.isNull(oldAgg.getPublisher()) ? "" : oldAgg.getPublisher();
+                    }
+                    List<String> newCatalogList = new ArrayList<>();
+                    List<String> oldCatalogList = new ArrayList<>();
+                    if (StrUtil.isNotEmpty(newCatalogId)) {
+                        newCatalogList = Arrays.asList(newCatalogId.split("&"));
+                    }
+                    if (StrUtil.isNotEmpty(oldCatalogId)) {
+                        oldCatalogList = Arrays.asList(oldCatalogId.split("&"));
+                    }
+
+                    List<String> newKeywordList = new ArrayList<>();
+                    List<String> oldKeywordList = new ArrayList<>();
+                    if (StrUtil.isNotEmpty(newKeyword)) {
+                        newKeywordList = Arrays.asList(newKeyword.split(","));
+                    }
+                    if (StrUtil.isNotEmpty(oldKeyword)) {
+                        oldKeywordList = Arrays.asList(oldKeyword.split(","));
+                    }
+
+                    // 规则变更
+                    if (!listEquals(newCatalogList, oldCatalogList) ||
+                            !listEquals(newKeywordList, oldKeywordList) ||
+                            !newOrganization.equals(oldOrganization) ||
+                            !newTime.equals(oldTime) ||
+                            !newPublisher.equals(oldPublisher)) {
+                        isNeed = true;
+                    }
+                }
+            }
+        }
+
+        if (!isNeed && StrUtil.isNotEmpty(entity.getId())) {
+            // 删除聚合数据
+            CatalogTemplate catalogTemplate = new CatalogTemplate();
+            catalogTemplate.setCatalogId(entity.getId());
+            catalogTemplateService.removeByBean(catalogTemplate);
+        }
+
+        return isNeed;
+    }
+
+    private boolean listEquals(List<String> newList, List<String> oldList) {
+        if (newList.size() == oldList.size() && newList.containsAll(oldList) && oldList.containsAll(newList))
+            return true;
+        return false;
     }
 
     /**

@@ -78,6 +78,13 @@
         join admin_role_user ru on ra.role_id = ru.role_id and ru.user_id = #{userId}
         join admin_role r on r.id_ = ru.role_id and r.enable_ = 1
     </select>
+    <select id="getUserAuthority" resultType="String">
+        select distinct ua.authority
+        from station_template_user_authority ua
+        join admin_user u on u.id_ = ua.user_id and u.enable_ = 1
+        where ua.user_id = #{userId} and ua.site_id = #{siteId}
+    </select>
+
 
     <select id="getUserRoleCatalog" resultType="com.deyatech.station.vo.CatalogVo">
         select sc.id_, sc.parent_id, sc.path_name, sc.tree_position, sc.name, sc.workflow_id
@@ -85,6 +92,13 @@
         join station_catalog_role cr on cr.catalog_id = sc.id_
         join admin_role_user ru on ru.role_id = cr.role_id and ru.user_id = #{userId}
         join admin_role r on r.id_ = ru.role_id and r.enable_ = 1
+        where sc.enable_ = 1 and sc.site_id = #{siteId}
+    </select>
+    <select id="getUserCatalog" resultType="com.deyatech.station.vo.CatalogVo">
+        select sc.id_, sc.parent_id, sc.path_name, sc.tree_position, sc.name, sc.workflow_id
+        from station_catalog sc
+        join station_catalog_user cu on cu.catalog_id = sc.id_ and cu.user_id = #{userId}
+        join admin_user u on u.id_ = cu.user_id and u.enable_ = 1
         where sc.enable_ = 1 and sc.site_id = #{siteId}
     </select>
 
@@ -476,5 +490,11 @@
         </if>
         ORDER BY resource_publication_date ASC
         LIMIT #{offset}, #{size}
+    </select>
+
+    <!--获取栏目聚合的内容ID-->
+    <select id="getCatalogAggregationTemplateId" resultType="java.lang.String">
+        select distinct id_ from station_template
+        where
     </select>
 </mapper>

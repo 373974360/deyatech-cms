@@ -9,7 +9,6 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,9 +38,13 @@ public class TemplateUserAuthorityController extends BaseController {
      */
     @RequestMapping("/getUsersAuthority")
     @ApiOperation(value="获取用户权限", notes="获取用户权限")
-    @ApiImplicitParam(name = "userIds", value = "用户id", required = true, dataType = "List", paramType = "query")
-    public RestResult<String> getUsersAuthority(@RequestParam("userIds[]") List<String> userIds) {
-        return RestResult.ok(templateUserAuthorityService.getUsersAuthority(userIds));
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "siteId", value = "站点id", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "userIds", value = "用户id", required = true, dataType = "List", paramType = "query")
+    })
+    public RestResult<String> getUsersAuthority(@RequestParam("siteId") String siteId,
+                                                @RequestParam("userIds[]") List<String> userIds) {
+        return RestResult.ok(templateUserAuthorityService.getUsersAuthority(siteId, userIds));
     }
 
     /**
@@ -53,12 +56,14 @@ public class TemplateUserAuthorityController extends BaseController {
     @RequestMapping("/setUsersAuthority")
     @ApiOperation(value="设置用户权限", notes="设置用户权限")
     @ApiImplicitParams({
+            @ApiImplicitParam(name = "siteId", value = "站点id", required = true, dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "userIds", value = "用户id", required = true, dataType = "List", paramType = "query"),
             @ApiImplicitParam(name = "authority", value = "权限", required = true, dataType = "authority", paramType = "query")
     })
-    public RestResult setUsersAuthority(@RequestParam("userIds[]") List<String> userIds,
+    public RestResult setUsersAuthority(@RequestParam("siteId") String siteId,
+                                        @RequestParam("userIds[]") List<String> userIds,
                                         @RequestParam(value = "authority" ,required = false) String authority) {
-        templateUserAuthorityService.setUsersAuthority(userIds, authority);
+        templateUserAuthorityService.setUsersAuthority(siteId, userIds, authority);
         return RestResult.ok(true);
     }
 }

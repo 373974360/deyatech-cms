@@ -37,16 +37,18 @@ public interface TemplateUserAuthorityService extends BaseService<TemplateUserAu
     /**
      * 获取用户权限
      *
+     * @param siteId
      * @param userIds
      * @return
      */
-    String getUsersAuthority(List<String> userIds);
+    String getUsersAuthority(String siteId, List<String> userIds);
 
     /**
      * 设置用户权限
      *
+     * @param siteId
      * @param userIds
      * @param authority
      */
-    void setUsersAuthority(List<String> userIds, String authority);
+    void setUsersAuthority(String siteId, List<String> userIds, String authority);
 }

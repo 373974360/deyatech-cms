@@ -1,6 +1,8 @@
 package com.deyatech.resource.mapper;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.admin.entity.User;
+import com.deyatech.admin.vo.UserVo;
 import com.deyatech.common.base.BaseMapper;
 import com.deyatech.resource.entity.StationGroupUser;
 import com.deyatech.resource.vo.StationGroupUserVo;
@@ -59,4 +61,5 @@ public interface StationGroupUserMapper extends BaseMapper<StationGroupUser> {
      * @return
      */
     IPage<StationGroupUserVo> pageStationGroupUser(@Param("page") IPage page, @Param("stationGroupUserVo") StationGroupUserVo stationGroupUserVo);
+
 }

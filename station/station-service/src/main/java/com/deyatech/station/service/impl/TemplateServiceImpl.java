@@ -98,13 +98,14 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     AssemblyFeign assemblyFeign;
     @Autowired
     MaterialService materialService;
-
     @Autowired
     IndexService indexService;
     @Autowired
     PageService pageService;
     @Autowired
     TemplateFeign templateFeign;
+    @Autowired
+    CatalogTemplateService catalogTemplateService;
 
 
     /**
@@ -575,6 +576,12 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             }
             // 新增时
             if (!hasId) {
+                // 保存栏目内容关联表
+                CatalogTemplate catalogTemplate = new CatalogTemplate();
+                catalogTemplate.setCatalogId(templateVo.getCmsCatalogId());
+                catalogTemplate.setTemplateId(templateVo.getId());
+                catalogTemplate.setOriginType(ContentOriginTypeEnum.ADD.getCode());
+                catalogTemplateService.saveOrUpdate(catalogTemplate);
                 // 如果当前栏目绑定了工作流 并且 有流程ID
                 if(YesNoEnum.YES.getCode().equals(catalog.getWorkflowEnable()) && StrUtil.isNotEmpty(catalog.getWorkflowId())){
                     startWorkflow(templateVo);
@@ -1167,12 +1174,12 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         String siteId = entity.getSiteId();
         String userId = UserContextHelper.getUserId();
         // 分配给用户的栏目
-        List<CatalogVo> catalogList = baseMapper.getUserRoleCatalog(siteId, userId);
+        List<CatalogVo> catalogList = baseMapper.getUserCatalog(siteId, userId);
         if (CollectionUtil.isEmpty(catalogList)) {
             throw new BusinessException( HttpStatus.HTTP_INTERNAL_ERROR, "没有分配栏目权限");
         }
         // 分配给用户的内容权限
-        List<String> authorityList = baseMapper.getUserRoleAuthority(userId);
+        List<String> authorityList = baseMapper.getUserAuthority(siteId, userId);
         if (CollectionUtil.isEmpty(authorityList)) {
             throw new BusinessException( HttpStatus.HTTP_INTERNAL_ERROR, "没有分配内容权限");
         }

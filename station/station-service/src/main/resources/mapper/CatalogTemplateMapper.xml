@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.station.mapper.CatalogTemplateMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.deyatech.station.entity.CatalogTemplate">
+        <result column="id_" property="id" />
+        <result column="catalog_id" property="catalogId" />
+        <result column="template_id" property="templateId" />
+        <result column="origin_type" property="originType" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id_,
+        catalog_id, template_id, origin_type
+    </sql>
+
+</mapper>

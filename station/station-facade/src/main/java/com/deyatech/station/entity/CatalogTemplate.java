@@ -11,30 +11,30 @@ import lombok.experimental.Accessors;
 import java.util.Date;
 /**
  * <p>
- * 内容模板用户权限信息
+ * 栏目内容关联
  * </p>
  *
- * @author lee.
- * @since 2019-10-11
+ * @author ycx
+ * @since 2020-01-15
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-@TableName("station_template_user_authority")
-@ApiModel(value = "内容模板用户权限信息对象", description = "内容模板用户权限信息", parent = BaseEntity.class)
-public class TemplateUserAuthority extends BaseEntity {
-
-    @ApiModelProperty(value = "站点id", dataType = "String")
-    @TableField("site_id")
-    private String siteId;
+@TableName("station_catalog_template")
+@ApiModel(value = "栏目内容关联对象", description = "栏目内容关联", parent = BaseEntity.class)
+public class CatalogTemplate extends BaseEntity {
 
     @ApiModelProperty(value = "用户id", dataType = "String")
-    @TableField("user_id")
-    private String userId;
+    @TableField("catalog_id")
+    private String catalogId;
 
-    @ApiModelProperty(value = "权限", dataType = "String")
-    @TableField("authority")
-    private String authority;
+    @ApiModelProperty(value = "内容id", dataType = "String")
+    @TableField("template_id")
+    private String templateId;
+
+    @ApiModelProperty(value = "内容来源类型", dataType = "Integer")
+    @TableField("origin_type")
+    private Integer originType;
 
     /**
      * 记录状态，0为禁用，1为启用，-1为已删除

@@ -72,7 +72,7 @@ public class StationGroupUserController extends BaseController {
      * @param stationGroupUserVo
      * @return
      */
-    @RequestMapping("/pageStationGroupUser")
+    @RequestMapping({"/pageStationGroupUser", "/pageStationAssociationUser"})
     @ApiOperation(value="翻页检索站点用户列表", notes="翻页检索站点用户列表")
     @ApiImplicitParam(name = "stationGroupUserVo", value = "站点ID", required = true, dataType = "StationGroupUserVo", paramType = "query")
     public RestResult<IPage<StationGroupUserVo>> pageStationGroupUser(StationGroupUserVo stationGroupUserVo) {
