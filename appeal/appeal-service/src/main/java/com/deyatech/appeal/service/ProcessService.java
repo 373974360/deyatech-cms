@@ -33,5 +33,6 @@ public interface ProcessService extends BaseService<Process> {
      */
     List<ProcessVo> setVoProperties(Collection processs);
 
-    void doProcess(Process process, Record record);
+    boolean doProcess(Process process, Record record);
+    boolean setRepeatProcess(List<String> ids);
 }

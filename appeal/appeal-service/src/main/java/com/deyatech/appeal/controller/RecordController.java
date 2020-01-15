@@ -172,4 +172,34 @@ public class RecordController extends BaseController {
         return RestResult.ok(cascaderResults);
     }
 
+
+    /**
+     * 根据条件查询重复的诉求列表
+     *
+     * @param record
+     * @return
+     */
+    @GetMapping("/listRepeatByRecord")
+    @ApiOperation(value="根据条件查询重复的诉求列表", notes="根据条件查询重复的诉求列表")
+    @ApiImplicitParam(name = "record", value = "对象", required = false, dataType = "Record", paramType = "query")
+    public RestResult<Collection<RecordVo>> listRepeatByRecord(Record record) {
+        Collection<RecordVo> recordVos = recordService.listRepeatByRecord(record);
+        log.info(String.format("根据条件查询重复的诉求列表: %s ",JSONUtil.toJsonStr(recordVos)));
+        return RestResult.ok(recordVos);
+    }
+
+
+
+    /**
+     * 初始化树菜单
+     *
+     * @param userDepartmentId
+     * @return
+     */
+    @GetMapping("/reloadTreeData")
+    @ApiOperation(value="根据条件查询重复的诉求列表", notes="初始化树菜单")
+    @ApiImplicitParam(name = "userDepartmentId", value = "部门ID", required = false, dataType = "String", paramType = "query")
+    public RestResult reloadTreeData(String userDepartmentId) {
+        return RestResult.ok(recordService.resetTreeLabel(userDepartmentId));
+    }
 }

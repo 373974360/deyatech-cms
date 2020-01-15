@@ -107,4 +107,43 @@
     <select id="countPurpose" resultType="com.deyatech.appeal.vo.RecordVo">
         select pur_id as purId, count(0) as number from appeal_record where enable_ = 1 group by pur_id
     </select>
+
+    <!-- 代办总数 ** 后台 -->
+    <select id="getAppealCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select count(id_) count from appeal_record where enable_ = 1
+        <if test="map.model_id != null">
+            and (model_id in
+            <foreach item="item" index="index" collection="map.model_id" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            <if test="map.pro_dept_id != null">
+                or pro_dept_id = #{map.pro_dept_id}
+            </if>
+            )
+        </if>
+        <if test="map.model_id == null and map.pro_dept_id != null">
+            and pro_dept_id = #{map.pro_dept_id}
+        </if>
+        <if test="map.sq_flag != null">
+            and sq_flag = #{map.sq_flag}
+        </if>
+        <if test="map.sq_status != null">
+            and sq_status = #{map.sq_status}
+        </if>
+        <if test="map.is_back != null">
+            and is_back = #{map.is_back}
+        </if>
+        <if test="map.limit_flag != null">
+            and limit_flag = #{map.limit_flag}
+        </if>
+        <if test="map.is_publish != null">
+            and is_publish = #{map.is_publish}
+        </if>
+        <if test="map.alarm_flag != null">
+            and alarm_flag = #{map.alarm_flag}
+        </if>
+        <if test="map.supervise_flag != null">
+            and supervise_flag = #{map.supervise_flag}
+        </if>
+    </select>
 </mapper>
