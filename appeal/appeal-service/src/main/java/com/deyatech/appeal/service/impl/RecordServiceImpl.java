@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.admin.entity.Department;
+import com.deyatech.admin.entity.Role;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.admin.vo.DepartmentVo;
 import com.deyatech.appeal.entity.Model;
@@ -25,6 +26,7 @@ import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseServiceImpl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.common.utils.RandomStrg;
@@ -173,27 +175,43 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
         if(ObjectUtil.isNotNull(timeFrame)){
             queryWrapper.between("create_time",timeFrame[0],timeFrame[1]);
         }
-        if(StrUtil.isNotBlank(record.getModelId())){
-            queryWrapper.eq("model_id",record.getModelId());
-            QueryWrapper<Model> query = new QueryWrapper<>();
-            query.likeLeft("competent_dept", userDepartmentId);
-            query.eq("id_", record.getModelId());
-            Model model = modelService.getOne(query);
-            //当前登录用户的所属部门不是所选择业务的主管部门
-            if(ObjectUtil.isNull(model)){
-                queryWrapper.eq("pro_dept_id", userDepartmentId);
+        boolean allModel = false;
+        List<Role> roles = adminFeign.getRolesByUserId(UserContextHelper.getUserId()).getData();
+        if(CollectionUtil.isNotEmpty(roles)){
+            for (Role role:roles){
+                //当前用户拥有系统类型的角色
+                if(role.getType() == 3){
+                    allModel = true;
+                }
             }
-        } else {
-            QueryWrapper<Model> query = new QueryWrapper<>();
-            query.likeLeft("competent_dept", userDepartmentId);
-            Collection<Model> models = modelService.list(query);
-            if(models != null && !models.isEmpty()){
-                //有主管业务查询主管业务的所有信息和处理部门是自己所属部门的信息
-                queryWrapper.and(i -> i.in("model_id", models.stream().map(Model::getId).collect(Collectors.toList()))
-                    .or().eq("pro_dept_id", userDepartmentId));
-            }else{
-                //没有主管业务只查询处理部门是当前用户所属部门的信息
-                queryWrapper.or().eq("pro_dept_id", userDepartmentId);
+        }
+        if(allModel){
+            if(StrUtil.isNotBlank(record.getModelId())) {
+                queryWrapper.eq("model_id", record.getModelId());
+            }
+        }else{
+            if(StrUtil.isNotBlank(record.getModelId())){
+                queryWrapper.eq("model_id",record.getModelId());
+                QueryWrapper<Model> query = new QueryWrapper<>();
+                query.likeLeft("competent_dept", userDepartmentId);
+                query.eq("id_", record.getModelId());
+                Model model = modelService.getOne(query);
+                //当前登录用户的所属部门不是所选择业务的主管部门
+                if(ObjectUtil.isNull(model)){
+                    queryWrapper.eq("pro_dept_id", userDepartmentId);
+                }
+            } else {
+                QueryWrapper<Model> query = new QueryWrapper<>();
+                query.likeLeft("competent_dept", userDepartmentId);
+                Collection<Model> models = modelService.list(query);
+                if(models != null && !models.isEmpty()){
+                    //有主管业务查询主管业务的所有信息和处理部门是自己所属部门的信息
+                    queryWrapper.and(i -> i.in("model_id", models.stream().map(Model::getId).collect(Collectors.toList()))
+                            .or().eq("pro_dept_id", userDepartmentId));
+                }else{
+                    //没有主管业务只查询处理部门是当前用户所属部门的信息
+                    queryWrapper.or().eq("pro_dept_id", userDepartmentId);
+                }
             }
         }
         if(StrUtil.isNotBlank(record.getPurId())){
@@ -475,9 +493,21 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
     }
 
     private int getAppealCount(String userDepartmentId,RecordMenuVo recordMenuVo){
+        boolean allModel = false;
+        List<Role> roles = adminFeign.getRolesByUserId(UserContextHelper.getUserId()).getData();
+        if(CollectionUtil.isNotEmpty(roles)){
+            for (Role role:roles){
+                //当前用户拥有系统类型的角色
+                if(role.getType() == 3){
+                    allModel = true;
+                }
+            }
+        }
         Map<String,Object> map = new HashMap<>();
         QueryWrapper<Model> query = new QueryWrapper<>();
-        query.likeLeft("competent_dept", userDepartmentId);
+        if(!allModel){
+            query.likeLeft("competent_dept", userDepartmentId);
+        }
         Collection<Model> models = modelService.list(query);
         if(CollectionUtil.isNotEmpty(models)){
             map.put("model_id", models.stream().map(Model::getId).collect(Collectors.toList()));
