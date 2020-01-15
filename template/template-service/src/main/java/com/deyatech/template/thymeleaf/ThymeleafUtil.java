@@ -173,7 +173,7 @@ public class ThymeleafUtil {
                 process = templateCache.getTemplate(cachekey,key);
                 if(StrUtil.isBlank(process)){
                     process = templateEngine.process(templatePath, context);
-                    templateCache.cacheTemplate(cachekey,key,process);
+                    //templateCache.cacheTemplate(cachekey,key,process);
                 }
             }else{
                 process = templateEngine.process(templatePath, context);
