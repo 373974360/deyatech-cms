@@ -280,7 +280,7 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
             }else{
                 departmentVo.setLevel(Constants.DEFAULT_ROOT_LEVEL);
             }
-            if (ObjectUtil.equal(departmentVo.getParentId(), Constants.ZERO)) {
+            if (ObjectUtil.equal(departmentVo.getId(), model.getCompetentDept().split(",")[0])) {
                 rootDepartments.add(departmentVo);
             }
             for (DepartmentVo childVo : departmentVos) {
