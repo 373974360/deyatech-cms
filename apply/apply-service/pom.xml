@@ -3,33 +3,18 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>station-service</artifactId>
+    <artifactId>apply-service</artifactId>
 
     <name>${project.artifactId}</name>
-    <description>cms站点模块业务</description>
+    <description>cms依申请公开业务模块</description>
 
     <parent>
         <groupId>com.deyatech</groupId>
-        <artifactId>station</artifactId>
+        <artifactId>apply</artifactId>
         <version>0.0.1</version>
     </parent>
 
     <dependencies>
-        <dependency>
-            <groupId>com.deyatech</groupId>
-            <artifactId>interview-facade</artifactId>
-            <version>${deyatech.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.deyatech</groupId>
-            <artifactId>appeal-facade</artifactId>
-            <version>${deyatech.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.deyatech</groupId>
-            <artifactId>assembly-facade</artifactId>
-            <version>${deyatech.version}</version>
-        </dependency>
         <dependency>
             <groupId>com.deyatech</groupId>
             <artifactId>apply-facade</artifactId>
@@ -37,12 +22,7 @@
         </dependency>
         <dependency>
             <groupId>com.deyatech</groupId>
-            <artifactId>station-facade</artifactId>
-            <version>${deyatech.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.deyatech</groupId>
-            <artifactId>resource-facade</artifactId>
+            <artifactId>admin-facade</artifactId>
             <version>${deyatech.version}</version>
         </dependency>
         <dependency>
@@ -52,12 +32,7 @@
         </dependency>
         <dependency>
             <groupId>com.deyatech</groupId>
-            <artifactId>template-facade</artifactId>
-            <version>${deyatech.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.deyatech</groupId>
-            <artifactId>admin-facade</artifactId>
+            <artifactId>resource-facade</artifactId>
             <version>${deyatech.version}</version>
         </dependency>
         <dependency>
@@ -85,14 +60,6 @@
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-websocket</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
@@ -101,46 +68,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
-        </dependency>
-        <!--rabbit-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-amqp</artifactId>
-        </dependency>
-        <!--elasticsearch-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.elasticsearch</groupId>
-            <artifactId>elasticsearch</artifactId>
-            <version>6.4.3</version>
-        </dependency>
-        <!--elasticsearch高级客户端-->
-        <dependency>
-            <groupId>org.elasticsearch.client</groupId>
-            <artifactId>elasticsearch-rest-high-level-client</artifactId>
-            <version>6.4.3</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>elasticsearch</artifactId>
-                    <groupId>org.elasticsearch</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.elasticsearch.client/elasticsearch-rest-client -->
-        <!--elasticsearch低级客户端-->
-        <dependency>
-            <groupId>org.elasticsearch.client</groupId>
-            <artifactId>elasticsearch-rest-client</artifactId>
-            <version>6.4.3</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.im4java/im4java -->
-        <dependency>
-            <groupId>org.im4java</groupId>
-            <artifactId>im4java</artifactId>
-            <version>1.4.0</version>
         </dependency>
     </dependencies>
 

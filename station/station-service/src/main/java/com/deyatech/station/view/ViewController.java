@@ -10,19 +10,16 @@ import com.deyatech.appeal.entity.RecordSatisfaction;
 import com.deyatech.appeal.feign.AppealFeign;
 import com.deyatech.appeal.vo.ModelVo;
 import com.deyatech.appeal.vo.RecordVo;
-import com.deyatech.assembly.entity.ApplyOpenRecord;
-import com.deyatech.assembly.feign.AssemblyFeign;
-import com.deyatech.assembly.vo.ApplyOpenModelVo;
-import com.deyatech.assembly.vo.ApplyOpenRecordVo;
+import com.deyatech.apply.entity.OpenRecord;
+import com.deyatech.apply.feign.ApplyFeign;
+import com.deyatech.apply.vo.OpenModelVo;
+import com.deyatech.apply.vo.OpenRecordVo;
 import com.deyatech.common.base.BaseController;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.interview.entity.Category;
 import com.deyatech.interview.feign.InterviewFeign;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.cache.SiteCache;
-import com.deyatech.station.entity.Catalog;
-import com.deyatech.station.entity.Template;
-import com.deyatech.station.feign.StationFeign;
 import com.deyatech.station.service.CatalogService;
 import com.deyatech.station.service.MaterialService;
 import com.deyatech.station.service.TemplateService;
@@ -30,9 +27,6 @@ import com.deyatech.station.view.utils.ViewUtils;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.template.feign.TemplateFeign;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -70,7 +64,7 @@ public class ViewController extends BaseController {
     @Autowired
     AppealFeign appealFeign;
     @Autowired
-    AssemblyFeign assemblyFeign;
+    ApplyFeign applyFeign;
     @Autowired
     InterviewFeign interviewFeign;
 
@@ -220,17 +214,17 @@ public class ViewController extends BaseController {
         //依申请公开详情
         if(map.get("type").equals("applyopen")){
             String infoId = map.get("infoId");
-            ApplyOpenRecordVo applyOpenRecordVo;
+            OpenRecordVo applyOpenRecordVo;
             //infoId为search时 标识根据信件编码和查询码 查询详情
             if(infoId.equals("search")){
-                applyOpenRecordVo = assemblyFeign.queryApplyOpen(varMap.get("ysqCode").toString(),varMap.get("queryCode").toString()).getData();
+                applyOpenRecordVo = applyFeign.queryApplyOpen(varMap.get("ysqCode").toString(),varMap.get("queryCode").toString()).getData();
             }else{
-                applyOpenRecordVo = assemblyFeign.getApplyOpenById(map.get("infoId")).getData();
+                applyOpenRecordVo = applyFeign.getApplyOpenById(map.get("infoId")).getData();
             }
             if (ObjectUtil.isNull(applyOpenRecordVo) || StrUtil.isBlank(applyOpenRecordVo.getId())) {
                 return "依申请公开详情不存在!";
             }
-            ApplyOpenModelVo applyOpenModelVo = assemblyFeign.getApplyOpenModelById(applyOpenRecordVo.getModelId()).getData();
+            OpenModelVo applyOpenModelVo = applyFeign.getApplyOpenModelById(applyOpenRecordVo.getModelId()).getData();
             if (ObjectUtil.isNull(applyOpenModelVo) || StrUtil.isBlank(applyOpenModelVo.getId())) {
                 return "依申请公开模型不存在!";
             }
@@ -292,7 +286,7 @@ public class ViewController extends BaseController {
         }
         //依申请公开表单
         if(map.get("type").equals("applyopen")){
-            ApplyOpenModelVo modelVo = assemblyFeign.getApplyOpenModelById(map.get("modelId")).getData();
+            OpenModelVo modelVo = applyFeign.getApplyOpenModelById(map.get("modelId")).getData();
             varMap.put("modelData",modelVo);
             templatePath = modelVo.getFormTemplet();
         }
@@ -336,9 +330,9 @@ public class ViewController extends BaseController {
         }
         //依申请公开提交
         if(actionType.equals("insertApplyOpen")){
-            ApplyOpenRecord applyOpenRecord = new ApplyOpenRecord();
+            OpenRecord applyOpenRecord = new OpenRecord();
             BeanUtil.copyProperties(varMap,applyOpenRecord);
-            return RestResult.ok(assemblyFeign.insertApplyOpen(applyOpenRecord).getData());
+            return RestResult.ok(applyFeign.insertApplyOpen(applyOpenRecord).getData());
         }
         return RestResult.ok();
     }
