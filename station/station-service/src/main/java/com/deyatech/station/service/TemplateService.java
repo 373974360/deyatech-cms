@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.admin.entity.Department;
 import com.deyatech.admin.entity.User;
 import com.deyatech.common.base.BaseService;
+import com.deyatech.station.entity.CatalogTemplate;
 import com.deyatech.station.entity.Template;
+import com.deyatech.station.vo.CatalogAggregationVo;
 import com.deyatech.station.vo.TemplateDynamicFormVo;
 import com.deyatech.station.vo.TemplateVo;
 
@@ -73,7 +75,7 @@ public interface TemplateService extends BaseService<Template> {
      * @param entity
      * @return
      */
-    IPage<TemplateVo> pageByTemplate(Template entity);
+    IPage<TemplateVo> pageByTemplate(TemplateVo entity);
 
     /**
      * 判断Template对象标题是否存在

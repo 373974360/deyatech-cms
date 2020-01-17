@@ -1,8 +1,10 @@
 package com.deyatech.station.service;
 
-import com.deyatech.station.entity.CatalogTemplate;
-import com.deyatech.station.vo.CatalogTemplateVo;
 import com.deyatech.common.base.BaseService;
+import com.deyatech.station.entity.CatalogTemplate;
+import com.deyatech.station.vo.CatalogAggregationVo;
+import com.deyatech.station.vo.CatalogTemplateVo;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -31,4 +33,22 @@ public interface CatalogTemplateService extends BaseService<CatalogTemplate> {
      * @return
      */
     List<CatalogTemplateVo> setVoProperties(Collection catalogTemplates);
+
+    /**
+     * 检索聚合内容ID
+     *
+     * @param aggregation
+     * @param offset
+     * @param size
+     * @return
+     */
+    List<String> getAggregationTemplateId(CatalogAggregationVo aggregation, long offset, long size);
+
+    /**
+     * 添加聚合栏目内容
+     *
+     * @param list
+     * @return
+     */
+    int insertCatalogTemplate(List<CatalogTemplate> list);
 }

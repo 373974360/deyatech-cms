@@ -80,15 +80,25 @@ public class RabbitConfig {
         return new Queue(RabbitMQConstants.QUEUE_CONTENT_STATUS_SWITCH_HANDLE);
     }
 
-//    /**
-//     * 栏目内容聚合
-//     *
-//     * @return
-//     */
-//    @Bean
-//    public Queue catalogContentAggregationQueue() {
-//        return new Queue(RabbitMQConstants.QUEUE_CATALOG_CONTENT_AGGREGATION);
-//    }
+    /**
+     * 聚合关联关系-栏目规则变更
+     *
+     * @return
+     */
+    @Bean
+    public Queue queueAggregationCatalogChange() {
+        return new Queue(RabbitMQConstants.QUEUE_AGGREGATION_CATALOG_CHANGE);
+    }
+
+    /**
+     * 聚合关联关系-内容变更
+     *
+     * @return
+     */
+    @Bean
+    public Queue queueAggregationTemplateChange() {
+        return new Queue(RabbitMQConstants.QUEUE_AGGREGATION_TEMPLATE_CHANGE);
+    }
 
     /**
      * 自动删除匿名队列
@@ -135,15 +145,23 @@ public class RabbitConfig {
         return BindingBuilder.bind(queueContentStatusSwitchHandle).to(csmTaskTopicExchange).with(RabbitMQConstants.QUEUE_CONTENT_STATUS_SWITCH_HANDLE);
     }
 
-//    /**
-//     * 栏目内容聚合
-//     *
-//     * @param csmTaskTopicExchange
-//     * @param catalogContentAggregationQueue
-//     * @return
-//     */
-//    @Bean
-//    public Binding bindingCatalogContentAggregation(TopicExchange csmTaskTopicExchange, Queue catalogContentAggregationQueue) {
-//        return BindingBuilder.bind(catalogContentAggregationQueue).to(csmTaskTopicExchange).with(RabbitMQConstants.QUEUE_CATALOG_CONTENT_AGGREGATION);
-//    }
+    /**
+     * 聚合关联关系-栏目规则变更
+     *
+     * @return
+     */
+    @Bean
+    public Binding bindingAggregationCatalogChange() {
+        return BindingBuilder.bind(queueAggregationCatalogChange()).to(csmTaskTopicExchange()).with(RabbitMQConstants.QUEUE_AGGREGATION_CATALOG_CHANGE);
+    }
+
+    /**
+     * 聚合关联关系-栏目规则变更
+     *
+     * @return
+     */
+    @Bean
+    public Binding bindingAggregationTemplateChange() {
+        return BindingBuilder.bind(queueAggregationTemplateChange()).to(csmTaskTopicExchange()).with(RabbitMQConstants.QUEUE_AGGREGATION_TEMPLATE_CHANGE);
+    }
 }

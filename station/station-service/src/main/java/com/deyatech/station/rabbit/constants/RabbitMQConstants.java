@@ -53,7 +53,12 @@ public class RabbitMQConstants {
     public static final String QUEUE_CONTENT_STATUS_SWITCH_HANDLE = "queue.content.status.switch.handle";
 
     /**
-     * 栏目内容聚合
+     * 聚合关联关系-栏目规则变更
      */
-    public static final String QUEUE_CATALOG_CONTENT_AGGREGATION = "queue.catalog.content.aggregation";
+    public static final String QUEUE_AGGREGATION_CATALOG_CHANGE = "queue.aggregation.catalog.change";
+
+    /**
+     * 聚合关联关系-内容变更
+     */
+    public static final String QUEUE_AGGREGATION_TEMPLATE_CHANGE = "queue.aggregation.template.change";
 }

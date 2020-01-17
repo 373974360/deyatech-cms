@@ -1,9 +1,11 @@
 package com.deyatech.station.controller;
 
+import com.deyatech.common.enums.ContentOriginTypeEnum;
 import com.deyatech.station.entity.CatalogTemplate;
 import com.deyatech.station.vo.CatalogTemplateVo;
 import com.deyatech.station.service.CatalogTemplateService;
 import com.deyatech.common.entity.RestResult;
+import io.swagger.annotations.ApiImplicitParams;
 import lombok.extern.slf4j.Slf4j;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -142,4 +144,24 @@ public class CatalogTemplateController extends BaseController {
         return RestResult.ok(catalogTemplates);
     }
 
+    /**
+     * 解除聚合关系
+     *
+     * @param templateId
+     * @param linkedCatalogId
+     * @return
+     */
+    @RequestMapping("/removeAggregationRelation")
+    @ApiOperation(value="解除聚合关系", notes="解除聚合关系")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "templateId", value = "内容ID", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "linkedCatalogId", value = "聚合栏目ID", required = true, dataType = "String", paramType = "query")
+    })
+    public RestResult removeAggregationRelation(String templateId, String linkedCatalogId) {
+        CatalogTemplate catalogTemplate = new CatalogTemplate();
+        catalogTemplate.setTemplateId(templateId);
+        catalogTemplate.setCatalogId(linkedCatalogId);
+        catalogTemplate.setOriginType(ContentOriginTypeEnum.AGGREGATION.getCode());
+        return RestResult.ok(catalogTemplateService.removeByBean(catalogTemplate));
+    }
 }

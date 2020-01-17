@@ -152,4 +152,23 @@ public class TemplateVo extends Template {
      * 用户部门
      */
     private String departmentId;
+
+    /**
+     * 关联类型
+     */
+    private Integer linkedOriginType;
+
+    /**
+     * 关联栏目ID
+     */
+    private String linkedCatalogId;
+
+    /**
+     * 开始时间
+     */
+    private String startTime;
+    /**
+     * 结束时间
+     */
+    private String endTime;
 }

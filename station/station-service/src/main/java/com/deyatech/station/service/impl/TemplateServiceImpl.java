@@ -2,6 +2,8 @@ package com.deyatech.station.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpStatus;
@@ -18,8 +20,6 @@ import com.deyatech.admin.entity.User;
 import com.deyatech.admin.feign.AdminFeign;
 import com.deyatech.admin.vo.*;
 import com.deyatech.assembly.feign.AssemblyFeign;
-import com.deyatech.assembly.vo.CustomizationTableHeadItemVo;
-import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.entity.RestResult;
@@ -32,15 +32,11 @@ import com.deyatech.station.index.IndexService;
 import com.deyatech.station.mapper.TemplateMapper;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.service.*;
-import com.deyatech.station.view.utils.ViewUtils;
 import com.deyatech.station.vo.*;
 import com.deyatech.template.feign.TemplateFeign;
 import com.deyatech.workflow.feign.WorkflowFeign;
 import com.deyatech.workflow.vo.ProcessInstanceVo;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -54,10 +50,11 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -106,7 +103,10 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     TemplateFeign templateFeign;
     @Autowired
     CatalogTemplateService catalogTemplateService;
+    @Autowired
+    CatalogAggregationService catalogAggregationService;
 
+    ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 100, 10, TimeUnit.MINUTES, new LinkedBlockingDeque<>());
 
     /**
      * 获取字段
@@ -512,16 +512,19 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         if (Objects.isNull(catalog)) {
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "栏目信息不存在");
         }
+        boolean isNeedAggregation = false;
         List<String> oldUrlList = new ArrayList<>();
         List<String> newUrlList = new ArrayList<>();
         boolean hasId = StrUtil.isNotBlank(templateVo.getId());
         // 更新
         if (hasId) {
+            isNeedAggregation = this.isNeedAggregation(templateVo);
             Template templateDB = super.getById(templateVo.getId());
             // 标记材料
             checkUrl(templateDB.getThumbnail(), templateVo.getThumbnail(), oldUrlList, newUrlList);
             // 新增
         } else {
+            isNeedAggregation = true;
             // 标记材料
             checkUrl(null, templateVo.getThumbnail(), oldUrlList, newUrlList);
         }
@@ -600,10 +603,80 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 //发布新闻所属栏目关联的页面静态页
                 pageService.replyPageByCatalog(templateVo.getCmsCatalogId());
             }
-            // 标记材料
-            materialService.markMaterialUsePlace(oldUrlList, newUrlList, MaterialUsePlaceEnum.STATION_TEMPLATE.getCode());
+            Runnable runnable = () -> {
+                // 标记材料
+                materialService.markMaterialUsePlace(oldUrlList, newUrlList, MaterialUsePlaceEnum.STATION_TEMPLATE.getCode());
+            };
+            executor.execute(runnable);
+
+            // 发布状态 且 相关数据变更
+            if (ContentStatusEnum.PUBLISH.getCode() == templateVo.getStatus() && isNeedAggregation) {
+                // 发送聚合消息
+                Map<String, String> param = new HashMap<>();
+                param.put("templateId", templateVo.getId());
+                rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_AGGREGATION_TEMPLATE_CHANGE, param);
+            }
         }
         return result;
+    }
+
+    /**
+     * 是否需要应用聚合
+     * 新增或者和聚合有关的数据变更时需要
+     *
+     * @param templateVo
+     * @return
+     */
+    private boolean isNeedAggregation(TemplateVo templateVo) {
+        if (StrUtil.isNotEmpty(templateVo.getId())) {
+            Template oldTemplate = super.getById(templateVo.getId());
+
+            String catalogId = Objects.isNull(templateVo.getCmsCatalogId()) ? "" : templateVo.getCmsCatalogId();
+            // 栏目变更
+            if (!catalogId.equals(oldTemplate.getCmsCatalogId())) {
+                return true;
+            }
+
+            List<String> keyList = null;
+            if (StrUtil.isNotEmpty(templateVo.getKeyword())) {
+                keyList = Arrays.asList(templateVo.getKeyword().split(","));
+            }
+            List<String> oldKeyList = null;
+            if (StrUtil.isNotEmpty(oldTemplate.getKeyword())) {
+                oldKeyList = Arrays.asList(oldTemplate.getKeyword().split(","));
+            }
+            // 关键字变更
+            if (!listEquals(keyList, oldKeyList)) {
+                return true;
+            }
+
+            String source = Objects.isNull(templateVo.getSource()) ? "" : templateVo.getSource();
+            // 发布机构变更
+            if (!source.equals(oldTemplate.getSource())) {
+                return true;
+            }
+
+            // 发布时间段
+            String time = DateUtil.format(templateVo.getResourcePublicationDate(), DatePattern.NORM_DATETIME_MINUTE_PATTERN);
+            String oldTime = DateUtil.format(oldTemplate.getResourcePublicationDate(), DatePattern.NORM_DATETIME_MINUTE_PATTERN);
+            if (!time.equals(oldTime)) {
+                return true;
+            }
+
+            // 发布人 不能变更不用检查
+        }
+        return false;
+    }
+
+    private boolean listEquals(List<String> newList, List<String> oldList) {
+        if ((newList == null && oldList != null) || (newList != null && oldList == null)) {
+            return false;
+        }
+        if (newList == null && oldList == null)
+            return true;
+        if (newList.size() == oldList.size() && newList.containsAll(oldList) && oldList.containsAll(newList))
+            return true;
+        return false;
     }
 
     /**
@@ -1169,7 +1242,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
      * @return
      */
     @Override
-    public IPage<TemplateVo> pageByTemplate(Template entity) {
+    public IPage<TemplateVo> pageByTemplate(TemplateVo entity) {
         long start = System.nanoTime();
         String siteId = entity.getSiteId();
         String userId = UserContextHelper.getUserId();
@@ -1181,11 +1254,12 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         // 分配给用户的内容权限
         List<String> authorityList = baseMapper.getUserAuthority(siteId, userId);
         if (CollectionUtil.isEmpty(authorityList)) {
-            throw new BusinessException( HttpStatus.HTTP_INTERNAL_ERROR, "没有分配内容权限");
+            throw new BusinessException( HttpStatus.HTTP_INTERNAL_ERROR, "没有分配数据权限");
         }
 
         // 检索条件: 栏目ID
         List<String> catalogIdList = new ArrayList<>();
+        // 当前栏目ID
         catalogIdList.add(entity.getCmsCatalogId());
         // 加入当前栏目的子栏目ID
         getChildrenCatalogId(entity.getCmsCatalogId(), catalogList, catalogIdList);
@@ -1279,9 +1353,16 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         }
     }
 
+    /**
+     * 获取全部的子栏目ID
+     *
+     * @param catalogId
+     * @param allCatalogList
+     * @param catalogIdList
+     */
     private void getChildrenCatalogId(String catalogId, Collection<CatalogVo> allCatalogList, List<String> catalogIdList) {
-        if (StrUtil.isEmpty(catalogId) || CollectionUtil.isEmpty(allCatalogList)) return;
         for (Catalog c : allCatalogList) {
+            // 子栏目
             if (catalogId.equals(c.getParentId())) {
                 catalogIdList.add(c.getId());
                 getChildrenCatalogId(c.getId(), allCatalogList, catalogIdList);

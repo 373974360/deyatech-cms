@@ -31,6 +31,7 @@
         version_,
         cms_catalog_id, keyword_, publish_organization, publish_time, publisher
     </sql>
+
     <select id="getCatalogAggregationById" resultType="com.deyatech.station.vo.CatalogAggregationVo">
         select
         sca.id_ as id,
@@ -54,4 +55,21 @@
         where sca.enable_ = 1 and sca.id_ = #{id}
     </select>
 
+    <delete id="deleteCatalogAggregationById">
+        delete from station_catalog_aggregation where id_ = #{id}
+    </delete>
+
+    <select id="getCatalogAggregationBySiteId" resultType="com.deyatech.station.vo.CatalogAggregationVo">
+        select cat.id_ as ownerCatalogId, agg.*
+        from station_catalog_aggregation agg
+        join station_catalog cat on cat.enable_ = 1 and cat.flag_aggregation = 1 and cat.aggregation_id = agg.id_ and cat.site_id = #{siteId}
+        where agg.enable_ = 1
+    </select>
+
+    <select id="getCatalogAggregationByCatalogId" resultType="com.deyatech.station.vo.CatalogAggregationVo">
+        select cat.id_ as ownerCatalogId, agg.*
+        from station_catalog_aggregation agg
+        join station_catalog cat on cat.enable_ = 1 and cat.flag_aggregation = 1 and cat.aggregation_id = agg.id_
+        where agg.enable_ = 1 and concat(agg.cms_catalog_id, '&amp;') like concat('%', #{catalogId}, '&amp;', '%')
+    </select>
 </mapper>

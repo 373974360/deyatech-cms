@@ -38,4 +38,19 @@ public interface CatalogAggregationService extends BaseService<CatalogAggregatio
      * @return
      */
     CatalogAggregationVo getCatalogAggregationById(String id);
+
+    /**
+     * 删除聚合对象
+     *
+     * @param id
+     */
+    void deleteCatalogAggregationById(String id);
+
+    /**
+     * 获取站点聚合栏目
+     *
+     * @param siteId
+     * @return
+     */
+    List<CatalogAggregationVo> getCatalogAggregationBySiteId(String siteId);
 }

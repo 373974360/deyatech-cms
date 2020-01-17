@@ -63,4 +63,25 @@ public class CatalogAggregationServiceImpl extends BaseServiceImpl<CatalogAggreg
     public CatalogAggregationVo getCatalogAggregationById(String id) {
         return baseMapper.getCatalogAggregationById(id);
     }
+
+    /**
+     * 删除聚合对象
+     *
+     * @param id
+     */
+    @Override
+    public void deleteCatalogAggregationById(String id) {
+        baseMapper.deleteCatalogAggregationById(id);
+    }
+
+    /**
+     * 获取聚合规则包含给定栏目的栏目
+     *
+     * @param siteId
+     * @return
+     */
+    @Override
+    public List<CatalogAggregationVo> getCatalogAggregationBySiteId(String siteId) {
+        return baseMapper.getCatalogAggregationBySiteId(siteId);
+    }
 }

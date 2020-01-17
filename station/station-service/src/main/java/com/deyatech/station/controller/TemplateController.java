@@ -305,7 +305,7 @@ public class TemplateController extends BaseController {
     @GetMapping("/pageByTemplate")
     @ApiOperation(value="根据Template对象属性分页检索内容模板", notes="根据Template对象属性分页检索内容模板信息")
     @ApiImplicitParam(name = "template", value = "内容模板对象", required = false, dataType = "Template", paramType = "query")
-    public RestResult<IPage<TemplateVo>> pageByTemplate(Template template) {
+    public RestResult<IPage<TemplateVo>> pageByTemplate(TemplateVo template) {
         log.info(String.format("翻页检索内容: %s ",JSONUtil.toJsonStr(template)));
         IPage<TemplateVo> templates = templateService.pageByTemplate(template);
         return RestResult.ok(templates);

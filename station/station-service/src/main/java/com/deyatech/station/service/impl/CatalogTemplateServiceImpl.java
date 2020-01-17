@@ -1,6 +1,7 @@
 package com.deyatech.station.service.impl;
 
 import com.deyatech.station.entity.CatalogTemplate;
+import com.deyatech.station.vo.CatalogAggregationVo;
 import com.deyatech.station.vo.CatalogTemplateVo;
 import com.deyatech.station.mapper.CatalogTemplateMapper;
 import com.deyatech.station.service.CatalogTemplateService;
@@ -52,5 +53,29 @@ public class CatalogTemplateServiceImpl extends BaseServiceImpl<CatalogTemplateM
             }
         }
         return catalogTemplateVos;
+    }
+
+    /**
+     * 检索聚合内容ID
+     *
+     * @param aggregation
+     * @param offset
+     * @param size
+     * @return
+     */
+    @Override
+    public List<String> getAggregationTemplateId(CatalogAggregationVo aggregation, long offset, long size) {
+        return baseMapper.getAggregationTemplateId(aggregation, offset, size);
+    }
+
+    /**
+     * 添加聚合栏目内容
+     *
+     * @param list
+     * @return
+     */
+    @Override
+    public int insertCatalogTemplate(List<CatalogTemplate> list) {
+        return baseMapper.insertCatalogTemplate(list);
     }
 }

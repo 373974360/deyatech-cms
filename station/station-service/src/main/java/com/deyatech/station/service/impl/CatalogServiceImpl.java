@@ -16,6 +16,7 @@ import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.common.enums.ContentOriginTypeEnum;
 import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.station.cache.SiteCache;
@@ -33,7 +34,6 @@ import com.deyatech.workflow.entity.IProcessDefinition;
 import com.deyatech.workflow.feign.WorkflowFeign;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -293,6 +293,10 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean saveOrUpdate(CatalogVo entity) {
+        Catalog oldCatalog = null;
+        if (StrUtil.isNotEmpty(entity.getId())) {
+            oldCatalog = super.getById(entity.getId());
+        }
         if (this.existsName(entity)) {
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "当前栏目中已存在相同名称");
         }
@@ -302,7 +306,8 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
         if (this.existsEname(entity)) {
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "当前栏目中已存在相同英文名称");
         }
-//        boolean isNeedAggregation = this.isNeedAggregation(entity);
+        // 是否聚合
+        boolean isNeedAggregation = this.isNeedAggregation(entity);
         // 设置排序号
         if (ObjectUtil.isNull(entity.getSortNo())) {
             int maxSortNo = baseMapper.selectMaxSortNo();
@@ -320,12 +325,17 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
             if (StrUtil.isEmpty(entity.getAggregationId())) {
                 entity.setAggregationId(catalogAggregation.getId());
             }
+        } else {
+            // 删除旧聚合信息
+            if (Objects.nonNull(oldCatalog) && StrUtil.isNotEmpty(oldCatalog.getAggregationId())) {
+                catalogAggregationService.deleteCatalogAggregationById(oldCatalog.getAggregationId());
+            }
+            entity.setAggregationId("");
         }
         String catId = entity.getId();
 
         //修改栏目英文名重新命名文件夹
         if(StrUtil.isNotBlank(entity.getId())){
-            Catalog oldCatalog = super.getById(entity.getId());
             if(!entity.getEname().equals(oldCatalog.getEname())){
                 String oldFilePath = siteCache.getStationGroupRootPath(entity.getSiteId())+"/"+oldCatalog.getPathName();
                 String newFilePath = siteCache.getStationGroupRootPath(entity.getSiteId())+"/"+entity.getPathName();
@@ -341,13 +351,13 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
             if(StrUtil.isBlank(catId)){
                 systemRoleAddCatalog(entity);
             }
-
-//            if (isNeedAggregation) {
-//                Map<String, String> param = new HashMap<>();
-//                param.put("catalogId", entity.getId());
-//                param.put("aggregationId", entity.getAggregationId());
-//                rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_CATALOG_CONTENT_AGGREGATION, param);
-//            }
+            // 聚合规则变更
+            if (isNeedAggregation) {
+                Map<String, String> param = new HashMap<>();
+                param.put("catalogId", entity.getId());
+                param.put("aggregationId", entity.getAggregationId());
+                rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_AGGREGATION_CATALOG_CHANGE, param);
+            }
         }
         // 覆盖子栏目
         boolean children = true;
@@ -362,17 +372,6 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
 
         return aggregation && parent && children;
     }
-
-//    /**
-//     * 栏目内容聚合消息处理
-//     *
-//     * @param param
-//     */
-//    @RabbitListener(queues = RabbitMQConstants.QUEUE_CATALOG_CONTENT_AGGREGATION)
-//    public void catalogContentAggregationHandle(Map<String,Object> param) {
-//        String catalogId = (String) param.get("catalogId");
-//        String aggregationId = (String) param.get("aggregationId");
-//    }
 
     /**
      * 判断是否需要聚合
@@ -389,23 +388,25 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
             } else {
                 // 编辑
                 if (StrUtil.isNotEmpty(entity.getAggregationId())) {
+                    // 栏目
                     String newCatalogId = "";
                     String oldCatalogId = "";
-
+                    // 关键字
                     String newKeyword = "";
                     String oldKeyword = "";
-
+                    // 发布机构
                     String newOrganization = "";
                     String oldOrganization = "";
-
+                    // 发布时间
                     String newTime = "";
                     String oldTime = "";
-
+                    // 发布人
                     String newPublisher = "";
                     String oldPublisher = "";
 
                     CatalogAggregation newAgg = JSONUtil.toBean(entity.getCatalogAggregationInfo(), CatalogAggregation.class);
                     CatalogAggregation oldAgg = catalogAggregationService.getById(entity.getAggregationId());
+                    // 新规则
                     if (Objects.nonNull(newAgg)) {
                         newCatalogId = Objects.isNull(newAgg.getCmsCatalogId()) ? "" : newAgg.getCmsCatalogId();
                         newKeyword = Objects.isNull(newAgg.getKeyword()) ? "" : newAgg.getKeyword();
@@ -413,6 +414,7 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
                         newPublisher = Objects.isNull(newAgg.getPublisher()) ? "" : newAgg.getPublisher();
                         newTime = Objects.isNull(newAgg.getPublishTime()) ? "" : newAgg.getPublishTime();
                     }
+                    // 就规则
                     if (Objects.nonNull(oldAgg)) {
                         oldCatalogId = Objects.isNull(oldAgg.getCmsCatalogId()) ? "" : oldAgg.getCmsCatalogId();
                         oldKeyword = Objects.isNull(oldAgg.getKeyword()) ? "" : oldAgg.getKeyword();
@@ -420,8 +422,8 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
                         oldTime = Objects.isNull(oldAgg.getPublishTime()) ? "" : oldAgg.getPublishTime();
                         oldPublisher = Objects.isNull(oldAgg.getPublisher()) ? "" : oldAgg.getPublisher();
                     }
-                    List<String> newCatalogList = new ArrayList<>();
-                    List<String> oldCatalogList = new ArrayList<>();
+                    List<String> newCatalogList = null;
+                    List<String> oldCatalogList = null;
                     if (StrUtil.isNotEmpty(newCatalogId)) {
                         newCatalogList = Arrays.asList(newCatalogId.split("&"));
                     }
@@ -429,8 +431,8 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
                         oldCatalogList = Arrays.asList(oldCatalogId.split("&"));
                     }
 
-                    List<String> newKeywordList = new ArrayList<>();
-                    List<String> oldKeywordList = new ArrayList<>();
+                    List<String> newKeywordList = null;
+                    List<String> oldKeywordList = null;
                     if (StrUtil.isNotEmpty(newKeyword)) {
                         newKeywordList = Arrays.asList(newKeyword.split(","));
                     }
@@ -454,6 +456,7 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
             // 删除聚合数据
             CatalogTemplate catalogTemplate = new CatalogTemplate();
             catalogTemplate.setCatalogId(entity.getId());
+            catalogTemplate.setOriginType(ContentOriginTypeEnum.AGGREGATION.getCode());
             catalogTemplateService.removeByBean(catalogTemplate);
         }
 
@@ -461,6 +464,11 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
     }
 
     private boolean listEquals(List<String> newList, List<String> oldList) {
+        if ((newList == null && oldList != null) || (newList != null && oldList == null)) {
+            return false;
+        }
+        if (newList == null && oldList == null)
+            return true;
         if (newList.size() == oldList.size() && newList.containsAll(oldList) && oldList.containsAll(newList))
             return true;
         return false;

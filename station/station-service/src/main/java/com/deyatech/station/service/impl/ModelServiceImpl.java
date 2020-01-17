@@ -148,7 +148,23 @@ public class ModelServiceImpl extends BaseServiceImpl<ModelMapper, Model> implem
      */
     @Override
     public Collection<Model> getAllModelBySiteId(String siteId) {
-        return super.list();
+        QueryWrapper<Catalog> catalogQueryWrapper = new QueryWrapper<>();
+        catalogQueryWrapper.eq("site_id", siteId);
+        List<Catalog> catalogList = catalogService.list(catalogQueryWrapper);
+        if (CollectionUtil.isEmpty(catalogList)) {
+            return null;
+        }
+        Set<String> modelIdSet = new HashSet<>();
+        for (Catalog c : catalogList) {
+            String[] modelArray = c.getContentModelId().split(",");
+            for (String modelId : modelArray) {
+                modelIdSet.add(modelId);
+            }
+        }
+        QueryWrapper<Model> modelQueryWrapper = new QueryWrapper<>();
+        modelQueryWrapper.in("id_", modelIdSet.toArray());
+        return super.list(modelQueryWrapper);
+
 //        Collection<Model> modelList = null;
 //        // 通过查询ModelTemplate获取model id
 //        QueryWrapper<ModelTemplate> queryWrapper = new QueryWrapper<>();

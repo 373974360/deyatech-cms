@@ -187,6 +187,7 @@
         <if test="catalog.parentId != null">
             and c.parent_id = #{catalog.parentId}
         </if>
+        order by c.sort_no asc
     </select>
     <select id="getCountChildrenCatalog" resultType="java.util.Map">
         select parent_id as catalogId, count(*) as number
@@ -194,7 +195,7 @@
         where enable_ = 1  and parent_id != '0'
         group by parent_id
     </select>
-    <select id="getUserCatalogList" resultType="com.deyatech.station.vo.CatalogVo">
+    <select id="getUserRoleCatalogList" resultType="com.deyatech.station.vo.CatalogVo">
         select
             c.id_,
             c.parent_id,
@@ -208,5 +209,20 @@
             join admin_role_user ru on ru.role_id = cr.role_id and ru.user_id = #{userId}
             join admin_role r on r.id_ = ru.role_id and r.enable_ = 1
         where c.enable_ = 1 and c.site_id = #{catalog.siteId} and c.parent_id = #{catalog.parentId}
+    </select>
+    <select id="getUserCatalogList" resultType="com.deyatech.station.vo.CatalogVo">
+        select
+            c.id_,
+            c.parent_id,
+            c.name,
+            c.workflow_id,
+            c.workflow_key,
+            c.flag_external
+        from
+            station_catalog c
+            join station_catalog_user cu on cu.catalog_id = c.id_ and cu.user_id = #{userId}
+            join admin_user u on u.id_ = cu.user_id and u.enable_ = 1
+        where c.enable_ = 1 and c.site_id = #{catalog.siteId} and c.parent_id = #{catalog.parentId}
+        order by c.sort_no asc
     </select>
 </mapper>

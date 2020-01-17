@@ -2,21 +2,25 @@ package com.deyatech.station.rabbit.consumer;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.deyatech.common.enums.ContentOriginTypeEnum;
 import com.deyatech.common.enums.ContentStatusEnum;
 import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.entity.Catalog;
+import com.deyatech.station.entity.CatalogAggregation;
+import com.deyatech.station.entity.CatalogTemplate;
 import com.deyatech.station.entity.Template;
 import com.deyatech.station.index.IndexService;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
-import com.deyatech.station.service.CatalogService;
-import com.deyatech.station.service.ModelService;
-import com.deyatech.station.service.PageService;
-import com.deyatech.station.service.TemplateService;
+import com.deyatech.station.service.*;
+import com.deyatech.station.vo.CatalogAggregationVo;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.vo.TemplateVo;
 import com.deyatech.template.feign.TemplateFeign;
@@ -59,6 +63,10 @@ public class CmsTaskQueueConsumer {
     WorkflowFeign workflowFeign;
     @Autowired
     PageService pageService;
+    @Autowired
+    CatalogAggregationService catalogAggregationService;
+    @Autowired
+    CatalogTemplateService catalogTemplateService;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
@@ -67,6 +75,173 @@ public class CmsTaskQueueConsumer {
 
     private final String TOPIC_REINDEX_MESSAGE = "/topic/reIndex/message/";
 
+    /**
+     * 聚合关联关系-栏目规则变更
+     *
+     * @param param
+     */
+    @RabbitListener(queues = RabbitMQConstants.QUEUE_AGGREGATION_CATALOG_CHANGE)
+    public void aggregationCatalogChangeHandle(Map<String,Object> param) {
+        // 变更的栏目
+        String catalogId = (String) param.get("catalogId");
+        // 栏目对应的聚合规则ID
+        String aggregationId = (String) param.get("aggregationId");
+        if (StrUtil.isEmpty(catalogId) || StrUtil.isEmpty(aggregationId)) {
+            return;
+        }
+        try {
+            Catalog catalog = catalogService.getById(catalogId);
+            CatalogAggregation aggregation = catalogAggregationService.getById(aggregationId);
+            if (Objects.isNull(catalog) || Objects.isNull(aggregation)) {
+                return;
+            }
+            // 删除已有的聚合栏目内容关联关系
+            CatalogTemplate catalogTemplate = new CatalogTemplate();
+            catalogTemplate.setCatalogId(catalogId);
+            catalogTemplate.setOriginType(ContentOriginTypeEnum.AGGREGATION.getCode());
+            catalogTemplateService.removeByBean(catalogTemplate);
+            // 聚合规则
+            CatalogAggregationVo condition = new CatalogAggregationVo();
+            BeanUtil.copyProperties(aggregation, condition);
+            condition.analysisCondition();
+            long offset;
+            long size = 1;// 5000
+            long page = 1;
+            while (true) {
+                offset = (page - 1) * size;
+                page++;
+                // 检索满足聚合规则的内容ID
+                List<String> templateIds = catalogTemplateService.getAggregationTemplateId(condition, offset, size);
+                if (CollectionUtil.isEmpty(templateIds)) {
+                    break;
+                } else {
+                    List<CatalogTemplate> catalogTemplatesList = new ArrayList<>();
+                    for (String templateId : templateIds) {
+                        CatalogTemplate entity = new CatalogTemplate();
+                        entity.setId(IdWorker.getIdStr());
+                        entity.setCatalogId(catalogId);
+                        entity.setTemplateId(templateId);
+                        entity.setOriginType(ContentOriginTypeEnum.AGGREGATION.getCode());
+                        catalogTemplatesList.add(entity);
+                    }
+                    // 批量插入聚合栏目内容关联关系
+                    catalogTemplateService.insertCatalogTemplate(catalogTemplatesList);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error(String.format("【重建聚合关联关系】聚合规则变更异常：catalogId = %s, aggregationId = %s", catalogId, aggregationId));
+        }
+    }
+
+    /**
+     * 聚合关联关系-内容变更
+     *
+     * @param param
+     */
+    @RabbitListener(queues = RabbitMQConstants.QUEUE_AGGREGATION_TEMPLATE_CHANGE)
+    public void aggregationTemplateChangeHandle(Map<String,Object> param) {
+        String templateId = (String) param.get("templateId");
+        if (StrUtil.isEmpty(templateId)) {
+            return;
+        }
+        try {
+            Template template = templateService.getById(templateId);
+            if (Objects.isNull(template)) {
+                return;
+            }
+            // 获取聚合规则包含给定栏目的栏目
+            List<CatalogAggregationVo> catalogAggregationList = catalogAggregationService.getCatalogAggregationBySiteId(template.getSiteId());
+            if (CollectionUtil.isEmpty(catalogAggregationList)) {
+                return;
+            }
+            for (CatalogAggregationVo ca : catalogAggregationList) {
+                CatalogTemplate entity = new CatalogTemplate();
+                entity.setCatalogId(ca.getOwnerCatalogId());
+                entity.setTemplateId(template.getId());
+                entity.setOriginType(ContentOriginTypeEnum.AGGREGATION.getCode());
+                // 匹配规则
+                if (isMatchAggregationRule(ca, template)) {
+                    // 检索原来有没有
+                    Collection<CatalogTemplate> list = catalogTemplateService.listByBean(entity);
+                    // 没有，则添加关联关系
+                    if (CollectionUtil.isEmpty(list)) {
+                        catalogTemplateService.saveOrUpdate(entity);
+                    }
+                } else {
+                    // 不匹配规则，解除关联关系
+                    catalogTemplateService.removeByBean(entity);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error(String.format("【重建聚合关联关系】内容变更异常：templateId = %s", templateId));
+        }
+    }
+    /**
+     * 内容是否匹配规则
+     *
+     * @param ca
+     * @param template
+     * @return
+     */
+    private boolean isMatchAggregationRule(CatalogAggregationVo ca, Template template) {
+        // 生成条件
+        ca.analysisCondition();
+        // 栏目
+        if (CollectionUtil.isNotEmpty(ca.getCatalogIdList())) {
+            // 未包含栏目
+            if (!ca.getCatalogIdList().contains(template.getCmsCatalogId())) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+        // 关键字
+        if (CollectionUtil.isNotEmpty(ca.getKeyList())) {
+            boolean has = false;
+            if (StrUtil.isNotEmpty(template.getKeyword())) {
+                List<String> keyList = Arrays.asList(template.getKeyword().split(","));
+                for (String keyword : keyList) {
+                    // 包含关键字
+                    if (ca.getKeyList().contains(keyword)) {
+                        has = true;
+                        break;
+                    }
+                }
+            }
+            if (!has) {
+                return false;
+            }
+        }
+        // 发布机构
+        if (StrUtil.isNotEmpty(ca.getPublishOrganization())) {
+            // 不匹配
+            if (!ca.getPublishOrganization().equals(template.getSource())) {
+                return false;
+            }
+        }
+        // 发布时间段
+        if (StrUtil.isNotEmpty(ca.getStartTime()) && StrUtil.isNotEmpty(ca.getStartTime())) {
+            Date date = template.getResourcePublicationDate();
+            if (Objects.isNull(date)) {
+                return false;
+            } else {
+                String time = DateUtil.format(date, DatePattern.NORM_DATETIME_MINUTE_PATTERN);
+                if (ca.getStartTime().compareTo(time) > 0 || ca.getEndTime().compareTo(time) < 0) {
+                    return false;
+                }
+            }
+        }
+        // 发布人
+        if (StrUtil.isNotEmpty(ca.getPublisher())) {
+            // 不匹配
+            if (!ca.getPublisher().equals(template.getCreateBy())) {
+                return false;
+            }
+        }
+        return true;
+    }
     /**
      * 内容状态切换处理: 静态页、索引、工作流
      *
