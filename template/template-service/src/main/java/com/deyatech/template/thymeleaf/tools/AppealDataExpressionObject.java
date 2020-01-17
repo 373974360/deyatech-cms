@@ -9,7 +9,6 @@ package com.deyatech.template.thymeleaf.tools;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.deyatech.admin.entity.Department;
 import com.deyatech.admin.vo.DepartmentVo;
 import com.deyatech.appeal.entity.Purpose;
 import com.deyatech.appeal.entity.Satisfaction;
@@ -17,7 +16,6 @@ import com.deyatech.appeal.feign.AppealFeign;
 import com.deyatech.appeal.vo.ModelVo;
 import com.deyatech.appeal.vo.RecordSatisfactionVo;
 import com.deyatech.appeal.vo.RecordVo;
-import com.deyatech.assembly.vo.ApplyOpenRecordVo;
 import com.deyatech.station.feign.StationFeign;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.template.thymeleaf.utils.PageUrlUtil;

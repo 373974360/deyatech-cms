@@ -9,7 +9,6 @@ package com.deyatech.template.thymeleaf.tools;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.deyatech.assembly.vo.ApplyOpenRecordVo;
 import com.deyatech.interview.feign.InterviewFeign;
 import com.deyatech.interview.vo.ModelVo;
 import com.deyatech.station.feign.StationFeign;
@@ -20,9 +19,7 @@ import com.deyatech.template.thymeleaf.utils.TemplateConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**

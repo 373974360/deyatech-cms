@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.deyatech.appeal.mapper.ModelMapper">
+<mapper namespace="com.deyatech.apply.mapper.OpenModelMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.deyatech.appeal.entity.Model">
+    <resultMap id="BaseResultMap" type="com.deyatech.apply.entity.OpenModel">
         <result column="id_" property="id" />
         <result column="enable_" property="enable" />
         <result column="remark_" property="remark" />
@@ -50,11 +50,8 @@
         version_,
         site_id,model_name, participant, auto_publish, limit_day, reminder_day, yellow_day, red_day, bus_type, dept_transfer, competent_dept, part_dept, bus_code, spacera, day_code, spacerb, randomcode_count, querycode_count, workflow_type, workflow_id, form_templet, list_templet, view_templet, print_templet
     </sql>
-    <select id="countModelByDepartmentId" resultType="java.lang.Long">
-        select count(0) from appeal_model where competent_dept like #{departmentId} or part_dept like #{departmentId}
-    </select>
-    <select id="pageByModel" resultType="com.deyatech.appeal.vo.ModelVo">
-        select * from appeal_model where enable_ = 1
+    <select id="pageByOpenModel" resultType="com.deyatech.apply.vo.OpenModelVo">
+        select * from apply_open_model where enable_ = 1
         <if test="model != null">
             <if test="model.modelName != null and model.modelName != ''">
                 and ( model_name like concat('%', #{model.modelName}, '%') or limit_day like concat('%', #{model.modelName}, '%') )
@@ -73,6 +70,5 @@
             </if>
         </if>
     </select>
-
 
 </mapper>

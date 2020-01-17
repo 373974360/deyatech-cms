@@ -22,7 +22,7 @@
         </dependency>
         <dependency>
             <groupId>com.deyatech</groupId>
-            <artifactId>assembly-facade</artifactId>
+            <artifactId>apply-facade</artifactId>
             <version>${deyatech.version}</version>
         </dependency>
         <dependency>

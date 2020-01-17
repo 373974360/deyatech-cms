@@ -10,9 +10,9 @@ package com.deyatech.template.thymeleaf.tools;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.admin.vo.DepartmentVo;
-import com.deyatech.assembly.feign.AssemblyFeign;
-import com.deyatech.assembly.vo.ApplyOpenModelVo;
-import com.deyatech.assembly.vo.ApplyOpenRecordVo;
+import com.deyatech.apply.feign.ApplyFeign;
+import com.deyatech.apply.vo.OpenModelVo;
+import com.deyatech.apply.vo.OpenRecordVo;
 import com.deyatech.station.feign.StationFeign;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.template.thymeleaf.utils.PageUrlUtil;
@@ -33,7 +33,7 @@ import java.util.Map;
 public class ApplyOpenDataExpressionObject {
 
     @Autowired
-    AssemblyFeign assemblyFeign;
+    ApplyFeign applyFeign;
 
     @Autowired
     StationFeign stationFeign;
@@ -47,28 +47,28 @@ public class ApplyOpenDataExpressionObject {
      *
      * @return IPage<ApplyOpenRecordVo>
      * */
-    public IPage<ApplyOpenRecordVo> getApplyOpenlList(Map<String,Object> maps, Integer page, Integer pageSize){
+    public IPage<OpenRecordVo> getApplyOpenlList(Map<String,Object> maps, Integer page, Integer pageSize){
         if (page == null || page < 0) {
             page = 1;
         }
         if (pageSize == null || pageSize < 0) {
             pageSize = 10;
         }
-        IPage<ApplyOpenRecordVo> result = assemblyFeign.getApplyOpenList(maps,page,pageSize).getData();
+        IPage<OpenRecordVo> result = applyFeign.getApplyOpenList(maps,page,pageSize).getData();
 
         Collection<CatalogVo> catalogVoCollection = stationFeign.getCatalogTreeBySiteId(maps.get("siteId").toString()).getData();
         CatalogVo catalogVo = getCatalog(catalogVoCollection,maps.get("catId").toString());
 
         String pageDynamicSuffix = TemplateConstants.PAGE_SUFFIX;
 
-        PageUtil<ApplyOpenRecordVo> pageUtil = new PageUtil<>();
+        PageUtil<OpenRecordVo> pageUtil = new PageUtil<>();
         pageUtil.setCurrent(result.getCurrent());
         pageUtil.setPages(result.getPages());
         pageUtil.setTotal(result.getTotal());
         pageUtil.setSize(result.getSize());
         pageUtil.setRecords(result.getRecords());
 
-        for(ApplyOpenRecordVo applyOpenRecordVo:result.getRecords()){
+        for(OpenRecordVo applyOpenRecordVo:result.getRecords()){
             applyOpenRecordVo.setUrl("/"+catalogVo.getPathName()+"/details/applyopen/"+applyOpenRecordVo.getId()+pageDynamicSuffix);
         }
 
@@ -83,8 +83,8 @@ public class ApplyOpenDataExpressionObject {
      *
      * @return ApplyOpenRecordVo
      * */
-    public ApplyOpenRecordVo queryApplyOpen(String ysqCode,String queryCode){
-        return assemblyFeign.queryApplyOpen(ysqCode,queryCode).getData();
+    public OpenRecordVo queryApplyOpen(String ysqCode,String queryCode){
+        return applyFeign.queryApplyOpen(ysqCode,queryCode).getData();
     }
 
 
@@ -97,8 +97,8 @@ public class ApplyOpenDataExpressionObject {
      *
      * @return ModelVo
      * */
-    public ApplyOpenModelVo getModelById(String modelId, String siteId, String catId){
-        ApplyOpenModelVo modelVo = assemblyFeign.getApplyOpenModelById(modelId).getData();
+    public OpenModelVo getModelById(String modelId, String siteId, String catId){
+        OpenModelVo modelVo = applyFeign.getApplyOpenModelById(modelId).getData();
 
         Collection<CatalogVo> catalogVoCollection = stationFeign.getCatalogTreeBySiteId(siteId).getData();
         CatalogVo catalogVo = getCatalog(catalogVoCollection,catId);
@@ -116,7 +116,7 @@ public class ApplyOpenDataExpressionObject {
      * */
     public List<DepartmentVo> getPartDept(String modelId){
         List<DepartmentVo> resultList = new ArrayList<>();
-        List<DepartmentVo> departmentVos = assemblyFeign.getPartDept(modelId).getData();
+        List<DepartmentVo> departmentVos = applyFeign.getPartDept(modelId).getData();
         resultList = getAllPartDept(departmentVos,resultList);
         return resultList;
     }
@@ -129,7 +129,7 @@ public class ApplyOpenDataExpressionObject {
      * @return List<DepartmentVo>
      * */
     public List<DepartmentVo> getTreePartDept(String modelId){
-        return assemblyFeign.getPartDept(modelId).getData();
+        return applyFeign.getPartDept(modelId).getData();
     }
 
     public static List<DepartmentVo> getAllPartDept(List<DepartmentVo> departmentVos,List<DepartmentVo> resultList){
