@@ -416,10 +416,12 @@ public class CmsTaskQueueConsumer {
         varMap.put("rootCatalog",getRootCatalog(catalogVo.getSiteId(),catalogVo.getId()));
         String template = catalogVo.getListTemplate();
         if(StringUtils.isNotBlank(template)){
-            varMap.put("namePath",catalogVo.getPathName());
+            String cachekey = catalogVo.getPathName();
+            varMap.put("namePath",cachekey);
             for(int i=1;i<=10;i++){
                 varMap.put("pageNo",i);
-                templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
+                String process = templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
+                siteCache.cacheTemplate(cachekey,StrUtil.toString(i),process);
             }
         }
     }

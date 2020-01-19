@@ -203,4 +203,8 @@ public class SiteCache {
             throw new RuntimeException("缓存站点信息失败", e);
         }
     }
+
+    public void cacheTemplate(String Cachekey,String key,String context) {
+        this.cacheManager.getCache("template_"+Cachekey).put(key, context);
+    }
 }

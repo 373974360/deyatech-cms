@@ -485,7 +485,9 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         // 更新
         if (hasId) {
             for (String field : fileImageFields) {
-                checkUrl((String) contentMapDB.get(field), (String) contentMap.get(field), oldUrlList, newUrlList);
+                if(ObjectUtil.isNotNull(contentMapDB)){
+                    checkUrl((String) contentMapDB.get(field), (String) contentMap.get(field), oldUrlList, newUrlList);
+                }
             }
             // 新增
         } else {

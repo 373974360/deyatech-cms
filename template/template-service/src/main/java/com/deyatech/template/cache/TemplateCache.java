@@ -17,10 +17,6 @@ public class TemplateCache {
     @Autowired
     CacheManager cacheManager;
 
-    public void cacheTemplate(String Cachekey,String key,String context) {
-        this.cacheManager.getCache("template_"+Cachekey).put(key, context);
-    }
-
     public String getTemplate(String Cachekey,String key) {
         return this.cacheManager.getCache("template_"+Cachekey).get(key, String.class);
     }
