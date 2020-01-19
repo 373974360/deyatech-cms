@@ -16,6 +16,7 @@ import com.deyatech.apply.vo.OpenModelVo;
 import com.deyatech.apply.vo.OpenRecordVo;
 import com.deyatech.common.base.BaseController;
 import com.deyatech.common.entity.RestResult;
+import com.deyatech.common.utils.IpUtils;
 import com.deyatech.interview.entity.Category;
 import com.deyatech.interview.feign.InterviewFeign;
 import com.deyatech.resource.entity.StationGroup;
@@ -26,6 +27,8 @@ import com.deyatech.station.service.TemplateService;
 import com.deyatech.station.view.utils.ViewUtils;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.vo.TemplateVo;
+import com.deyatech.statistics.entity.TemplateAccess;
+import com.deyatech.statistics.feign.StatisticsFeign;
 import com.deyatech.template.feign.TemplateFeign;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -72,6 +75,8 @@ public class ViewController extends BaseController {
     RedisTemplate redisTemplate;
     @Autowired
     MaterialService materialService;
+    @Autowired
+    StatisticsFeign statisticsFeign;
 
     //自定义模板的参数名  tm=模板路径
     private static final String TEMPLATE_PARAMS_NAME = "tm";
@@ -156,6 +161,7 @@ public class ViewController extends BaseController {
             return "模板读取失败!";
         }
         varMap.put("namePath",map.get("pathName"));
+        varMap.put("type",map.get("type"));
         String content = templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
         return analysisInclude(content,siteTemplateRoot,varMap);
     }
@@ -346,6 +352,21 @@ public class ViewController extends BaseController {
     @GetMapping(value = "/getTemplateClickCount")
     public RestResult getTemplateClickCount(@RequestParam("id") String id) {
         return RestResult.ok(templateService.getTemplateClickCount(id));
+    }
+
+    /**
+     * 增加访问信息
+     *
+     * @return
+     * */
+    @PostMapping(value = "/insertAccessInfo")
+    public RestResult insertAccessInfo(HttpServletRequest request) {
+        Map<String,Object> varMap = new HashMap<>();
+        ViewUtils.requestParams(varMap,request);
+        TemplateAccess templateAccess = new TemplateAccess();
+        BeanUtil.copyProperties(varMap,templateAccess);
+        templateAccess.setAccessIp(IpUtils.getIpAddr(request));
+        return RestResult.ok(statisticsFeign.insertTemplateAccess(templateAccess));
     }
 
     /**

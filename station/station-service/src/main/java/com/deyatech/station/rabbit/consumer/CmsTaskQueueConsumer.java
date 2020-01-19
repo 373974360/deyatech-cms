@@ -361,16 +361,18 @@ public class CmsTaskQueueConsumer {
             //清楚历史缓存
             siteCache.clearCache(catalogVo.getPathName());
             String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(catalogVo.getSiteId());
-            Map<String,Object> varMap = new HashMap<>();
-            varMap.put("site",siteCache.getStationGroupById(catalogVo.getSiteId()));
-            varMap.put("catalog",catalogVo);
-            varMap.put("rootCatalog",getRootCatalog(catalogVo.getSiteId(),catalogVo.getId()));
+            Map<String, Object> varMap = new HashMap<>();
+            varMap.put("site", siteCache.getStationGroupById(catalogVo.getSiteId()));
+            varMap.put("catalog", catalogVo);
+            varMap.put("rootCatalog", getRootCatalog(catalogVo.getSiteId(), catalogVo.getId()));
             String template = catalogVo.getListTemplate();
-            if(StringUtils.isNotBlank(template)){
-                varMap.put("namePath",catalogVo.getPathName());
-                for(int i=1;i<=10;i++){
-                    varMap.put("pageNo",i);
-                    templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
+            if (StringUtils.isNotBlank(template)) {
+                String cachekey = catalogVo.getPathName();
+                varMap.put("namePath", cachekey);
+                for (int i = 1; i <= 10; i++) {
+                    varMap.put("pageNo", i);
+                    String process = templateFeign.thyToString(siteTemplateRoot, template, varMap).getData();
+                    siteCache.cacheTemplate(cachekey, StrUtil.toString(i), process);
                 }
             }
         } catch(Exception e) {

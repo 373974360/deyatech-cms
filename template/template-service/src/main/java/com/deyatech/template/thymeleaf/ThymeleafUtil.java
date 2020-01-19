@@ -163,18 +163,10 @@ public class ThymeleafUtil {
         context.setVariables(varMap);
         String process = null;
         try {
-            if(varMap.containsKey("namePath") && varMap.containsKey("pageNo")){
+            if(varMap.containsKey("namePath") && varMap.containsKey("pageNo") && varMap.containsKey("type") && !varMap.get("type").equals("include")){
                 String cachekey = varMap.get("namePath").toString();
                 String key = varMap.get("pageNo").toString();
-                if(varMap.containsKey("type") && varMap.get("type").equals("include")){
-                    cachekey = "include";
-                    key = templatePath;
-                }
                 process = templateCache.getTemplate(cachekey,key);
-                if(StrUtil.isBlank(process)){
-                    process = templateEngine.process(templatePath, context);
-                    //templateCache.cacheTemplate(cachekey,key,process);
-                }
             }else{
                 process = templateEngine.process(templatePath, context);
             }
