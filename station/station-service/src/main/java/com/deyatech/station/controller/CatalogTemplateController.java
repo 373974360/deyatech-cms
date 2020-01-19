@@ -1,5 +1,6 @@
 package com.deyatech.station.controller;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.deyatech.common.enums.ContentOriginTypeEnum;
 import com.deyatech.station.entity.CatalogTemplate;
 import com.deyatech.station.vo.CatalogTemplateVo;
@@ -147,21 +148,23 @@ public class CatalogTemplateController extends BaseController {
     /**
      * 解除聚合关系
      *
-     * @param templateId
-     * @param linkedCatalogId
+     * @param compositeIds
      * @return
      */
     @RequestMapping("/removeAggregationRelation")
     @ApiOperation(value="解除聚合关系", notes="解除聚合关系")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "templateId", value = "内容ID", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "linkedCatalogId", value = "聚合栏目ID", required = true, dataType = "String", paramType = "query")
-    })
-    public RestResult removeAggregationRelation(String templateId, String linkedCatalogId) {
-        CatalogTemplate catalogTemplate = new CatalogTemplate();
-        catalogTemplate.setTemplateId(templateId);
-        catalogTemplate.setCatalogId(linkedCatalogId);
-        catalogTemplate.setOriginType(ContentOriginTypeEnum.AGGREGATION.getCode());
-        return RestResult.ok(catalogTemplateService.removeByBean(catalogTemplate));
+    @ApiImplicitParam(name = "compositeIds", value = "内容ID,聚合栏目ID", required = true, dataType = "String", paramType = "query")
+    public RestResult removeAggregationRelation(@RequestParam("compositeIds[]") List<String> compositeIds) {
+        if (CollectionUtil.isNotEmpty(compositeIds)) {
+            for (String compositeId : compositeIds) {
+                String[] ids = compositeId.split(",");
+                CatalogTemplate catalogTemplate = new CatalogTemplate();
+                catalogTemplate.setTemplateId(ids[0]);
+                catalogTemplate.setCatalogId(ids[1]);
+                catalogTemplate.setOriginType(ContentOriginTypeEnum.AGGREGATION.getCode());
+                catalogTemplateService.removeByBean(catalogTemplate);
+            }
+        }
+        return RestResult.ok();
     }
 }

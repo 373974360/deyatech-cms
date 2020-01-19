@@ -261,6 +261,9 @@ public class IndexServiceImpl implements IndexService {
      * @return
      */
     private boolean indexExists(String index) {
+        if (StrUtil.isEmpty(index)) {
+            return false;
+        }
         boolean indexExists;
         // 检索有关索引的信息的请求
         GetIndexRequest getIndexRequest = new GetIndexRequest();

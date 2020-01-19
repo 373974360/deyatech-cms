@@ -1,19 +1,24 @@
 package com.deyatech.station.task;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.entity.Page;
+import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.service.PageService;
 import com.deyatech.station.service.TemplateService;
 import com.deyatech.workflow.feign.WorkflowFeign;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -36,6 +41,8 @@ public class ScheduledTask {
     WorkflowFeign workflowFeign;
     @Autowired
     TemplateService templateService;
+    @Autowired
+    private AmqpTemplate rabbitmqTemplate;
 
     /**
      * 每隔60秒执行, 单位：ms。
@@ -57,5 +64,15 @@ public class ScheduledTask {
                 pageService.updateById(page);
             }
         }
+    }
+
+    /**
+     * 每隔60秒执行, 单位：ms。
+     */
+    @Scheduled(fixedRate = 60000)
+    public void timing() {
+        String publicationDate = DateUtil.format(new Date(), DatePattern.NORM_DATETIME_MINUTE_PATTERN);
+        log.info("定时发布：" + publicationDate);
+        rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_TIMING_PUBLISH_TEMPLATE, publicationDate);
     }
 }

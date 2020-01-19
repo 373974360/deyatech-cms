@@ -198,7 +198,7 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
         BeanUtil.copyProperties(catalog, catalogVo);
         String pageSuffix = templateFeign.getPageSuffix().getData();
         catalogVo.setIndexUrl("/"+catalogVo.getPathName()+"/index" + pageSuffix);
-        if(catalogVo.getFlagExternal() == 0){
+        if(catalogVo.getFlagExternal() == null || catalogVo.getFlagExternal() == 0){
             catalogVo.setLinkUrl("/"+catalogVo.getPathName()+"/list" + pageSuffix);
         }
         return catalogVo;

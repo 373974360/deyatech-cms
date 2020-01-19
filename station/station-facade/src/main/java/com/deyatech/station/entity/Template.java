@@ -65,7 +65,7 @@ public class Template extends BaseEntity {
 //        base.put("110", getMetadata("110","置顶","flag_top", "int","10","switchElement","half",false,null,null,null));
         base.put("111", getMetadata("111","正文","resource_content","string","10000","richTextElement","whole",false,null,null,null));
         base.put("112", getMetadata("112","编辑姓名","editor_","string","30","inputElement","half",false,null,null,null));
-        base.put("113", getMetadata("113","发布时间","resource_publication_date","date","30","datetimeElement","half",true,"lessThanNow",null,null));
+        base.put("113", getMetadata("113","发布时间","resource_publication_date","date","30","datetimeElement","half",true,"publicationDate",null,null));
         return base;
     }
 
@@ -194,4 +194,9 @@ public class Template extends BaseEntity {
     @ApiModelProperty(value = "审核理由", dataType = "String")
     @TableField("reason_")
     private String reason;
+
+    @ApiModelProperty(value = "定时发布标记", dataType = "Integer")
+    @TableField("timing_")
+    private Integer timing;
+
 }

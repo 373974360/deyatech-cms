@@ -101,6 +101,16 @@ public class RabbitConfig {
     }
 
     /**
+     * 定时发布
+     *
+     * @return
+     */
+    @Bean
+    public Queue queueTimingPublishTemplate() {
+        return new Queue(RabbitMQConstants.QUEUE_TIMING_PUBLISH_TEMPLATE);
+    }
+
+    /**
      * 自动删除匿名队列
      * @param csmTaskTopicExchange 广播交换器
      * @param staticPageTaskQueue 自动删除队列
@@ -163,5 +173,15 @@ public class RabbitConfig {
     @Bean
     public Binding bindingAggregationTemplateChange() {
         return BindingBuilder.bind(queueAggregationTemplateChange()).to(csmTaskTopicExchange()).with(RabbitMQConstants.QUEUE_AGGREGATION_TEMPLATE_CHANGE);
+    }
+
+    /**
+     * 定时发布
+     *
+     * @return
+     */
+    @Bean
+    public Binding bindingTimingPublishTemplate() {
+        return BindingBuilder.bind(queueTimingPublishTemplate()).to(csmTaskTopicExchange()).with(RabbitMQConstants.QUEUE_TIMING_PUBLISH_TEMPLATE);
     }
 }

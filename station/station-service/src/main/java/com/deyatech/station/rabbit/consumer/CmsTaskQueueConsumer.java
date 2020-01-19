@@ -7,6 +7,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.deyatech.common.enums.ContentOriginTypeEnum;
@@ -37,6 +38,7 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * CMS中的任务队列消息处理
@@ -74,6 +76,26 @@ public class CmsTaskQueueConsumer {
     private final String TOPIC_STATIC_PAGE_MESSAGE = "/topic/staticPage/message/";
 
     private final String TOPIC_REINDEX_MESSAGE = "/topic/reIndex/message/";
+
+    /**
+     * 定时发布
+     *
+     * @param publicationDate
+     */
+    @RabbitListener(queues = RabbitMQConstants.QUEUE_TIMING_PUBLISH_TEMPLATE)
+    public void timingPublishTemplateHandle(String publicationDate) {
+        try {
+            List<String> ids = templateService.getTimingPublishTemplateList(publicationDate);
+            if (CollectionUtil.isNotEmpty(ids)) {
+                templateService.updateTimingPublishTemplate(ids);
+                // 发布静态页和索引
+                templateService.addPageAndIndexById(ids);
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+            log.error("定时发布: " + publicationDate + "\n" + e.getMessage());
+        }
+    }
 
     /**
      * 聚合关联关系-栏目规则变更
@@ -130,12 +152,13 @@ public class CmsTaskQueueConsumer {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            log.error(String.format("【重建聚合关联关系】聚合规则变更异常：catalogId = %s, aggregationId = %s", catalogId, aggregationId));
+            log.error(String.format("【重建聚合关联关系】聚合规则变更异常：catalogId = %s, aggregationId = %s", catalogId, aggregationId)  + "\n" + e.getMessage());
         }
     }
 
     /**
      * 聚合关联关系-内容变更
+     * 数据内容变更、 删除发布状态、还原到发布状态
      *
      * @param param
      */
@@ -146,7 +169,7 @@ public class CmsTaskQueueConsumer {
             return;
         }
         try {
-            Template template = templateService.getById(templateId);
+            Template template = templateService.getPhysicsTemplateById(templateId);
             if (Objects.isNull(template)) {
                 return;
             }
@@ -175,7 +198,7 @@ public class CmsTaskQueueConsumer {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            log.error(String.format("【重建聚合关联关系】内容变更异常：templateId = %s", templateId));
+            log.error(String.format("【重建聚合关联关系】内容变更异常：templateId = %s", templateId)  + "\n" + e.getMessage());
         }
     }
     /**
@@ -249,94 +272,15 @@ public class CmsTaskQueueConsumer {
      */
     @RabbitListener(queues = RabbitMQConstants.QUEUE_CONTENT_STATUS_SWITCH_HANDLE)
     public void contentStatusSwitchHandle(Map<String,Object> param) {
-        try {
-            String action = (String) param.get("action");
-            String templateId = (String) param.get("templateId");
-            Integer fromStatus = (Integer) param.get("fromStatus");
-            Integer status = (Integer) param.get("status");
-            TemplateVo templateVo = new TemplateVo();
-            BeanUtil.copyProperties(templateService.getById(templateId), templateVo);
-            // 检索内容所属栏目
-            Catalog catalog = catalogService.getById(templateVo.getCmsCatalogId());
-            // 设置工作流ID
-            templateVo.setWorkflowId(catalog.getWorkflowId());
-            // 设置工作流Key
-            templateVo.setWorkflowKey(catalog.getWorkflowKey());
-            // 是否工作流
-            boolean hasWorkflow = false;
-            // 栏目有工作流
-            if(YesNoEnum.YES.getCode().equals(catalog.getWorkflowEnable()) && StrUtil.isNotEmpty(catalog.getWorkflowId())) {
-                hasWorkflow = true;
-            }
-            switch (action) {
-                // 删除到回收站
-                case "recycle":
-                    // 已发布
-                    if (ContentStatusEnum.PUBLISH.getCode() == fromStatus) {
-                        // 删除静态页和索引
-                        templateService.deletePageAndIndexById(templateVo);
-                    }
-                    // 删除流程
-                    workflowFeign.deleteInstanceByBusinessId(templateVo.getId(), "删除内容");
-                    break;
-
-                // 从回收站还原内容
-                case "back":
-                    // 栏目有工作流
-                    if(hasWorkflow) {
-                        // 还原到发布状态 或者 待审状态 时不做处理
-                        if (ContentStatusEnum.PUBLISH.getCode() == status || ContentStatusEnum.VERIFY.getCode() == status) {
-                            // 启动工作流
-                            templateService.startWorkflow(templateVo);
-                        } else {
-                            // 已发布
-                            if (ContentStatusEnum.PUBLISH.getCode() == fromStatus) {
-                                // 添加静态页和索引
-                                templateService.addPageAndIndexById(templateVo);
-                            }
-                        }
-                    } else {
-                        // 已发布
-                        if (ContentStatusEnum.PUBLISH.getCode() == fromStatus) {
-                            // 添加静态页和索引
-                            templateService.addPageAndIndexById(templateVo);
-                        }
-                    }
-                    break;
-
-                // 再送审
-                case "verify":
-                    // 栏目有工作流
-                    if(hasWorkflow) {
-                        // 启动工作流
-                        templateService.startWorkflow(templateVo);
-                    }
-                    break;
-
-                // 撤销
-                case "cancel":
-                    // 已发布
-                    if (ContentStatusEnum.PUBLISH.getCode() == fromStatus) {
-                        // 删除静态页和索引
-                        templateService.deletePageAndIndexById(templateVo);
-                    }
-                    // 删除流程
-                    workflowFeign.deleteInstanceByBusinessId(templateVo.getId(), "撤销内容");
-                    break;
-
-                // 发布
-                case "publish":
-                    // 已发布
-                    if (ContentStatusEnum.PUBLISH.getCode() == fromStatus) {
-                        // 删除静态页和索引
-                        templateService.addPageAndIndexById(templateVo);
-                    }
-                    break;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.error("内容状态切换处理异常: " + e.getMessage());
+        String action = (String) param.get("action");
+        List<String> publishIds = (List<String>) param.get("publishIds");
+        // 添加静态页和索引
+        if ("add".equals(action)) {
+            templateService.addPageAndIndexById(publishIds);
+        }
+        // 删除静态页和索引
+        if ("delete".equals(action)) {
+            templateService.deletePageAndIndexById(publishIds);
         }
     }
 
@@ -396,7 +340,13 @@ public class CmsTaskQueueConsumer {
     @RabbitListener(queues = "#{queueResetIndexCode.name}")
     public void handlerLiveMessage(Map<String,Object> param) {
         log.info(String.format("生成内容索引编码：%s", JSONUtil.toJsonStr(param)));
-        templateService.resetTemplateIndexCodeHandler(param);
+        try {
+            templateService.resetTemplateIndexCodeHandler(param);
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error(String.format("生成内容索引编码：%s", JSONUtil.toJsonStr(param)) + "\n" + e.getMessage());
+        }
+
     }
 
     /**
@@ -406,22 +356,28 @@ public class CmsTaskQueueConsumer {
     @RabbitListener(queues = RabbitMQConstants.QUEUE_NAME_LIST_PAGE_TASK)
     public void handleCmsListTask(String catId) {
         log.info(String.format("处理发布静态页任务：%s", JSONUtil.toJsonStr(catId)));
-        CatalogVo catalogVo = catalogService.setVoProperties(catalogService.getById(catId));
-        //清楚历史缓存
-        siteCache.clearCache(catalogVo.getPathName());
-        String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(catalogVo.getSiteId());
-        Map<String,Object> varMap = new HashMap<>();
-        varMap.put("site",siteCache.getStationGroupById(catalogVo.getSiteId()));
-        varMap.put("catalog",catalogVo);
-        varMap.put("rootCatalog",getRootCatalog(catalogVo.getSiteId(),catalogVo.getId()));
-        String template = catalogVo.getListTemplate();
-        if(StringUtils.isNotBlank(template)){
-            varMap.put("namePath",catalogVo.getPathName());
-            for(int i=1;i<=10;i++){
-                varMap.put("pageNo",i);
-                templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
+        try {
+            CatalogVo catalogVo = catalogService.setVoProperties(catalogService.getById(catId));
+            //清楚历史缓存
+            siteCache.clearCache(catalogVo.getPathName());
+            String siteTemplateRoot = siteCache.getStationGroupTemplatePathBySiteId(catalogVo.getSiteId());
+            Map<String,Object> varMap = new HashMap<>();
+            varMap.put("site",siteCache.getStationGroupById(catalogVo.getSiteId()));
+            varMap.put("catalog",catalogVo);
+            varMap.put("rootCatalog",getRootCatalog(catalogVo.getSiteId(),catalogVo.getId()));
+            String template = catalogVo.getListTemplate();
+            if(StringUtils.isNotBlank(template)){
+                varMap.put("namePath",catalogVo.getPathName());
+                for(int i=1;i<=10;i++){
+                    varMap.put("pageNo",i);
+                    templateFeign.thyToString(siteTemplateRoot,template,varMap).getData();
+                }
             }
+        } catch(Exception e) {
+            e.printStackTrace();
+            log.error("处理缓存列表页任务: catalogId = " + catId + "\n" + e.getMessage());
         }
+
     }
 
     /**
@@ -431,25 +387,30 @@ public class CmsTaskQueueConsumer {
     @RabbitListener(queues = RabbitMQConstants.QUEUE_NAME_STATIC_PAGE_TASK)
     public void handleCmsStaticTask(Map<String,Object> dataMap) {
         log.info(String.format("处理发布静态页任务：%s", JSONUtil.toJsonStr(dataMap)));
-        String messageCode = dataMap.get("messageCode").toString();
-        Map<String, Object> maps = (Map<String, Object>) dataMap.get("maps");
-        IPage<TemplateVo> templates = templateService.getTemplateListView(maps,1, Integer.parseInt(maps.get("totle").toString()));
-        if(CollectionUtil.isNotEmpty(templates.getRecords())){
-            Map<String,Object> result = new HashMap();
-            result.put("totle",String.valueOf(templates.getTotal()));
-            int i = 0;
-            for(TemplateVo templateVo:templates.getRecords()){
-                i ++;
-                templateVo = templateService.setViewVoProperties(templateVo);
-                // 创建/删除、更新静态页
-                templateFeign.generateStaticTemplate(templateVo, messageCode);
-                result.put("currNo",String.valueOf(i));
-                result.put("currTitle",templateVo.getTitle());
-                if(messageCode.equals(RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE)){
-                    //向客户端发送进度
-                    messagingTemplate.convertAndSend(TOPIC_STATIC_PAGE_MESSAGE + templateVo.getSiteId() + "/", result);
+        try {
+            String messageCode = dataMap.get("messageCode").toString();
+            Map<String, Object> maps = (Map<String, Object>) dataMap.get("maps");
+            IPage<TemplateVo> templates = templateService.getTemplateListView(maps,1, Integer.parseInt(maps.get("totle").toString()));
+            if(CollectionUtil.isNotEmpty(templates.getRecords())){
+                Map<String,Object> result = new HashMap();
+                result.put("totle",String.valueOf(templates.getTotal()));
+                int i = 0;
+                for(TemplateVo templateVo:templates.getRecords()){
+                    i ++;
+                    templateVo = templateService.setViewVoProperties(templateVo);
+                    // 创建/删除、更新静态页
+                    templateFeign.generateStaticTemplate(templateVo, messageCode);
+                    result.put("currNo",String.valueOf(i));
+                    result.put("currTitle",templateVo.getTitle());
+                    if(messageCode.equals(RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE)){
+                        //向客户端发送进度
+                        messagingTemplate.convertAndSend(TOPIC_STATIC_PAGE_MESSAGE + templateVo.getSiteId() + "/", result);
+                    }
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error(String.format("处理发布静态页任务：%s", JSONUtil.toJsonStr(dataMap)) + "\n" + e.getMessage());
         }
     }
 
@@ -460,37 +421,41 @@ public class CmsTaskQueueConsumer {
     @RabbitListener(queues = RabbitMQConstants.QUEUE_NAME_INDEX_TASK)
     public void handleCmsIndexTask(Map<String,Object> dataMap) {
         log.info(String.format("处理索引任务：%s", JSONUtil.toJsonStr(dataMap)));
-        String messageCode = dataMap.get("messageCode").toString();
-        Map<String, Object> maps = (Map<String, Object>) dataMap.get("maps");
-        IPage<TemplateVo> templates = templateService.getTemplateListView(maps,1,Integer.parseInt(maps.get("totle").toString()));
-        if(CollectionUtil.isNotEmpty(templates.getRecords())){
-            Map<String,Object> result = new HashMap();
-            result.put("totle",String.valueOf(templates.getTotal()));
-            int i = 0;
-            for(TemplateVo templateVo:templates.getRecords()){
-                i++;
-                // 获取索引
-                String index = modelService.getIndexByModelId(templateVo.getContentModelId());
-                templateVo.setIndex(index);
-                result.put("currNo",String.valueOf(i));
-                result.put("currTitle",templateVo.getTitle());
-                // 索引/删除、更新数据
-                if (RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD.equalsIgnoreCase(messageCode)) {
-                    this.addIndex(templateVo);
-                } else if (RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE.equalsIgnoreCase(messageCode)) {
-                    this.updateIndex(templateVo);
-                    //向客户端发送进度
-                    messagingTemplate.convertAndSend(TOPIC_REINDEX_MESSAGE + templateVo.getSiteId() + "/", result);
-                } else if (RabbitMQConstants.MQ_CMS_INDEX_COMMAND_DELETE.equalsIgnoreCase(messageCode)) {
-                    this.deleteIndex(templateVo);
-                    //向客户端发送进度
-                    messagingTemplate.convertAndSend(TOPIC_REINDEX_MESSAGE + templateVo.getSiteId() + "/", result);
-                } else {
-                    log.warn("未知的索引任务: %s ", JSONUtil.toJsonStr(templateVo));
+        try {
+            String messageCode = dataMap.get("messageCode").toString();
+            Map<String, Object> maps = (Map<String, Object>) dataMap.get("maps");
+            IPage<TemplateVo> templates = templateService.getTemplateListView(maps,1,Integer.parseInt(maps.get("totle").toString()));
+            if(CollectionUtil.isNotEmpty(templates.getRecords())){
+                Map<String,Object> result = new HashMap();
+                result.put("totle",String.valueOf(templates.getTotal()));
+                int i = 0;
+                for(TemplateVo templateVo:templates.getRecords()){
+                    i++;
+                    // 获取索引
+                    String index = modelService.getIndexByModelId(templateVo.getContentModelId());
+                    templateVo.setIndex(index);
+                    result.put("currNo",String.valueOf(i));
+                    result.put("currTitle",templateVo.getTitle());
+                    // 索引/删除、更新数据
+                    if (RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD.equalsIgnoreCase(messageCode)) {
+                        this.addIndex(templateVo);
+                    } else if (RabbitMQConstants.MQ_CMS_INDEX_COMMAND_UPDATE.equalsIgnoreCase(messageCode)) {
+                        this.updateIndex(templateVo);
+                        //向客户端发送进度
+                        messagingTemplate.convertAndSend(TOPIC_REINDEX_MESSAGE + templateVo.getSiteId() + "/", result);
+                    } else if (RabbitMQConstants.MQ_CMS_INDEX_COMMAND_DELETE.equalsIgnoreCase(messageCode)) {
+                        this.deleteIndex(templateVo);
+                        //向客户端发送进度
+                        messagingTemplate.convertAndSend(TOPIC_REINDEX_MESSAGE + templateVo.getSiteId() + "/", result);
+                    } else {
+                        log.warn("未知的索引任务: %s ", JSONUtil.toJsonStr(templateVo));
+                    }
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error(String.format("处理索引任务：%s", JSONUtil.toJsonStr(dataMap))  + "\n" + e.getMessage());
         }
-
     }
 
     private void addIndex(TemplateVo templateVo) {

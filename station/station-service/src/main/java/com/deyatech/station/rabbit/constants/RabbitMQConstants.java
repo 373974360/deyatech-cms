@@ -61,4 +61,10 @@ public class RabbitMQConstants {
      * 聚合关联关系-内容变更
      */
     public static final String QUEUE_AGGREGATION_TEMPLATE_CHANGE = "queue.aggregation.template.change";
+
+    /**
+     * 定时发布消息
+     *
+     */
+    public static final String QUEUE_TIMING_PUBLISH_TEMPLATE = "queue.timing.publish.template";
 }

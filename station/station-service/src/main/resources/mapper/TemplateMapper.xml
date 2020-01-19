@@ -240,6 +240,24 @@
 
     </select>
 
+    <select id="getPhysicsTemplateById" resultType="com.deyatech.station.vo.TemplateVo">
+        select * from station_template where id_ = #{id}
+    </select>
+
+    <select id="getTimingPublishTemplateList" resultType="String">
+        select id_
+        from station_template
+        where enable_ = 1 and timing_ = 1 and DATE_FORMAT(resource_publication_date, '%Y-%m-%d %H:%i') = #{publicationDate}
+    </select>
+
+    <update id="updateTimingPublishTemplate">
+        update station_template set timing_ = 0, status_ = 2
+        where id_ in
+        <foreach index="index" item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
     <!--
     <select id="pageByTemplate" resultType="com.deyatech.station.vo.TemplateVo">
         select

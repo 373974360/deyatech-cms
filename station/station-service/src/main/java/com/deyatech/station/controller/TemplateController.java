@@ -111,39 +111,9 @@ public class TemplateController extends BaseController {
         return RestResult.ok(result);
     }
 
-    /**
-     * 批量保存或者更新内容模板
-     *
-     * @param templateList
-     * @return
-     */
-    @PostMapping("/saveOrUpdateBatch")
-    @ApiOperation(value="批量保存或者更新内容模板", notes="根据内容模板对象集合批量保存或者更新内容模板信息")
-    @ApiImplicitParam(name = "templateList", value = "内容模板对象集合", required = true, allowMultiple = true, dataType = "Template", paramType = "query")
-    public RestResult<Boolean> saveOrUpdateBatch(Collection<Template> templateList) {
-        log.info(String.format("批量保存或者更新内容模板: %s ", JSONUtil.toJsonStr(templateList)));
-        boolean result = templateService.saveOrUpdateBatch(templateList);
-        return RestResult.ok(result);
-    }
 
     /**
-     * 根据Template对象属性逻辑删除内容模板
-     *
-     * @param template
-     * @return
-     */
-    @PostMapping("/removeByTemplate")
-    @ApiOperation(value="根据Template对象属性逻辑删除内容模板", notes="根据内容模板对象逻辑删除内容模板信息")
-    @ApiImplicitParam(name = "template", value = "内容模板对象", required = true, dataType = "Template", paramType = "query")
-    public RestResult<Boolean> removeByTemplate(Template template) {
-        log.info(String.format("根据Template对象属性逻辑删除内容模板: %s ", template));
-        boolean result = templateService.removeByBean(template);
-        return RestResult.ok(result);
-    }
-
-
-    /**
-     * 根据ID批量逻辑删除内容模板
+     * 删除
      *
      * @param ids
      * @return
@@ -152,35 +122,36 @@ public class TemplateController extends BaseController {
     @ApiOperation(value="根据ID批量逻辑删除内容模板", notes="根据内容模板对象ID批量逻辑删除内容模板信息")
     @ApiImplicitParam(name = "ids", value = "内容模板对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
     public RestResult<Boolean> removeByIds(String ids) {
-        log.info(String.format("根据id批量删除内容模板: %s ", JSONUtil.toJsonStr(ids)));
+        log.info(String.format("删除: %s ", JSONUtil.toJsonStr(ids)));
         boolean result = templateService.removeByIds(ids);
         return RestResult.ok(result);
     }
 
     /**
-     * 删除内容到回收站
+     * 回收站
      *
      * @param ids
      * @return
      */
     @RequestMapping("/recycleByIds")
-    @ApiOperation(value="删除内容到回收站", notes="删除内容到回收站")
+    @ApiOperation(value="回收站", notes="回收站")
     @ApiImplicitParam(name = "ids", value = "内容模板对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
     public RestResult<Boolean> recycleByIds(@RequestParam("ids[]") List<String> ids) {
-        log.info(String.format("删除内容到回收站: %s ", JSONUtil.toJsonStr(ids)));
+        log.info(String.format("回收站: %s ", JSONUtil.toJsonStr(ids)));
         return RestResult.ok(templateService.recycleByIds(ids));
     }
+
     /**
-     * 从回收站还原内容
+     * 还原
      *
      * @param ids
      * @return
      */
     @RequestMapping("/backByIds")
-    @ApiOperation(value="从回收站还原内容", notes="从回收站还原内容")
+    @ApiOperation(value="还原", notes="还原")
     @ApiImplicitParam(name = "ids", value = "内容模板对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
     public RestResult<Boolean> backByIds(@RequestParam("ids[]") List<String> ids) {
-        log.info(String.format("从回收站还原内容: %s ", JSONUtil.toJsonStr(ids)));
+        log.info(String.format("还原: %s ", JSONUtil.toJsonStr(ids)));
         return RestResult.ok(templateService.backByIds(ids));
     }
 
@@ -191,10 +162,10 @@ public class TemplateController extends BaseController {
      * @return
      */
     @RequestMapping("/cancelByIds")
-    @ApiOperation(value="撤销内容", notes="撤销内容")
+    @ApiOperation(value="撤销", notes="撤销")
     @ApiImplicitParam(name = "ids", value = "内容模板对象ID集合", required = true, allowMultiple = true, dataType = "Serializable", paramType = "query")
     public RestResult<Boolean> cancelByIds(@RequestParam("ids[]") List<String> ids) {
-        log.info(String.format("撤销内容: %s ", JSONUtil.toJsonStr(ids)));
+        log.info(String.format("撤销: %s ", JSONUtil.toJsonStr(ids)));
         return RestResult.ok(templateService.cancelByIds(ids));
     }
 

@@ -95,6 +95,30 @@ public interface TemplateMapper extends BaseMapper<Template> {
     IPage<TemplateVo> getLoginUserTaskList(@Param("page") Page page, @Param("templateVo") TemplateVo templateVo);
 
     /**
+     * 物理数据
+     *
+     * @param id
+     * @return
+     */
+    TemplateVo getPhysicsTemplateById(String id);
+
+    /**
+     * 获取定时发布数据
+     *
+     * @param publicationDate
+     * @return
+     */
+    List<String> getTimingPublishTemplateList(String publicationDate);
+
+    /**
+     * 更新定时发布的数据状态未发布
+     *
+     * @param ids
+     * @return
+     */
+    int updateTimingPublishTemplate(@Param("ids") List<String> ids);
+
+    /**
      * 分页查询
      *
      * @param template

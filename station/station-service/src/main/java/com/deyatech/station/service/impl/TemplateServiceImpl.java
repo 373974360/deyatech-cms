@@ -159,6 +159,8 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         // 获取数据
         if (StrUtil.isNotEmpty(templateId)) {
             Template template = super.getById(templateId);
+            // 定时标记补入
+            metadataFieldDataMap.put("timing_", template.getTiming());
             Map<String, Object> baseMap = ColumnUtil.objectToColumnMap(template);
             if (Objects.nonNull(baseMap)) metadataFieldDataMap.putAll(baseMap);
             if (StrUtil.isNotEmpty(template.getContentId())) {
@@ -317,6 +319,10 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         // 其他
         else {
             pageModel.put(md.getBriefName(), isObjectStringEmpty(value) ? "" : value);
+            // 本次有发布时间时,补入定时标记
+            if ("resource_publication_date".equals(md.getBriefName())) {
+                pageModel.put("timing_", metadataFieldDataMap.get("timing_"));
+            }
         }
     }
 
@@ -548,9 +554,35 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
             // 新增时设置状态, 编辑时不改变状态
             if (!hasId) {
                 // 如果当前栏目绑定了工作流 并且 有流程ID
-                if (YesNoEnum.YES.getCode().equals(catalog.getWorkflowEnable()) && StrUtil.isNotEmpty(catalog.getWorkflowId())) {
+                if (YesNoEnum.YES.getCode() == catalog.getWorkflowEnable() && StrUtil.isNotEmpty(catalog.getWorkflowId())) {
                     // 审核中
                     templateVo.setStatus(ContentStatusEnum.VERIFY.getCode());
+                    templateVo.setTiming(YesNoEnum.NO.getCode());
+                } else {
+                    // 定时发布
+                    if (YesNoEnum.YES.getCode() == templateVo.getTiming()) {
+                        templateVo.setStatus(ContentStatusEnum.TIMING.getCode());
+                    } else {
+                        // 已发布
+                        templateVo.setStatus(ContentStatusEnum.PUBLISH.getCode());
+                    }
+                }
+            } else {
+                // 定时发布
+                if (YesNoEnum.YES.getCode() == templateVo.getTiming()) {
+                    // 若把已发不的改为定时
+                    if (ContentStatusEnum.PUBLISH.getCode() == templateVo.getStatus()) {
+                        // 删除再聚合
+                        isNeedAggregation = true;
+                        // 删除关联
+                        CatalogTemplate catalogTemplate = new CatalogTemplate();
+                        catalogTemplate.setTemplateId(templateVo.getId());
+                        catalogTemplate.setOriginType(ContentOriginTypeEnum.AGGREGATION.getCode());
+                        catalogTemplateService.removeByBean(catalogTemplate);
+                        // 删除静态页和索引
+                        sendPageAndIndexHandleMessage("delete", Arrays.asList(new String[]{templateVo.getId()}));
+                    }
+                    templateVo.setStatus(ContentStatusEnum.TIMING.getCode());
                 } else {
                     // 已发布
                     templateVo.setStatus(ContentStatusEnum.PUBLISH.getCode());
@@ -586,7 +618,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 catalogTemplate.setOriginType(ContentOriginTypeEnum.ADD.getCode());
                 catalogTemplateService.saveOrUpdate(catalogTemplate);
                 // 如果当前栏目绑定了工作流 并且 有流程ID
-                if(YesNoEnum.YES.getCode().equals(catalog.getWorkflowEnable()) && StrUtil.isNotEmpty(catalog.getWorkflowId())){
+                if(YesNoEnum.YES.getCode() == catalog.getWorkflowEnable() && StrUtil.isNotEmpty(catalog.getWorkflowId())){
                     startWorkflow(templateVo);
                 }
             }
@@ -790,28 +822,6 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         return metadataMap;
     }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean removeByIds(String ids) {
-        List<Map> mapList = JSONUtil.toList(JSONUtil.parseArray(ids), Map.class);
-        // 删除元数据
-        List<Map> metaDataMapList = mapList.stream().filter(m -> ObjectUtil.isNotNull(m.get("contentId")) && ObjectUtil.isNotNull(m.get("metaDataCollectionId"))).collect(Collectors.toList());
-        if (CollectionUtil.isNotEmpty(metaDataMapList)) {
-            adminFeign.removeMetadataByIds(metaDataMapList);
-        }
-
-        // 删除索引
-        for (Map map : mapList) {
-            TemplateVo templateVo = new TemplateVo();
-            templateVo.setIds((String) map.get("id"));
-            templateVo.setContentModelId((String) map.get("contentModelId"));
-            this.reindex(templateVo, RabbitMQConstants.MQ_CMS_INDEX_COMMAND_DELETE);
-        }
-
-        List<String> idList = mapList.stream().map(m -> (String) m.get("id")).collect(Collectors.toList());
-        return super.removeByIds(idList);
-    }
-
     /**
      * 判断Template对象标题是否存在
      *
@@ -936,7 +946,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         if (result) {
             TemplateVo templateVo = new TemplateVo();
             BeanUtil.copyProperties(super.getById(template.getId()), templateVo);
-            this.addPageAndIndexById(templateVo);
+            this.addPageAndIndexById(Arrays.asList(new String[]{templateVo.getId()}));
         }
         return result;
     }
@@ -957,9 +967,53 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
         return this.updateById(entity);
     }
 
+    /**
+     * 彻底删除
+     * 回收站的可以彻底删除
+     *
+     * @param ids
+     * @return
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean removeByIds(String ids) {
+        List<Map> mapList = JSONUtil.toList(JSONUtil.parseArray(ids), Map.class);
+        // 删除元数据
+        List<Map> metaDataMapList = mapList.stream().filter(m -> ObjectUtil.isNotNull(m.get("contentId")) && ObjectUtil.isNotNull(m.get("metaDataCollectionId"))).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(metaDataMapList)) {
+            adminFeign.removeMetadataByIds(metaDataMapList);
+        }
+        List<String> idList = mapList.stream().map(m -> (String) m.get("id")).collect(Collectors.toList());
+        List<String> publishIds = new ArrayList<>();
+        List<String> verifyIds = new ArrayList<>();
+        if (CollectionUtil.isNotEmpty(idList)) {
+            for (String id : idList) {
+                Template template = super.getById(id);
+                // 待审被删除
+                if (ContentStatusEnum.VERIFY.getCode() == template.getStatus()) {
+                    verifyIds.add(id);
+                }
+                // 已发布被删除
+                if (ContentStatusEnum.PUBLISH.getCode() == template.getStatus()) {
+                    publishIds.add(id);
+                }
+            }
+        }
+        boolean flag = super.removeByIds(idList);
+        if (flag) {
+            for (String id : verifyIds) {
+                // 删除流程
+                workflowFeign.deleteInstanceByBusinessId(id, "删除内容");
+            }
+            // 删除静态页和索引
+            sendPageAndIndexHandleMessage("delete", publishIds);
+        }
+        return flag;
+    }
 
     /**
      * 删除内容到回收站
+     * 除彻底删除外其他状态都可以删除到回收站
      *
      * @param ids
      * @return
@@ -967,20 +1021,28 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     @Override
     public boolean recycleByIds(List<String> ids) {
         if (CollectionUtil.isNotEmpty(ids)) {
+            List<String> publishIds = new ArrayList<>();
             for (String id : ids) {
                 Template template = super.getById(id);
-                template.setOriginalStatus(template.getStatus());
+                int status = template.getStatus();
+                // 还原用状态保存
+                template.setOriginalStatus(status);
                 template.setStatus(ContentStatusEnum.RECYCLE.getCode());
                 boolean result = super.updateById(template);
                 if (result) {
-                    Map<String, Object> param = new HashMap<>();
-                    param.put("action", "recycle");
-                    param.put("templateId", template.getId());
-                    param.put("fromStatus", template.getOriginalStatus());
-                    param.put("status", ContentStatusEnum.RECYCLE.getCode());
-                    rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_CONTENT_STATUS_SWITCH_HANDLE, param);
+                    // 待审被删除到回收站
+                    if (ContentStatusEnum.VERIFY.getCode() == status) {
+                        // 删除流程
+                        workflowFeign.deleteInstanceByBusinessId(template.getId(), "删除内容");
+                    }
+                    // 已发布被删除到回收站
+                    if (ContentStatusEnum.PUBLISH.getCode() == status) {
+                        publishIds.add(id);
+                    }
                 }
             }
+            // 删除静态页和索引
+            sendPageAndIndexHandleMessage("delete", publishIds);
             return true;
         } else {
             return false;
@@ -1006,11 +1068,12 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 }
                 list.add(template);
             }
+            List<String> publishIds = new ArrayList<>();
             for (Template template : list) {
                 Integer originalStatus = template.getOriginalStatus();
                 Catalog catalog = catalogService.getById(template.getCmsCatalogId());
                 // 栏目有工作流
-                if(YesNoEnum.YES.getCode().equals(catalog.getWorkflowEnable()) && StrUtil.isNotEmpty(catalog.getWorkflowId())) {
+                if(YesNoEnum.YES.getCode() == catalog.getWorkflowEnable() && StrUtil.isNotEmpty(catalog.getWorkflowId())) {
                     // 还原到发布状态 或者 待审状态
                     if (ContentStatusEnum.PUBLISH.getCode() == originalStatus || ContentStatusEnum.VERIFY.getCode() == originalStatus) {
                         // 待审
@@ -1026,14 +1089,21 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 }
                 boolean result = super.updateById(template);
                 if (result) {
-                    Map<String, Object> param = new HashMap<>();
-                    param.put("action", "back");
-                    param.put("templateId", template.getId());
-                    param.put("fromStatus", originalStatus);
-                    param.put("status", originalStatus);
-                    rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_CONTENT_STATUS_SWITCH_HANDLE, param);
+                    // 待审状态
+                    if (ContentStatusEnum.VERIFY.getCode() == template.getStatus()) {
+                        TemplateVo templateVo = new TemplateVo();
+                        BeanUtil.copyProperties(template, templateVo);
+                        // 启动工作流
+                        this.startWorkflow(templateVo);
+                    }
+                    // 发布
+                    if (ContentStatusEnum.PUBLISH.getCode() == template.getStatus()) {
+                        publishIds.add(template.getId());
+                    }
                 }
             }
+            // 添加静态页和索引
+            sendPageAndIndexHandleMessage("add", publishIds);
             return true;
         } else {
             return false;
@@ -1042,6 +1112,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
 
     /**
      * 送审
+     * 来源：已撤销的送审、已驳回的送审
      *
      * @param ids
      * @return
@@ -1056,24 +1127,21 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
                 // 检索内容所属栏目
                 Catalog catalog = catalogService.getById(template.getCmsCatalogId());
                 // 栏目有工作流
-                if(YesNoEnum.YES.getCode().equals(catalog.getWorkflowEnable()) && StrUtil.isNotEmpty(catalog.getWorkflowId())) {
+                if(YesNoEnum.YES.getCode() == catalog.getWorkflowEnable() && StrUtil.isNotEmpty(catalog.getWorkflowId())) {
                     list.add(template);
                 } else {
                     throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "没有工作流不能送审");
                 }
             }
             for (Template template : list) {
-                Integer fromStatus = template.getStatus();
                 template.setOriginalStatus(ContentStatusEnum.VERIFY.getCode());
                 template.setStatus(ContentStatusEnum.VERIFY.getCode());
                 boolean result = super.updateById(template);
                 if (result) {
-                    Map<String, Object> param = new HashMap<>();
-                    param.put("action", "verify");
-                    param.put("templateId", template.getId());
-                    param.put("fromStatus", fromStatus);
-                    param.put("status", ContentStatusEnum.VERIFY.getCode());
-                    rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_CONTENT_STATUS_SWITCH_HANDLE, param);
+                    TemplateVo templateVo = new TemplateVo();
+                    BeanUtil.copyProperties(template, templateVo);
+                    // 启动工作流
+                    this.startWorkflow(templateVo);
                 }
             }
             return true;
@@ -1084,7 +1152,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
 
     /**
      * 撤销
-     * 已发布撤销，待审核撤销
+     * 来源：已发布的撤销，待审核的撤销
      *
      * @param ids
      * @return
@@ -1092,21 +1160,27 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     @Override
     public boolean cancelByIds(List<String> ids) {
         if (CollectionUtil.isNotEmpty(ids)) {
+            List<String> publishIds = new ArrayList<>();
             for (String id : ids) {
                 Template template = super.getById(id);
-                Integer fromStatus = template.getStatus();
-                template.setOriginalStatus(fromStatus);
+                int status = template.getStatus();
+                // 已发布的撤销
+                if (ContentStatusEnum.PUBLISH.getCode() == status) {
+                    publishIds.add(id);
+                }
+                template.setOriginalStatus(ContentStatusEnum.CANCEL.getCode());
                 template.setStatus(ContentStatusEnum.CANCEL.getCode());
                 boolean result = super.updateById(template);
                 if (result) {
-                    Map<String, Object> param = new HashMap<>();
-                    param.put("action", "cancel");
-                    param.put("templateId", template.getId());
-                    param.put("fromStatus", fromStatus);
-                    param.put("status", ContentStatusEnum.CANCEL.getCode());
-                    rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_CONTENT_STATUS_SWITCH_HANDLE, param);
+                    // 待审核的撤销
+                    if (ContentStatusEnum.VERIFY.getCode() == status) {
+                        // 删除流程
+                        workflowFeign.deleteInstanceByBusinessId(template.getId(), "撤销内容");
+                    }
                 }
             }
+            // 删除静态页和索引
+            sendPageAndIndexHandleMessage("delete", publishIds);
             return true;
         } else {
             return false;
@@ -1115,6 +1189,7 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
 
     /**
      * 发布
+     * 来源： 已撤销的发布
      *
      * @param ids
      * @return
@@ -1122,37 +1197,34 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     @Override
     public boolean publishByIds(List<String> ids) {
         if (CollectionUtil.isNotEmpty(ids)) {
+            List<String> publishIds = new ArrayList<>();
             List<Template> list = new ArrayList<>();
             for (String id : ids) {
                 Template template = super.getById(id);
                 // 检索内容所属栏目
                 Catalog catalog = catalogService.getById(template.getCmsCatalogId());
                 // 栏目有工作流
-                if(YesNoEnum.YES.getCode().equals(catalog.getWorkflowEnable()) && StrUtil.isNotEmpty(catalog.getWorkflowId())) {
+                if(YesNoEnum.YES.getCode() == catalog.getWorkflowEnable() && StrUtil.isNotEmpty(catalog.getWorkflowId())) {
                     throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "有工作流，请送审");
                 } else {
                     // 撤销状态可以发布
                     if (ContentStatusEnum.CANCEL.getCode() == template.getStatus()) {
                         list.add(template);
+                        publishIds.add(id);
                     } else {
                         throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "仅撤销的可以发布");
                     }
                 }
             }
-            for (Template template : list) {
-                Integer fromStatus = template.getOriginalStatus();
-                template.setOriginalStatus(ContentStatusEnum.PUBLISH.getCode());
-                template.setStatus(ContentStatusEnum.PUBLISH.getCode());
-                boolean result = super.updateById(template);
-                if (result) {
-                    Map<String, Object> param = new HashMap<>();
-                    param.put("action", "publish");
-                    param.put("templateId", template.getId());
-                    param.put("fromStatus", fromStatus);
-                    param.put("status", ContentStatusEnum.PUBLISH.getCode());
-                    rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_CONTENT_STATUS_SWITCH_HANDLE, param);
+            if (CollectionUtil.isNotEmpty(list)) {
+                for (Template template : list) {
+                    template.setOriginalStatus(ContentStatusEnum.PUBLISH.getCode());
+                    template.setStatus(ContentStatusEnum.PUBLISH.getCode());
+                    super.updateById(template);
                 }
             }
+            // 添加静态页和索引
+            sendPageAndIndexHandleMessage("add", publishIds);
             return true;
         } else {
             return false;
@@ -1160,22 +1232,87 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     }
 
     /**
-     * 删除静态页和索引
+     * 发送处理消息
      *
-     * @param templateVo
+     * @param publishIds
+     */
+    private void sendPageAndIndexHandleMessage(String action, List<String> publishIds) {
+        if (CollectionUtil.isNotEmpty(publishIds)) {
+            Map<String, Object> param = new HashMap<>();
+            param.put("action", action);
+            param.put("publishIds", publishIds);
+            rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_CONTENT_STATUS_SWITCH_HANDLE, param);
+        }
+    }
+
+    /**
+     * 获取定时发布数据
+     *
+     * @param publicationDate
      * @return
      */
     @Override
-    public void deletePageAndIndexById(TemplateVo templateVo) {
+    public List<String> getTimingPublishTemplateList(String publicationDate) {
+        return baseMapper.getTimingPublishTemplateList(publicationDate);
+    }
+
+    /**
+     * 更新定时发布的数据状态未发布
+     *
+     * @param ids
+     * @return
+     */
+    @Override
+    public int updateTimingPublishTemplate(List<String> ids) {
+        return baseMapper.updateTimingPublishTemplate(ids);
+    }
+
+    /**
+     * 获取物理数据
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public TemplateVo getPhysicsTemplateById(String id) {
+        return baseMapper.getPhysicsTemplateById(id);
+    }
+
+    /**
+     * 删除静态页和索引
+     *
+     * @param ids
+     * @return
+     */
+    @Override
+    public void deletePageAndIndexById(List<String> ids) {
+        if (CollectionUtil.isEmpty(ids)) {
+            return;
+        }
         try {
-            // 清理页面缓存
-            cacheCatalogList(templateVo.getCmsCatalogId());
-            // 发布新闻所属栏目关联的页面静态页
-            pageService.replyPageByCatalog(templateVo.getCmsCatalogId());
-            // 删除态页 参数: siteId url
-            templateFeign.generateStaticTemplate(templateVo, RabbitMQConstants.MQ_CMS_INDEX_COMMAND_DELETE);
-            // 删除索引中数据
-//            indexService.deleteData(templateVo.getIndex(), templateVo.getId());
+            Set<String> catalogIds = new HashSet<>();
+            for (String id :ids) {
+                TemplateVo templateVo = baseMapper.getPhysicsTemplateById(id);
+                // 回收站 或者 删除状态
+                if (ContentStatusEnum.RECYCLE.getCode() == templateVo.getStatus() ||
+                        EnableEnum.DELETED.getCode() == templateVo.getEnable()) {
+                    catalogIds.add(templateVo.getCmsCatalogId());
+                    // 发送聚合消息
+                    Map<String, String> param = new HashMap<>();
+                    param.put("templateId", templateVo.getId());
+                    rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_AGGREGATION_TEMPLATE_CHANGE, param);
+                    // 删除态页 参数: siteId url
+                    templateFeign.generateStaticTemplate(templateVo, RabbitMQConstants.MQ_CMS_INDEX_COMMAND_DELETE);
+                    // 删除索引中数据
+                    indexService.deleteData(templateVo.getIndex(), templateVo.getId());
+                }
+            }
+            for (String catalogId : catalogIds) {
+                // 清理页面缓存
+                cacheCatalogList(catalogId);
+                // 发布新闻所属栏目关联的页面静态页
+                pageService.replyPageByCatalog(catalogId);
+            }
         } catch(Exception e) {
             e.printStackTrace();
             log.error(e.getMessage());
@@ -1185,21 +1322,39 @@ public class TemplateServiceImpl extends BaseServiceImpl<TemplateMapper, Templat
     /**
      * 添加静态页和索引
      *
-     * @param templateVo
+     * @param ids
      * @return
      */
     @Override
-    public void addPageAndIndexById(TemplateVo templateVo) {
+    public void addPageAndIndexById(List<String> ids) {
+        if (CollectionUtil.isEmpty(ids)) {
+            return;
+        }
         try {
-            // 清除前台模板缓存
-            cacheCatalogList(templateVo.getCmsCatalogId());
-            // 发布新闻所属栏目关联的页面静态页
-            pageService.replyPageByCatalog(templateVo.getCmsCatalogId());
-            templateVo.setIds(templateVo.getId());
-            // 生成静态页面任务
-            this.genStaticPage(templateVo, RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
-            // 默认都创建索引, 索引任务
-//            this.reindex(templateVo, RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
+            Set<String> catalogIds = new HashSet<>();
+            for (String id :ids) {
+                Template template = this.getById(id);
+                TemplateVo templateVo = new TemplateVo();
+                BeanUtil.copyProperties(template, templateVo);
+                // 非发布状态
+                if (ContentStatusEnum.PUBLISH.getCode() == templateVo.getStatus()) {
+                    catalogIds.add(id);
+                    // 发送聚合消息
+                    Map<String, String> param = new HashMap<>();
+                    param.put("templateId", templateVo.getId());
+                    rabbitmqTemplate.convertAndSend(RabbitMQConstants.CMS_TASK_TOPIC_EXCHANGE, RabbitMQConstants.QUEUE_AGGREGATION_TEMPLATE_CHANGE, param);
+                    // 生成静态页面任务
+                    this.genStaticPage(templateVo, RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
+                    // 默认都创建索引, 索引任务
+                    this.reindex(templateVo, RabbitMQConstants.MQ_CMS_INDEX_COMMAND_ADD);
+                }
+            }
+            for (String catalogId : catalogIds) {
+                // 清理页面缓存
+                cacheCatalogList(catalogId);
+                // 发布新闻所属栏目关联的页面静态页
+                pageService.replyPageByCatalog(catalogId);
+            }
         } catch(Exception e) {
             e.printStackTrace();
             log.error(e.getMessage());

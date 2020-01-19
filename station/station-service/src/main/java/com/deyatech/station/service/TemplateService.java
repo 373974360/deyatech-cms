@@ -290,18 +290,18 @@ public interface TemplateService extends BaseService<Template> {
     /**
      * 删除静态页和索引
      *
-     * @param templateVo
+     * @param ids
      * @return
      */
-    void deletePageAndIndexById(TemplateVo templateVo);
+    void deletePageAndIndexById(List<String> ids);
 
     /**
      * 添加静态页和索引
      *
-     * @param templateVo
+     * @param ids
      * @return
      */
-    void addPageAndIndexById(TemplateVo templateVo);
+    void addPageAndIndexById(List<String> ids);
 
     /**
      * 启动工作流
@@ -309,4 +309,28 @@ public interface TemplateService extends BaseService<Template> {
      * @param templateVo
      */
     void startWorkflow(TemplateVo templateVo);
+
+    /**
+     * 获取物理数据
+     *
+     * @param id
+     * @return
+     */
+    TemplateVo getPhysicsTemplateById(String id);
+
+    /**
+     * 获取定时发布数据
+     *
+     * @param publicationDate
+     * @return
+     */
+    List<String> getTimingPublishTemplateList(String publicationDate);
+
+    /**
+     * 更新定时发布的数据状态未发布
+     *
+     * @param ids
+     * @return
+     */
+    int updateTimingPublishTemplate(List<String> ids);
 }
