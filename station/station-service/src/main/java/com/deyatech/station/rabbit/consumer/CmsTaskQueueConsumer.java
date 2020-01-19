@@ -127,7 +127,7 @@ public class CmsTaskQueueConsumer {
             BeanUtil.copyProperties(aggregation, condition);
             condition.analysisCondition();
             long offset;
-            long size = 1;// 5000
+            long size = 5000;
             long page = 1;
             while (true) {
                 offset = (page - 1) * size;
