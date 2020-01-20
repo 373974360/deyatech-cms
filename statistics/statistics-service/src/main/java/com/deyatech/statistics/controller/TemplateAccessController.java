@@ -136,9 +136,13 @@ public class TemplateAccessController extends BaseController {
     @GetMapping("/pageByTemplateAccess")
     @ApiOperation(value="根据TemplateAccess对象属性分页检索", notes="根据TemplateAccess对象属性分页检索信息")
     @ApiImplicitParam(name = "templateAccess", value = "对象", required = false, dataType = "TemplateAccess", paramType = "query")
-    public RestResult<IPage<TemplateAccessVo>> pageByTemplateAccess(TemplateAccess templateAccess) {
-        IPage<TemplateAccessVo> templateAccesss = templateAccessService.pageByBean(templateAccess);
-        templateAccesss.setRecords(templateAccessService.setVoProperties(templateAccesss.getRecords()));
+    public RestResult<IPage<TemplateAccessVo>> pageByTemplateAccess(TemplateAccessVo templateAccess) {
+        IPage<TemplateAccessVo> templateAccesss;
+        if(templateAccess.getAccessType() == 1){
+            templateAccesss = templateAccessService.getAccessCountByCatalog(templateAccess);
+        }else{
+            templateAccesss = templateAccessService.getAccessCountByInfo(templateAccess);
+        }
         log.info(String.format("根据TemplateAccess对象属性分页检索: %s ",JSONUtil.toJsonStr(templateAccesss)));
         return RestResult.ok(templateAccesss);
     }

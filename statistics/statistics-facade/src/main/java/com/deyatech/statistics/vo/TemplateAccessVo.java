@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.util.List;
+
 /**
  * <p>
  * 扩展对象
@@ -20,4 +22,15 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @ApiModel(value = "扩展对象", description = "扩展对象", parent = TemplateAccess.class)
 public class TemplateAccessVo extends TemplateAccess {
+
+    public String catalogName;
+    public Integer count;
+
+    public String startTime;
+    public String endTime;
+    public String catId;
+    public String siteId;
+    public List<String> catalogIdList;
+    public Integer accessType;
+
 }
