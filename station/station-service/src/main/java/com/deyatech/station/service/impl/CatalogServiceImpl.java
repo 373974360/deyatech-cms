@@ -153,8 +153,20 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
      */
     @Override
     public Collection<CatalogVo> getCatalogTreeBySiteIds(List<String> siteIds) {
-        List<CatalogVo> catalogVos = baseMapper.getCatalogBySiteIds(siteIds);
-        return getTree(catalogVos);
+        Collection<CatalogVo> list = new ArrayList<>();
+        if (CollectionUtil.isNotEmpty(siteIds)) {
+            for (String siteId : siteIds) {
+                Collection<CatalogVo> catalogVoCollection = siteCache.getCatalogTreeBySiteId(siteId);
+                if (CollectionUtil.isNotEmpty(catalogVoCollection))
+                    list.addAll(catalogVoCollection);
+            }
+        }
+        if (CollectionUtil.isEmpty(list)) {
+            List<CatalogVo> catalogVos = baseMapper.getCatalogBySiteIds(siteIds);
+            return getTree(catalogVos);
+        } else {
+            return list;
+        }
     }
 
     private List<CatalogVo> getTree(List<CatalogVo> catalogVos) {

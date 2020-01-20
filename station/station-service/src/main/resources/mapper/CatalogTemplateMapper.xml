@@ -53,4 +53,22 @@
         </foreach>
     </insert>
 
+    <!--根据栏目ID删除聚合关系-->
+    <delete id="deleteAggregationByCatalogId">
+        DELETE FROM station_catalog_template WHERE catalog_id = #{catalogId} AND origin_type = 2
+    </delete>
+
+    <!--获取内容投递的栏目-->
+    <select id="getDeliverCatalog" resultType="String">
+        select distinct catalog_id from station_catalog_template where template_id = #{templateId} and origin_type = 3
+    </select>
+
+    <!--根据内容ID删除-->
+    <delete id="deleteByTemplateId">
+        DELETE FROM station_catalog_template
+        WHERE template_id = #{templateId}
+        <if test="originType != null and originType != ''">
+            AND origin_type = #{originType}
+        </if>
+    </delete>
 </mapper>

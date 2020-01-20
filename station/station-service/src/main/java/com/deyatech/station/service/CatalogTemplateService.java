@@ -51,4 +51,36 @@ public interface CatalogTemplateService extends BaseService<CatalogTemplate> {
      * @return
      */
     int insertCatalogTemplate(List<CatalogTemplate> list);
+
+    /**
+     * 根据内容ID删除聚合关系
+     *
+     * @param templateId
+     * @return
+     */
+    int deleteAggregationByTemplateId(String templateId);
+
+    /**
+     * 根据栏目ID删除聚合关系
+     *
+     * @param catalogId
+     * @return
+     */
+    int deleteAggregationByCatalogId(String catalogId);
+
+    /**
+     * 获取内容投递的栏目
+     *
+     * @param templateId
+     * @return
+     */
+    List<String> getDeliverCatalog(String templateId);
+
+    /**
+     * 设置投递栏目
+     *
+     * @param templateId
+     * @param catalogIds
+     */
+    void setDeliverCatalogs(String templateId, List<String> catalogIds);
 }

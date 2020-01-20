@@ -84,4 +84,15 @@ public class CatalogAggregationServiceImpl extends BaseServiceImpl<CatalogAggreg
     public List<CatalogAggregationVo> getCatalogAggregationBySiteId(String siteId) {
         return baseMapper.getCatalogAggregationBySiteId(siteId);
     }
+
+    /**
+     * 获取聚合规则包含给定栏目的栏目
+     *
+     * @param catalogId
+     * @return
+     */
+    @Override
+    public List<CatalogAggregationVo> getCatalogAggregationByCatalogId(String catalogId) {
+        return baseMapper.getCatalogAggregationByCatalogId(catalogId);
+    }
 }
