@@ -53,4 +53,12 @@ public interface CatalogAggregationService extends BaseService<CatalogAggregatio
      * @return
      */
     List<CatalogAggregationVo> getCatalogAggregationBySiteId(String siteId);
+
+    /**
+     * 获取聚合规则包含给定栏目的栏目
+     *
+     * @param catalogId
+     * @return
+     */
+    List<CatalogAggregationVo> getCatalogAggregationByCatalogId(String catalogId);
 }

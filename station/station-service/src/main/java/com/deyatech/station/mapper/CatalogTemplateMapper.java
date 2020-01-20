@@ -33,4 +33,29 @@ public interface CatalogTemplateMapper extends BaseMapper<CatalogTemplate> {
      * @return
      */
     int insertCatalogTemplate(List<CatalogTemplate> list);
+
+    /**
+     * 根据栏目ID删除聚合关系
+     *
+     * @param catalogId
+     * @return
+     */
+    int deleteAggregationByCatalogId(String catalogId);
+
+    /**
+     * 获取内容投递的栏目
+     *
+     * @param templateId
+     * @return
+     */
+    List<String> getDeliverCatalog(String templateId);
+
+    /**
+     * 根据内容ID删除
+     *
+     * @param templateId
+     * @return
+     */
+    int deleteByTemplateId(String templateId, int originType);
+
 }

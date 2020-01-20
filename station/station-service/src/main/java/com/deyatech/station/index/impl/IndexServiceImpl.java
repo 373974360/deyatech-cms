@@ -473,6 +473,7 @@ public class IndexServiceImpl implements IndexService {
                 return String.format("删除索引失败 %s", index);
             }
         } catch (IOException e) {
+            e.printStackTrace();
             log.error(String.format("创建索引失败,%s", index), e);
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("创建索引失败 %s", index));
         }
@@ -511,6 +512,7 @@ public class IndexServiceImpl implements IndexService {
                 throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("添加索引数据失败,%s", index));
             }
         } catch (IOException e) {
+            e.printStackTrace();
             log.error(String.format("添加索引数据失败,%s,%s", index, data), e);
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("添加索引数据失败,%s", index));
         }
@@ -544,6 +546,7 @@ public class IndexServiceImpl implements IndexService {
                 throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("修改索引数据失败,%s下的%s", index, id));
             }
         } catch (IOException e) {
+            e.printStackTrace();
             log.error(String.format("修改索引数据失败 %s下的%s,%s", index, id, data), e);
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("修改索引数据失败,%s下的%s", index, id));
         }
@@ -577,6 +580,7 @@ public class IndexServiceImpl implements IndexService {
                 throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("删除索引数据失败,%s下的%s,返回%s", index, id, response.toString()));
             }
         } catch (IOException e) {
+            e.printStackTrace();
             log.error(String.format("删除索引数据失败,%s下的%s", index, id), e);
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, String.format("删除索引数据失败,%s下的%s", index, id));
         }

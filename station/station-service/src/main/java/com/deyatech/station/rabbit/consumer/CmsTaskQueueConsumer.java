@@ -87,6 +87,7 @@ public class CmsTaskQueueConsumer {
         try {
             List<String> ids = templateService.getTimingPublishTemplateList(publicationDate);
             if (CollectionUtil.isNotEmpty(ids)) {
+                // 更新发布状态
                 templateService.updateTimingPublishTemplate(ids);
                 // 发布静态页和索引
                 templateService.addPageAndIndexById(ids);
@@ -118,10 +119,7 @@ public class CmsTaskQueueConsumer {
                 return;
             }
             // 删除已有的聚合栏目内容关联关系
-            CatalogTemplate catalogTemplate = new CatalogTemplate();
-            catalogTemplate.setCatalogId(catalogId);
-            catalogTemplate.setOriginType(ContentOriginTypeEnum.AGGREGATION.getCode());
-            catalogTemplateService.removeByBean(catalogTemplate);
+            catalogTemplateService.deleteAggregationByCatalogId(catalogId);
             // 聚合规则
             CatalogAggregationVo condition = new CatalogAggregationVo();
             BeanUtil.copyProperties(aggregation, condition);
@@ -209,6 +207,9 @@ public class CmsTaskQueueConsumer {
      * @return
      */
     private boolean isMatchAggregationRule(CatalogAggregationVo ca, Template template) {
+        if (ContentStatusEnum.PUBLISH.getCode() != template.getStatus()) {
+            return false;
+        }
         // 生成条件
         ca.analysisCondition();
         // 栏目

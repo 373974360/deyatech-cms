@@ -141,7 +141,7 @@
 
             select ct2.catalog_id as linked_catalog_id, ct2.origin_type as linked_origin_type, st2.*
             from station_template st2
-            join station_catalog_template ct2 on ct2.template_id = st2.id_ and ct2.origin_type = 2
+            join station_catalog_template ct2 on ct2.template_id = st2.id_ and (ct2.origin_type = 2 or ct2.origin_type = 3)
         ) st
         where st.enable_ = 1
         <include refid="conditionTemplate"></include>
@@ -167,7 +167,7 @@
 
             select ct2.catalog_id as linked_catalog_id, ct2.origin_type, st2.*
             from station_template st2
-            join station_catalog_template ct2 on ct2.template_id = st2.id_ and ct2.origin_type = 2
+            join station_catalog_template ct2 on ct2.template_id = st2.id_ and (ct2.origin_type = 2 or ct2.origin_type = 3)
         ) st
         where st.enable_ = 1
         <include refid="conditionTemplate"></include>

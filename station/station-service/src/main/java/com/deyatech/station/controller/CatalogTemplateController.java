@@ -151,20 +151,51 @@ public class CatalogTemplateController extends BaseController {
      * @param compositeIds
      * @return
      */
-    @RequestMapping("/removeAggregationRelation")
-    @ApiOperation(value="解除聚合关系", notes="解除聚合关系")
+    @RequestMapping("/removeRelation")
+    @ApiOperation(value="解除关系", notes="解除聚合关系")
     @ApiImplicitParam(name = "compositeIds", value = "内容ID,聚合栏目ID", required = true, dataType = "String", paramType = "query")
-    public RestResult removeAggregationRelation(@RequestParam("compositeIds[]") List<String> compositeIds) {
+    public RestResult removeRelation(@RequestParam("compositeIds[]") List<String> compositeIds, int originType) {
         if (CollectionUtil.isNotEmpty(compositeIds)) {
             for (String compositeId : compositeIds) {
-                String[] ids = compositeId.split(",");
+                String[] ids = compositeId.split("_");
                 CatalogTemplate catalogTemplate = new CatalogTemplate();
                 catalogTemplate.setTemplateId(ids[0]);
                 catalogTemplate.setCatalogId(ids[1]);
-                catalogTemplate.setOriginType(ContentOriginTypeEnum.AGGREGATION.getCode());
+                catalogTemplate.setOriginType(originType);
                 catalogTemplateService.removeByBean(catalogTemplate);
             }
         }
+        return RestResult.ok();
+    }
+
+    /**
+     * 获取内容投递的栏目
+     *
+     * @param templateId
+     * @return
+     */
+    @RequestMapping("/getDeliverCatalog")
+    @ApiOperation(value="获取内容投递的栏目", notes="获取内容投递的栏目")
+    @ApiImplicitParam(name = "templateId", value = "内容ID", required = true, dataType = "String", paramType = "query")
+    public RestResult getDeliverCatalog(String templateId) {
+        return RestResult.ok(catalogTemplateService.getDeliverCatalog(templateId));
+    }
+
+    /**
+     * 设置投递栏目
+     *
+     * @param templateId
+     * @param catalogIds
+     * @return
+     */
+    @RequestMapping("/setDeliverCatalogs")
+    @ApiOperation(value="设置投递栏目", notes="设置投递栏目")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "templateId", value = "内容ID", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "catalogIds", value = "栏目ID", required = true, dataType = "List", paramType = "query")
+    })
+    public RestResult setDeliverCatalogs(String templateId, @RequestParam(value = "catalogIds[]", required = false) List<String> catalogIds) {
+        catalogTemplateService.setDeliverCatalogs(templateId, catalogIds);
         return RestResult.ok();
     }
 }
