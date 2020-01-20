@@ -455,7 +455,8 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
         QueryWrapper<Record> queryWrapper = new QueryWrapper<>();
         queryWrapper.lt("sq_status",3)
                 .lt("alarm_flag",3)
-                .eq("sq_flag",0);
+                .eq("sq_flag",0)
+                .isNotNull("time_limit");
         return super.list(queryWrapper);
     }
 

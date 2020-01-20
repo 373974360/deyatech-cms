@@ -17,6 +17,11 @@
     <dependencies>
         <dependency>
             <groupId>com.deyatech</groupId>
+            <artifactId>statistics-facade</artifactId>
+            <version>${deyatech.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.deyatech</groupId>
             <artifactId>interview-facade</artifactId>
             <version>${deyatech.version}</version>
         </dependency>
