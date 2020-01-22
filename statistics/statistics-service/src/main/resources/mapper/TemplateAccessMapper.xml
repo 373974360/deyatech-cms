@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.deyatech.station.mapper.TemplateAccessMapper">
+<mapper namespace="com.deyatech.statistics.mapper.TemplateAccessMapper">
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.deyatech.statistics.entity.TemplateAccess">
@@ -37,5 +37,88 @@
         version_,
         info_id, cat_id, info_title, access_ip, access_url, access_time, access_day, access_month, access_year, site_domain, site_id
     </sql>
+    <select id="getAccessCountByCatalogCount" parameterType="com.deyatech.statistics.vo.TemplateAccessVo"
+            resultType="java.lang.Integer">
+        select count(*) as totle from station_catalog c left join (select cat_id,count(id_) as count from station_template_access
+        <where>
+            <if test="templateAccessVo.startTime!=null and templateAccessVo.endTime!=null">
+                and access_time between #{templateAccessVo.startTime} and #{templateAccessVo.endTime}
+            </if>
+            <if test="templateAccessVo.siteId!=null">
+                and site_id = #{templateAccessVo.siteId}
+            </if>
+        </where>
+        group by cat_id) a on c.id_=a.cat_id
+        <where>
+            <if test="templateAccessVo.catalogIdList!=null">
+                and c.id_ in
+                <foreach collection="templateAccessVo.catalogIdList" index="index" item="id" separator="," close=")" open="(">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </select>
 
+    <select id="getAccessCountByCatalog" parameterType="com.deyatech.statistics.vo.TemplateAccessVo"
+            resultType="com.deyatech.statistics.vo.TemplateAccessVo">
+        select c.name as catalogName,IFNULL(a.count,0) as count from station_catalog c left join (select cat_id,count(id_) as count from station_template_access
+        <where>
+            <if test="templateAccessVo.startTime!=null and templateAccessVo.endTime!=null">
+                and access_time between #{templateAccessVo.startTime} and #{templateAccessVo.endTime}
+            </if>
+            <if test="templateAccessVo.siteId!=null">
+                and site_id = #{templateAccessVo.siteId}
+            </if>
+        </where>
+        group by cat_id) a on c.id_=a.cat_id
+        <where>
+            <if test="templateAccessVo.catalogIdList!=null">
+                and c.id_ in
+                <foreach collection="templateAccessVo.catalogIdList" index="index" item="id" separator="," close=")" open="(">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+        limit #{templateAccessVo.page}, #{templateAccessVo.size}
+    </select>
+
+
+
+
+    <select id="getAccessCountByInfoCount" parameterType="com.deyatech.statistics.vo.TemplateAccessVo"
+            resultType="java.lang.Integer">
+        select count(*) as totle from (select info_title,count(id_) as count from station_template_access where info_title != '' and info_title is not null
+        <if test="templateAccessVo.startTime!=null and templateAccessVo.endTime!=null">
+            and access_time between #{templateAccessVo.startTime} and #{templateAccessVo.endTime}
+        </if>
+        <if test="templateAccessVo.siteId!=null">
+            and site_id = #{templateAccessVo.siteId}
+        </if>
+        <if test="templateAccessVo.catalogIdList!=null">
+            and cat_id in
+            <foreach collection="templateAccessVo.catalogIdList" index="index" item="id" separator="," close=")" open="(">
+                #{id}
+            </foreach>
+        </if>
+        group by info_title) a
+    </select>
+
+    <select id="getAccessCountByInfo" parameterType="com.deyatech.statistics.vo.TemplateAccessVo"
+            resultType="com.deyatech.statistics.vo.TemplateAccessVo">
+        select info_title,count(id_) as count from station_template_access where info_title != '' and info_title is not null
+        <if test="templateAccessVo.startTime!=null and templateAccessVo.endTime!=null">
+            and access_time between #{templateAccessVo.startTime} and #{templateAccessVo.endTime}
+        </if>
+        <if test="templateAccessVo.siteId!=null">
+            and site_id = #{templateAccessVo.siteId}
+        </if>
+        <if test="templateAccessVo.catalogIdList!=null">
+            and cat_id in
+            <foreach collection="templateAccessVo.catalogIdList" index="index" item="id" separator="," close=")" open="(">
+                #{id}
+            </foreach>
+        </if>
+        group by info_title
+        limit #{templateAccessVo.page}, #{templateAccessVo.size}
+    </select>
 </mapper>
