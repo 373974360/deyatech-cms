@@ -5,6 +5,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.common.base.BaseController;
+import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.entity.CascaderResult;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.utils.CascaderUtil;
@@ -308,7 +309,21 @@ public class CatalogController extends BaseController {
     @GetMapping("/getUserCatalogTree")
     @ApiOperation(value="获取用户栏目的tree对象", notes="获取用户栏目的tree对象")
     public RestResult<Collection<CatalogVo>> getUserCatalogTree(Catalog catalog) {
-        List<CatalogVo> catalogTree = catalogService.getUserCatalogTree(catalog);
+        List<CatalogVo> catalogTree = catalogService.getUserCatalogTree(catalog, UserContextHelper.getUserId());
+        log.info(String.format("获取栏目的tree对象: %s ",JSONUtil.toJsonStr(catalogTree)));
+        return RestResult.ok(catalogTree);
+    }
+    @GetMapping("/getUserCatalogTreeByUserId")
+    @ApiOperation(value="获取用户栏目的tree对象", notes="获取用户栏目的tree对象")
+    public RestResult<Collection<CatalogVo>> getUserCatalogTreeByUserId(Catalog catalog, String userId) {
+        List<CatalogVo> catalogTree = catalogService.getUserCatalogTree(catalog, userId);
+        log.info(String.format("获取栏目的tree对象: %s ",JSONUtil.toJsonStr(catalogTree)));
+        return RestResult.ok(catalogTree);
+    }
+    @GetMapping("/getDepartmentCatalogTreeByDepartmentId")
+    @ApiOperation(value="获取部门栏目的tree对象", notes="获取部门栏目的tree对象")
+    public RestResult<Collection<CatalogVo>> getDepartmentCatalogTreeByDepartmentId(Catalog catalog, String departmentId) {
+        List<CatalogVo> catalogTree = catalogService.getDepartmentCatalogTree(catalog, departmentId);
         log.info(String.format("获取栏目的tree对象: %s ",JSONUtil.toJsonStr(catalogTree)));
         return RestResult.ok(catalogTree);
     }

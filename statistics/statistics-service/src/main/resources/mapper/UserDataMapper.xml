@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.statistics.mapper.UserDataMapper">
+
+    <!--统计用户部门的栏目发稿量-->
+    <select id="countDepartmentUserTreeData" resultType="java.util.Map">
+        select t.create_by as userId, t.status_ as contentStatus, count(1) as number
+        <include refid="sqlConditionQuery"></include>
+        group by t.create_by, t.status_;
+    </select>
+
+    <!--条件最小日期-->
+    <select id="getUserDepartmentCatalogTemplatMinDate" resultType="java.lang.String">
+        select min(DATE_FORMAT(t.resource_publication_date, '%Y-%m-%d %H:%i:%s')) as minDate
+        <include refid="sqlConditionQuery"></include>
+    </select>
+
+    <!--条件最大日期-->
+    <select id="getUserDepartmentCatalogTemplatMaxDate" resultType="java.lang.String">
+        select max(DATE_FORMAT(t.resource_publication_date, '%Y-%m-%d %H:%i:%s')) as maxDate
+        <include refid="sqlConditionQuery"></include>
+    </select>
+
+    <sql id="sqlConditionQuery">
+        from station_template t
+        where
+        <if test="queryVo.userType == 2">
+            t.create_by = #{queryVo.userId}
+        </if>
+        <if test="queryVo.userType != 2">
+            t.create_by in (
+            select distinct u.id_ from admin_user u
+            join admin_department d on d.id_ = u.department_id and d.enable_ = 1
+            where u.enable_ = 1 and ( d.id_ = #{departmentId} or d.tree_position like concat('&amp;', #{departmentId}, '%') )
+            )
+        </if>
+        <if test="queryVo.startTime != null and queryVo.startTime != '' and queryVo.endTime != null and queryVo.endTime != ''">
+            and DATE_FORMAT(t.resource_publication_date, '%Y-%m-%d') between #{queryVo.startTime} and #{queryVo.endTime}
+        </if>
+        and c.site_id = #{queryVo.siteId}
+        and t.enable_ = 1
+    </sql>
+</mapper>

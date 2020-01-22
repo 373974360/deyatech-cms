@@ -79,4 +79,5 @@ public interface CatalogMapper extends BaseMapper<Catalog> {
      */
     List<CatalogVo> getUserRoleCatalogList(@Param("userId") String userId, @Param("catalog") Catalog catalog);
     List<CatalogVo> getUserCatalogList(@Param("userId") String userId, @Param("catalog") Catalog catalog);
+    List<CatalogVo> getDepartmentCatalogList(@Param("departmentId") String userId, @Param("catalog") Catalog catalog);
 }

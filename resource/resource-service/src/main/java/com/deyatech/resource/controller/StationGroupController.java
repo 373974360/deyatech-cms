@@ -3,6 +3,8 @@ package com.deyatech.resource.controller;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.admin.entity.Department;
+import com.deyatech.admin.vo.DepartmentVo;
 import com.deyatech.common.base.BaseController;
 import com.deyatech.common.context.UserContextHelper;
 import com.deyatech.common.entity.CascaderResult;
@@ -321,5 +323,17 @@ public class StationGroupController extends BaseController {
         QueryWrapper queryWrapper = new QueryWrapper<>();
         queryWrapper.select("ifnull(max(sort_no), 0) + 1 as sortNo");
         return RestResult.ok(stationGroupService.getMap(queryWrapper).get("sortNo"));
+    }
+
+    /**
+     * 获取站点部门及子部门级联
+     *
+     * @return
+     */
+    @GetMapping("/getStationDepartmentTree")
+    @ApiOperation(value="获取站点部门及子部门级联", notes="获取站点部门及子部门级联")
+    @ApiImplicitParam(name = "id", value = "站点编号", required = true, dataType = "String", paramType = "query")
+    public RestResult getStationDepartmentTree(String id) {
+        return RestResult.ok(stationGroupService.getStationDepartmentTree(id));
     }
 }

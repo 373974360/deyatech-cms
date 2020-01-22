@@ -1,12 +1,11 @@
 package com.deyatech.resource.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.deyatech.admin.vo.DepartmentVo;
+import com.deyatech.common.base.BaseService;
 import com.deyatech.resource.entity.StationGroup;
-import com.deyatech.resource.entity.StationGroupClassification;
 import com.deyatech.resource.vo.StationGroupClassificationVo;
 import com.deyatech.resource.vo.StationGroupVo;
-import com.deyatech.common.base.BaseService;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -136,4 +135,12 @@ public interface StationGroupService extends BaseService<StationGroup> {
      * @return
      */
     boolean saveOrUpdateAndNginx(StationGroup stationGroup);
+
+    /**
+     * 获取站点部门及子部门级联
+     *
+     * @param id
+     * @return
+     */
+    List<DepartmentVo> getStationDepartmentTree(String id);
 }

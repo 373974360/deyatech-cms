@@ -19,6 +19,7 @@
         <result column="sort_no" property="sortNo" />
         <result column="station_group_classification_id" property="stationGroupClassificationId" />
         <result column="department_id" property="departmentId" />
+        <result column="range_department_id" property="rangeDepartmentId" />
         <result column="site_code" property="siteCode" />
         <result column="icp_code" property="icpCode" />
         <result column="police_code" property="policeCode" />
@@ -44,6 +45,9 @@
         <result column="department_id" property="departmentId" />
         <result column="department_name" property="departmentName" />
         <result column="department_tree_position" property="departmentTreePosition" />
+        <result column="range_department_id" property="rangeDepartmentId" />
+        <result column="range_department_name" property="rangeDepartmentName" />
+        <result column="range_department_tree_position" property="rangeDepartmentTreePosition" />
         <result column="site_code" property="siteCode" />
         <result column="icp_code" property="icpCode" />
         <result column="police_code" property="policeCode" />
@@ -92,18 +96,22 @@
         s.description_,
         s.sort_no,
         s.station_group_classification_id,
-        s.department_id,
         s.site_code,
         s.icp_code,
         s.police_code,
         c.name_ as station_group_classification_name,
         c.tree_position as station_group_classification_tree_position,
+        d.id_ as department_id,
         d.name_ as department_name,
         d.tree_position as department_tree_position,
+        r.id_ as range_department_id,
+        r.name_ as range_department_name,
+        r.tree_position as range_department_tree_position,
         (select count(1) from resource_station_group_user rsgu where rsgu.station_group_id = s.id_ ) as user_count
         from resource_station_group s
              join resource_station_group_classification c on c.enable_ = 1 and s.station_group_classification_id = c.id_
              join admin_department d on d.enable_ = 1 and s.department_id = d.id_
+             join admin_department r on r.enable_ = 1 and s.range_department_id = r.id_
         where s.enable_ != -1
         <if test="stationGroupVo != null">
             <if test="stationGroupVo.stationGroupClassificationId != null and stationGroupVo.stationGroupClassificationId !=''">
@@ -244,6 +252,7 @@
         sort_no = #{sortNo},
         station_group_classification_id = #{stationGroupClassificationId},
         department_id = #{departmentId},
+        range_department_id = #{rangeDepartmentId},
         site_code = #{siteCode},
         icp_code = #{icpCode},
         police_code = #{policeCode},
@@ -321,5 +330,14 @@
           where sr.role_id = #{roleId}
         )
         order by s.sort_no asc, s.update_time desc
+    </select>
+
+    <!--获取部门以及子部门-->
+    <select id="getStationDepartmentCascader" resultType="com.deyatech.admin.vo.DepartmentVo">
+        select id_,name_,parent_id from admin_department
+        where enable_ = 1 and (
+            id_ = #{departmentId} or
+            tree_position like concat('&amp;', #{departmentId}, '%')
+        )
     </select>
 </mapper>

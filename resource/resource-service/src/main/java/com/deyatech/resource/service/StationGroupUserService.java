@@ -48,8 +48,9 @@ public interface StationGroupUserService extends BaseService<StationGroupUser> {
      *
      * @param stationGroupId
      * @param departmentId
+     * @param type
      */
-    void setStationGroupDepartmentUsers(String stationGroupId, String departmentId);
+    void setStationGroupDepartmentUsers(String stationGroupId, String departmentId, int type);
 
     /**
      * 删除站点用户关联根据站点编号
@@ -90,4 +91,12 @@ public interface StationGroupUserService extends BaseService<StationGroupUser> {
      * @return
      */
     IPage<StationGroupUserVo> pageStationGroupUser(StationGroupUserVo stationGroupUserVo);
+
+    /**
+     * 获取站点分配的用户树
+     *
+     * @param siteId
+     * @return
+     */
+    List<StationGroupUserVo> getUserTreeBySiteId(String siteId);
 }

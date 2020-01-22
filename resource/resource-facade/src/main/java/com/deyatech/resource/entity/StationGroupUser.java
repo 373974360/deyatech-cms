@@ -32,6 +32,10 @@ public class StationGroupUser extends BaseEntity {
     @TableField("user_id")
     private String userId;
 
+    @ApiModelProperty(value = "用户类型", dataType = "String")
+    @TableField("type_")
+    private Integer type;
+
     /**
      * 记录状态，0为禁用，1为启用，-1为已删除
      */

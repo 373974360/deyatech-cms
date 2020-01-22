@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.util.List;
+
 /**
  * <p>
  * 站点用户关联扩展对象
@@ -21,9 +23,11 @@ import lombok.experimental.Accessors;
 @ApiModel(value = "站点用户关联扩展对象", description = "站点用户关联扩展对象", parent = StationGroupUser.class)
 public class StationGroupUserVo extends StationGroupUser {
     /**
-     * 用户ID
+     * 树
      */
-    private String userId;
+    private String label;
+    private String value;
+    private List<StationGroupUserVo> children;
 
     /**
      * 用户姓名
@@ -59,6 +63,11 @@ public class StationGroupUserVo extends StationGroupUser {
      * 部门名称
      */
     private String departmentName;
+
+    /**
+     * 部门父ID
+     */
+    private String departmentParentId;
 
     /**
      * 用户所在部门层级ID

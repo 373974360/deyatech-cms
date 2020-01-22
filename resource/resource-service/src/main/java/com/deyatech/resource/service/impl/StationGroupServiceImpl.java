@@ -7,9 +7,11 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.deyatech.admin.entity.Role;
 import com.deyatech.admin.feign.AdminFeign;
+import com.deyatech.admin.vo.DepartmentVo;
 import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.enums.EnableEnum;
+import com.deyatech.common.enums.StationUserTypeEnum;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.entity.StationGroupClassification;
 import com.deyatech.resource.entity.StationGroupRole;
@@ -385,7 +387,7 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
             }
         }
         if (setDepartmentUserFlag) {
-            stationGroupUserService.setStationGroupDepartmentUsers(stationGroup.getId(), stationGroup.getDepartmentId());
+            stationGroupUserService.setStationGroupDepartmentUsers(stationGroup.getId(), stationGroup.getDepartmentId(), StationUserTypeEnum.NORMAL_USER.getCode());
         }
         return flag;
     }
@@ -410,5 +412,40 @@ public class StationGroupServiceImpl extends BaseServiceImpl<StationGroupMapper,
             hostRoot += "/";
         }
         return hostRoot;
+    }
+
+    /**
+     * 获取站点部门及子部门级联
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public List<DepartmentVo> getStationDepartmentTree(String id) {
+        StationGroup stationGroup = super.getById(id);
+        List<DepartmentVo> departmentVos = baseMapper.getStationDepartmentCascader(stationGroup.getDepartmentId());
+        List<DepartmentVo> rootDepartments = CollectionUtil.newArrayList();
+        if (CollectionUtil.isNotEmpty(departmentVos)) {
+            for (DepartmentVo departmentVo : departmentVos) {
+                departmentVo.setValue(departmentVo.getId());
+                departmentVo.setLabel(departmentVo.getName());
+                // 根
+                if (ObjectUtil.equal(departmentVo.getId(), stationGroup.getDepartmentId())) {
+                    rootDepartments.add(departmentVo);
+                }
+                for (DepartmentVo childVo : departmentVos) {
+                    if (ObjectUtil.equal(childVo.getParentId(), departmentVo.getId())) {
+                        if (ObjectUtil.isNull(departmentVo.getChildren())) {
+                            List<DepartmentVo> children = CollectionUtil.newArrayList();
+                            children.add(childVo);
+                            departmentVo.setChildren(children);
+                        } else {
+                            departmentVo.getChildren().add(childVo);
+                        }
+                    }
+                }
+            }
+        }
+        return rootDepartments;
     }
 }

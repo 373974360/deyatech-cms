@@ -2,6 +2,7 @@ package com.deyatech.resource.mapper;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.deyatech.admin.vo.DepartmentVo;
 import com.deyatech.common.base.BaseMapper;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.vo.StationGroupVo;
@@ -127,4 +128,12 @@ public interface StationGroupMapper extends BaseMapper<StationGroup> {
      * @return
      */
     List<StationGroupVo> selectStationGroupByRoleId(String roleId);
+
+    /**
+     * 获取部门以及子部门
+     *
+     * @param departmentId
+     * @return
+     */
+    List<DepartmentVo> getStationDepartmentCascader(String departmentId);
 }

@@ -18,6 +18,7 @@
     <!--已选择的用户-->
     <select id="selectedUser" resultType="com.deyatech.resource.vo.StationGroupUserVo">
         SELECT
+        su.type_ AS type,
         au.id_ AS userId,
         au.name_ AS name,
         au.gender_ AS gender,
@@ -37,6 +38,7 @@
     <!--未选择的用户-->
     <select id="unselectedUser" resultType="com.deyatech.resource.vo.StationGroupUserVo">
         SELECT
+        2 AS type,
         au.id_ AS userId,
         au.name_ AS name,
         au.gender_ AS gender,

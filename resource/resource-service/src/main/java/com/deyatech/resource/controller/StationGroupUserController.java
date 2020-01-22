@@ -78,4 +78,17 @@ public class StationGroupUserController extends BaseController {
     public RestResult<IPage<StationGroupUserVo>> pageStationGroupUser(StationGroupUserVo stationGroupUserVo) {
         return RestResult.ok(stationGroupUserService.pageStationGroupUser(stationGroupUserVo));
     }
+
+    /**
+     * 获取站点分配的用户树
+     *
+     * @param siteId
+     * @return
+     */
+    @RequestMapping("/getUserTreeBySiteId")
+    @ApiOperation(value="获取站点分配的用户树", notes="获取站点分配的用户树")
+    @ApiImplicitParam(name = "siteId", value = "站点ID", required = true, dataType = "siteId", paramType = "query")
+    public RestResult getUserTreeBySiteId(String siteId) {
+        return RestResult.ok(stationGroupUserService.getUserTreeBySiteId(siteId));
+    }
 }

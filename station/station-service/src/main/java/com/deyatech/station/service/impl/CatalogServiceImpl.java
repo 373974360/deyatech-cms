@@ -663,14 +663,44 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
      * @return
      */
     @Override
-    public List<CatalogVo> getUserCatalogTree(Catalog catalog) {
+    public List<CatalogVo> getUserCatalogTree(Catalog catalog, String userId) {
         if (StrUtil.isEmpty(catalog.getSiteId())) {
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "站点编号不存在");
         }
         if (StrUtil.isEmpty(catalog.getParentId())) {
             throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "站点父编号不存在");
         }
-        List<CatalogVo> catalogs = baseMapper.getUserCatalogList(UserContextHelper.getUserId(), catalog);
+        List<CatalogVo> catalogs = baseMapper.getUserCatalogList(userId, catalog);
+        setNumAndLeaf(catalogs);
+        return catalogs;
+    }
+
+    /**
+     * 根据Catalog对象属性检索栏目的tree对象
+     *
+     * @param catalog
+     * @param departmentId
+     * @return
+     */
+    @Override
+    public List<CatalogVo> getDepartmentCatalogTree(Catalog catalog, String departmentId) {
+        if (StrUtil.isEmpty(catalog.getSiteId())) {
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "站点编号不存在");
+        }
+        if (StrUtil.isEmpty(catalog.getParentId())) {
+            throw new BusinessException(HttpStatus.HTTP_INTERNAL_ERROR, "站点父编号不存在");
+        }
+        List<CatalogVo> catalogs = baseMapper.getDepartmentCatalogList(departmentId, catalog);
+        setNumAndLeaf(catalogs);
+        return catalogs;
+    }
+
+    /**
+     * 设置数量和是否叶子
+     *
+     * @param catalogs
+     */
+    private void setNumAndLeaf(List<CatalogVo> catalogs) {
         if (CollectionUtil.isNotEmpty(catalogs)) {
             final Map<String, String> childrenCatalogCountMap = new HashMap<>();
             List<Map<String, Object>> childrenCatalogCountList =  baseMapper.getCountChildrenCatalog();
@@ -687,7 +717,6 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
                 }
             });
         }
-        return catalogs;
     }
 
     /**

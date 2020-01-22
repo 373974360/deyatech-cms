@@ -83,9 +83,11 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
         if (CollectionUtil.isNotEmpty(userIds)) {
             List<StationGroupUser> list = new ArrayList<>();
             for (String userId : userIds) {
+                String[] idtype = userId.split("_");
                 StationGroupUser sgu = new StationGroupUser();
                 sgu.setStationGroupId(stationGroupId);
-                sgu.setUserId(userId);
+                sgu.setUserId(idtype[0]);
+                sgu.setType(Integer.parseInt(idtype[1]));
                 list.add(sgu);
             }
             this.saveOrUpdateBatch(list);
@@ -97,9 +99,10 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
      *
      * @param stationGroupId
      * @param departmentId
+     * @param type
      */
     @Override
-    public void setStationGroupDepartmentUsers(String stationGroupId, String departmentId) {
+    public void setStationGroupDepartmentUsers(String stationGroupId, String departmentId, int type) {
         StationGroupUser stationGroupUser = new StationGroupUser();
         stationGroupUser.setStationGroupId(stationGroupId);
         // 根据站点ID删除
@@ -112,6 +115,7 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
                 StationGroupUser sgu = new StationGroupUser();
                 sgu.setStationGroupId(stationGroupId);
                 sgu.setUserId(user.getUserId());
+                sgu.setType(type);
                 list.add(sgu);
             }
             this.saveOrUpdateBatch(list);
@@ -239,5 +243,52 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
         List<StationGroupUserVo> list = page.getRecords();
         setUserTreePositionName(list, departmentNameMap);
         return page;
+    }
+
+    /**
+     * 获取站点分配的用户树
+     *
+     * @param siteId
+     * @return
+     */
+    @Override
+    public List<StationGroupUserVo> getUserTreeBySiteId(String siteId) {
+        List<StationGroupUserVo> tree = new ArrayList<>();
+        List<StationGroupUserVo> list = baseMapper.selectedUser(siteId);
+        if (CollectionUtil.isNotEmpty(list)) {
+            Map<String, String> idNameMap = this.getDepartmentNameMap();
+            for (StationGroupUserVo user: list) {
+                idNameMap.put(user.getUserId(), user.getName());
+                String[] level = (user.getUserTreePositionId().substring(1) + "&" + user.getUserId()).split("&");
+                addUser(level, tree, idNameMap);
+            }
+        }
+        return tree;
+    }
+
+    private void addUser(String[] level, List<StationGroupUserVo> children, Map<String, String> idNameMap) {
+        if (level != null) {
+            StationGroupUserVo node = null;
+            for (String id : level) {
+                node = addNode(idNameMap.get(id), id, children);
+                children = node.getChildren();
+            }
+            if (Objects.nonNull(node)) {
+                node.setChildren(null);
+            }
+        }
+    }
+
+    private StationGroupUserVo addNode(String label, String value, List<StationGroupUserVo> children) {
+        for (StationGroupUserVo node : children) {
+            if (value.equals(node.getValue()))
+                return node;
+        }
+        StationGroupUserVo node = new StationGroupUserVo();
+        node.setLabel(label);
+        node.setValue(value);
+        node.setChildren(new ArrayList<>());
+        children.add(node);
+        return node;
     }
 }

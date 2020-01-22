@@ -91,9 +91,19 @@ public interface CatalogService extends BaseService<Catalog> {
      * 根据Catalog对象属性检索栏目的tree对象
      *
      * @param catalog
+     * @param userId
      * @return
      */
-    List<CatalogVo> getUserCatalogTree(Catalog catalog);
+    List<CatalogVo> getUserCatalogTree(Catalog catalog, String userId);
+
+    /**
+     * 根据Catalog对象属性检索栏目的tree对象
+     *
+     * @param catalog
+     * @param departmentId
+     * @return
+     */
+    List<CatalogVo> getDepartmentCatalogTree(Catalog catalog, String departmentId);
 
     /**
      * 更新隐藏

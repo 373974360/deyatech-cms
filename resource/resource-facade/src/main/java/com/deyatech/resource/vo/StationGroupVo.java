@@ -34,16 +34,28 @@ public class StationGroupVo extends StationGroup {
     private String stationGroupClassificationTreePosition;
 
     /**
-     * 部门名称
+     * 管理机构名称
      */
-    @ApiModelProperty(value = "部门名称", dataType = "String")
+    @ApiModelProperty(value = "管理机构名称", dataType = "String")
     private String departmentName;
 
     /**
-     * 部门树结构索引位置
+     * 管理机构树结构索引位置
      */
-    @ApiModelProperty(value = "部门树结构索引位置", dataType = "String")
+    @ApiModelProperty(value = "管理机构树结构索引位置", dataType = "String")
     private String departmentTreePosition;
+
+    /**
+     * 包含范围名称
+     */
+    @ApiModelProperty(value = "包含范围名称", dataType = "String")
+    private String rangeDepartmentName;
+
+    /**
+     * 包含范围树结构索引位置
+     */
+    @ApiModelProperty(value = "包含范围树结构索引位置", dataType = "String")
+    private String rangeDepartmentTreePosition;
 
     /**
      * 站点关联的用户
