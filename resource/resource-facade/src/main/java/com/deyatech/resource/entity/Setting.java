@@ -92,4 +92,8 @@ public class Setting extends BaseEntity {
     @TableField("ico_url")
     private String icoUrl;
 
+    @ApiModelProperty(value = "百度统计站点ID", dataType = "String")
+    @TableField("baidu_site_id")
+    private String baiduSiteId;
+
 }
