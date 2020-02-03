@@ -24,7 +24,8 @@ import java.util.List;
 public class TemplateAccessVo extends TemplateAccess {
 
     public String catalogName;
-    public Integer count;
+    public Integer pvCount;
+    public Integer uvCount;
 
     public String startTime;
     public String endTime;
