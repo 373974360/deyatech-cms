@@ -2,42 +2,118 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.deyatech.statistics.mapper.UserDataMapper">
 
-    <!--统计用户部门的栏目发稿量-->
-    <select id="countDepartmentUserTreeData" resultType="java.util.Map">
-        select t.create_by as userId, t.status_ as contentStatus, count(1) as number
-        <include refid="sqlConditionQuery"></include>
-        group by t.create_by, t.status_;
+    <!--获取用户管理的部门-->
+    <select id="getUserManagedDepartment" resultType="String">
+        select d.id_ from admin_department_manager dm
+        join admin_department d on d.id_ = dm.department_id and d.enable_ = 1
+        where dm.user_id = #{userId}
+        order by d.tree_position
     </select>
 
-    <!--条件最小日期-->
-    <select id="getUserDepartmentCatalogTemplatMinDate" resultType="java.lang.String">
-        select min(DATE_FORMAT(t.resource_publication_date, '%Y-%m-%d %H:%i:%s')) as minDate
-        <include refid="sqlConditionQuery"></include>
+    <!--获取用户管理的站点ID-->
+    <select id="getUserManagedSiteId" resultType="String">
+        select s.id_
+        from resource_station_group_user u
+        join resource_station_group s on s.id_ = u.station_group_id and s.enable_ = 1
+        where u.type_ = 1 and u.user_id = #{userId}
     </select>
 
-    <!--条件最大日期-->
-    <select id="getUserDepartmentCatalogTemplatMaxDate" resultType="java.lang.String">
-        select max(DATE_FORMAT(t.resource_publication_date, '%Y-%m-%d %H:%i:%s')) as maxDate
-        <include refid="sqlConditionQuery"></include>
+    <!--发稿人信息-->
+    <select id="getUserInfo" resultType="com.deyatech.admin.entity.User">
+        select u.* from admin_user u
+        join admin_department d on d.id_ = u.department_id and d.enable_ = 1
+        where u.enable_ = 1 and u.id_ in
+        <foreach index="index" item="item" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
     </select>
 
-    <sql id="sqlConditionQuery">
+    <!--用户发稿检索条件-->
+    <sql id="userContentQuery">
         from station_template t
         where
-        <if test="queryVo.userType == 2">
-            t.create_by = #{queryVo.userId}
+        t.site_id = #{queryVo.siteId}
+        <if test="queryVo.type == 'user'">
+            and t.create_by = #{queryVo.userId}
         </if>
-        <if test="queryVo.userType != 2">
-            t.create_by in (
+        <if test="queryVo.type == 'department'">
+            and t.create_by in (
             select distinct u.id_ from admin_user u
             join admin_department d on d.id_ = u.department_id and d.enable_ = 1
-            where u.enable_ = 1 and ( d.id_ = #{departmentId} or d.tree_position like concat('&amp;', #{departmentId}, '%') )
+            where u.enable_ = 1
+                and (
+                    d.id_ = #{departmentId}
+                    <foreach index="index" item="departmentId" collection="queryVo.departmentIds">
+                        or d.tree_position like concat('&amp;', #{departmentId}, '%')
+                    </foreach>
+                )
             )
         </if>
         <if test="queryVo.startTime != null and queryVo.startTime != '' and queryVo.endTime != null and queryVo.endTime != ''">
             and DATE_FORMAT(t.resource_publication_date, '%Y-%m-%d') between #{queryVo.startTime} and #{queryVo.endTime}
         </if>
-        and c.site_id = #{queryVo.siteId}
+        and t.status_ in (2, 3)
         and t.enable_ = 1
     </sql>
+
+    <!--统计用户发稿量-->
+    <select id="countUserContentData" resultType="java.util.Map">
+        select t.create_by as userId, t.status_ as contentStatus, count(1) as contentNumber
+        <include refid="userContentQuery"></include>
+        group by t.create_by, t.status_;
+    </select>
+
+    <!--统计用户发稿量 最小日期-->
+    <select id="getUserContentDataMinDate" resultType="java.lang.String">
+        select min(DATE_FORMAT(t.resource_publication_date, '%Y-%m-%d')) as minDate
+        <include refid="userContentQuery"></include>
+    </select>
+
+    <!--统计用户发稿量 最大日期-->
+    <select id="getUserContentDataMaxDate" resultType="java.lang.String">
+        select max(DATE_FORMAT(t.resource_publication_date, '%Y-%m-%d')) as maxDate
+        <include refid="userContentQuery"></include>
+    </select>
+
+    <!--栏目信息-->
+    <select id="getCatalogInfo" resultType="com.deyatech.station.entity.Catalog">
+        select * from station_catalog where enable_ = 1 and id_ in
+        <foreach index="index" item="item" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <!--用户栏目发稿检索条件-->
+    <sql id="userCatalogContentQuery">
+        from station_template t
+        join station_catalog_template ct on ct.template_id = t.id_ and ct.origin_type = 1
+        where
+        t.site_id = #{queryVo.siteId}
+        and t.create_by = #{queryVo.userId}
+        <if test="queryVo.startTime != null and queryVo.startTime != '' and queryVo.endTime != null and queryVo.endTime != ''">
+            and DATE_FORMAT(t.resource_publication_date, '%Y-%m-%d') between #{queryVo.startTime} and #{queryVo.endTime}
+        </if>
+        and t.status_ in (2, 3)
+        and t.enable_ = 1
+    </sql>
+
+    <!--统计用户栏目发稿量-->
+    <select id="countUserCatalogContentData" resultType="java.util.Map">
+        select ct.catalog_id as catalogId, t.status_ as contentStatus, count(1) as contentNumber
+        <include refid="userCatalogContentQuery"></include>
+        group by ct.catalog_id, t.status_;
+    </select>
+
+    <!--统计用户发稿量 最小日期-->
+    <select id="getUserCatalogContentDataMinDate" resultType="java.lang.String">
+        select min(DATE_FORMAT(t.resource_publication_date, '%Y-%m-%d')) as minDate
+        <include refid="userCatalogContentQuery"></include>
+    </select>
+
+    <!--统计用户发稿量 最大日期-->
+    <select id="getUserCatalogContentDataMaxDate" resultType="java.lang.String">
+        select max(DATE_FORMAT(t.resource_publication_date, '%Y-%m-%d')) as maxDate
+        <include refid="userCatalogContentQuery"></include>
+    </select>
+
 </mapper>

@@ -1,11 +1,16 @@
 package com.deyatech.statistics.vo;
 
+import lombok.Data;
+
+import java.util.List;
+
 /**
  * 检索条件
  *
  * @author ycx
  * @since 2020-01-21
  */
+@Data
 public class UserDataQueryVo {
     /**
      * 站点ID
@@ -16,13 +21,14 @@ public class UserDataQueryVo {
      */
     private String userId;
     /**
-     * 用户类型
-     */
-    private Integer userType;
-    /**
      * 部门ID
      */
-    private String departmentId;
+    private List<String> departmentIds;
+    /**
+     * 用户类型
+     */
+    private String type;
+
     /**
      * 栏目ID
      */

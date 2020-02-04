@@ -36,7 +36,20 @@ public class UserDataController extends BaseController {
     @RequestMapping("/getDepartmentUserTreeDataList")
     @ApiOperation(value="检索部门用户树统计数据", notes="检索部门用户树统计数据")
     @ApiImplicitParam(name = "queryVo", value = "对象", required = true, dataType = "UserDataQueryVo", paramType = "query")
-    public RestResult getDepartmentUserTreeDataList(UserDataQueryVo queryVo) {
+    public RestResult getDepartmentUserTreeDataList(UserDataQueryVo queryVo) throws Exception {
         return RestResult.ok(userDataService.getDepartmentUserTreeDataList(queryVo));
+    }
+
+    /**
+     * 检索用户栏目统计数据
+     *
+     * @param queryVo
+     * @return
+     */
+    @RequestMapping("/getDepartmentUserTreeDataList")
+    @ApiOperation(value="检索用户栏目统计数据", notes="检索用户栏目统计数据")
+    @ApiImplicitParam(name = "queryVo", value = "对象", required = true, dataType = "UserDataQueryVo", paramType = "query")
+    public RestResult getUserCatalogDataList(UserDataQueryVo queryVo) throws Exception {
+        return RestResult.ok(userDataService.getUserCatalogDataList(queryVo));
     }
 }
