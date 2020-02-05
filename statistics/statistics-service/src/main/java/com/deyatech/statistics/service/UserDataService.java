@@ -1,9 +1,7 @@
 package com.deyatech.statistics.service;
 
 import com.deyatech.statistics.vo.UserDataQueryVo;
-import com.deyatech.statistics.vo.UserDataVo;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,5 +27,5 @@ public interface UserDataService {
      * @param queryVo
      * @return
      */
-    List<UserDataVo> getUserCatalogDataList(UserDataQueryVo queryVo) throws Exception;
+    Map<String, Object> getUserCatalogDataList(UserDataQueryVo queryVo) throws Exception;
 }

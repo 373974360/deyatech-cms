@@ -39,28 +39,42 @@ public class UserDataVo {
      * 总发稿量
      */
     private long total;
+    private long totalSum;
+    private String totalShow;
     /**
      * 已发布发稿量
      */
     private long publish;
+    private long publishSum;
+    private String publishShow;
     /**
      * 待审核发稿量
      */
     private long verify;
+    private long verifySum;
+    private String verifyShow;
     /**
      * 采纳率
      */
     private String adoptRate;
+    private String adoptRateSum;
+    private String adoptRateShow;
     /**
      * 日平均发稿量
      */
     private String dayAverage;
+    private String dayAverageSum;
+    private String dayAverageShow;
     /**
      * 周平均发稿量
      */
     private String weekAverage;
+    private String weekAverageSum;
+    private String weekAverageShow;
     /**
      * 月平均发稿量
      */
     private String monthAverage;
+    private String monthAverageSum;
+    private String monthAverageShow;
 }
