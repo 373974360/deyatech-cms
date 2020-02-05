@@ -61,7 +61,8 @@
 
     <select id="getAccessCountByCatalog" parameterType="com.deyatech.statistics.vo.TemplateAccessVo"
             resultType="com.deyatech.statistics.vo.TemplateAccessVo">
-        select c.name as catalogName,IFNULL(a.count,0) as count from station_catalog c left join (select cat_id,count(id_) as count from station_template_access
+        select c.name as catalogName,IFNULL(a.count,0) as pvCount,IFNULL( b.count, 0 ) as uvCount  from station_catalog c
+        left join (select cat_id,count(id_) as count from station_template_access
         <where>
             <if test="templateAccessVo.startTime!=null and templateAccessVo.endTime!=null">
                 and access_time between #{templateAccessVo.startTime} and #{templateAccessVo.endTime}
@@ -71,6 +72,15 @@
             </if>
         </where>
         group by cat_id) a on c.id_=a.cat_id
+        left join (select cat_id, count( cat_id ) AS count from (select distinct cat_id,access_ip from station_template_access
+        <where>
+            <if test="templateAccessVo.startTime!=null and templateAccessVo.endTime!=null">
+                and access_time between #{templateAccessVo.startTime} and #{templateAccessVo.endTime}
+            </if>
+            <if test="templateAccessVo.siteId!=null">
+                and site_id = #{templateAccessVo.siteId}
+            </if>
+        </where>) uv group by cat_id) b  on c.id_ = b.cat_id
         <where>
             <if test="templateAccessVo.catalogIdList!=null">
                 and c.id_ in
@@ -79,6 +89,7 @@
                 </foreach>
             </if>
         </where>
+        order by pvCount,uvCount desc
         limit #{templateAccessVo.page}, #{templateAccessVo.size}
     </select>
 
@@ -105,7 +116,7 @@
 
     <select id="getAccessCountByInfo" parameterType="com.deyatech.statistics.vo.TemplateAccessVo"
             resultType="com.deyatech.statistics.vo.TemplateAccessVo">
-        select info_title,count(id_) as count from station_template_access where info_title != '' and info_title is not null
+        select pv.info_title,IFNULL(pv.count,0) as pvCount,IFNULL( uv.count, 0 ) as uvCount from (select info_id,info_title,count(id_) as count from station_template_access where info_title != '' and info_title is not null
         <if test="templateAccessVo.startTime!=null and templateAccessVo.endTime!=null">
             and access_time between #{templateAccessVo.startTime} and #{templateAccessVo.endTime}
         </if>
@@ -118,7 +129,22 @@
                 #{id}
             </foreach>
         </if>
-        group by info_title
+        group by info_id,info_title) pv left join
+        (select info_id,count(info_id) as count from (select distinct info_id,info_title,access_ip from station_template_access where info_title != '' and info_title is not null
+        <if test="templateAccessVo.startTime!=null and templateAccessVo.endTime!=null">
+            and access_time between #{templateAccessVo.startTime} and #{templateAccessVo.endTime}
+        </if>
+        <if test="templateAccessVo.siteId!=null">
+            and site_id = #{templateAccessVo.siteId}
+        </if>
+        <if test="templateAccessVo.catalogIdList!=null">
+            and cat_id in
+            <foreach collection="templateAccessVo.catalogIdList" index="index" item="id" separator="," close=")" open="(">
+                #{id}
+            </foreach>
+        </if>) a group by info_id)
+        uv on pv.info_id = uv.info_id
+        order by pvCount,uvCount desc
         limit #{templateAccessVo.page}, #{templateAccessVo.size}
     </select>
 </mapper>

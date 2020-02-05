@@ -22,7 +22,7 @@
         </dependency>
         <dependency>
             <groupId>com.deyatech</groupId>
-            <artifactId>workflow-facade</artifactId>
+            <artifactId>station-facade</artifactId>
             <version>${deyatech.version}</version>
         </dependency>
         <dependency>

@@ -167,7 +167,8 @@ public class ThymeleafUtil {
                 String cachekey = varMap.get("namePath").toString();
                 String key = varMap.get("pageNo").toString();
                 process = templateCache.getTemplate(cachekey,key);
-            }else{
+            }
+            if(StrUtil.isBlank(process)){
                 process = templateEngine.process(templatePath, context);
             }
             log.info("内容检索耗时: " + getMillisTime(System.nanoTime() - start) + " 毫秒");

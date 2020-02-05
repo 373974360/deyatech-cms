@@ -1,8 +1,12 @@
 package com.deyatech.statistics.baidu;
 
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.deyatech.common.entity.RestResult;
+import com.deyatech.resource.entity.Setting;
+import com.deyatech.resource.feign.ResourceFeign;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -25,15 +29,25 @@ public class BaiDuAccess {
     private String token;
     @Value("${baidu.api}")
     private String api;
-    @Value("${baidu.siteId}")
-    private String siteId;
+    @Autowired
+    private ResourceFeign resourceFeign;
 
     private static final String CHARSET="UTF-8";
 
     public String getVisit(String method, HttpServletRequest request){
         String result = "";
         JSONObject body = JSONUtil.createObj();
-        body.put("siteId", siteId);
+        String stationGroupId = request.getParameter("siteId");
+
+        Setting setting = null;
+        if(StrUtil.isNotBlank(stationGroupId)){
+            setting = resourceFeign.getStationSetting(stationGroupId).getData();
+        }
+        if(ObjectUtil.isNotNull(setting)){
+            body.put("siteId", setting.getBaiduSiteId());
+        }else{
+            return "";
+        }
         body.put("method", method);
         //今日流量
         if(method.equals("overview/getOutline")){
