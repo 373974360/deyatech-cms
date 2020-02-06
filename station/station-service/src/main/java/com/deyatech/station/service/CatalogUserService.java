@@ -48,4 +48,12 @@ public interface CatalogUserService extends BaseService<CatalogUser> {
      * @return
      */
     List<String> getUsersCatalogs(List<String> userIds);
+
+    /**
+     * 删除用户栏目栏目根据栏目编号
+     *
+     * @param catalogIds
+     * @return
+     */
+    int removeUserCatalogByCatalogIds(List<String> catalogIds);
 }

@@ -134,4 +134,18 @@ public class CatalogUserServiceImpl extends BaseServiceImpl<CatalogUserMapper, C
         return resultCatalogIds;
     }
 
+    /**
+     * 删除角色栏目根据栏目编号
+     *
+     * @param catalogIds
+     * @return
+     */
+    @Override
+    public int removeUserCatalogByCatalogIds(List<String> catalogIds) {
+        if (CollectionUtil.isEmpty(catalogIds)) {
+            return 0;
+        }
+        return baseMapper.removeUserCatalogByCatalogIds(catalogIds);
+    }
+
 }
