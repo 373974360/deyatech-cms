@@ -21,4 +21,20 @@ public interface SiteDataMapper {
      * @return
      */
     List<SiteDataVo> getSiteCountList(@Param("queryVo") UserDataQueryVo queryVo);
+
+    /**
+     * 站点数据统计 最小日期
+     *
+     * @param queryVo
+     * @return
+     */
+    String getSiteCountMinDate(@Param("queryVo") UserDataQueryVo queryVo);
+
+    /**
+     * 站点数据统计 最大日期
+     *
+     * @param queryVo
+     * @return
+     */
+    String getSiteCountMaxDate(@Param("queryVo") UserDataQueryVo queryVo);
 }

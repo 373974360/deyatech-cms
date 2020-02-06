@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.deyatech.statistics.mapper.SiteDataMapper">
+
+    <!--统计用户发稿量 最小日期-->
+    <select id="getSiteCountMinDate" parameterType="com.deyatech.statistics.vo.UserDataQueryVo" resultType="java.lang.String">
+        select min(DATE_FORMAT(t.resource_publication_date, '%Y-%m-%d')) as minDate
+        from station_template t where t.resource_publication_date between #{queryVo.startTime} and #{queryVo.endTime} and status_ = 2
+    </select>
+
+    <!--统计用户发稿量 最大日期-->
+    <select id="getSiteCountMaxDate" parameterType="com.deyatech.statistics.vo.UserDataQueryVo" resultType="java.lang.String">
+        select max(DATE_FORMAT(t.resource_publication_date, '%Y-%m-%d')) as maxDate
+        from station_template t where t.resource_publication_date between #{queryVo.startTime} and #{queryVo.endTime} and status_ = 2
+    </select>
+
     <select id="getSiteCountList" parameterType="com.deyatech.statistics.vo.UserDataQueryVo" resultType="com.deyatech.statistics.vo.SiteDataVo">
         SELECT
             rsg.name_ as siteName,
