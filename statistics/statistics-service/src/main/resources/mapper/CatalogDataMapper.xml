@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.statistics.mapper.CatalogDataMapper">
+
+    <select id="getCatalogCountList" parameterType="com.deyatech.statistics.vo.UserDataQueryVo" resultType="com.deyatech.statistics.vo.CatalogDataVo">
+        SELECT
+            sc.id_ as catId,
+            sc.name as catName,
+            IFNULL(al.count,0) as count,
+            IFNULL(pub.pubCount,0) as pubCount
+        FROM
+            station_catalog sc left join
+            ( SELECT cms_catalog_id, count( id_ ) AS count FROM station_template where resource_publication_date between #{queryVo.startTime} and #{queryVo.endTime} group by cms_catalog_id ) al left join
+            ( SELECT cms_catalog_id, count( id_ ) AS pubCount FROM station_template where resource_publication_date between #{queryVo.startTime} and #{queryVo.endTime} and status_ = 2 group by cms_catalog_id ) pub on al.cms_catalog_id = pub.cms_catalog_id on sc.id_ = al.cms_catalog_id
+        where
+          sc.enable_ = 1 and site_id = #{queryVo.siteId} order by al.count desc
+    </select>
+</mapper>

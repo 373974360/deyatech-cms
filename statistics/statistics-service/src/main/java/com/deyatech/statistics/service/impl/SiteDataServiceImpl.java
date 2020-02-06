@@ -32,10 +32,7 @@ public class SiteDataServiceImpl implements SiteDataService {
                 //发稿率
                 siteDataVo.setReleaseRate();
                 //日平均发稿量
-                queryVo.setSiteId(siteDataVo.getSiteId());
-                String startTime = siteDataMapper.getSiteCountMinDate(queryVo);
-                String endTime = siteDataMapper.getSiteCountMaxDate(queryVo);
-                siteDataVo.setReleaseAverage(startTime,endTime);
+                siteDataVo.setReleaseAverage(queryVo.getStartTime(),queryVo.getEndTime());
             }
         }
         return siteDataVoList;
