@@ -18,6 +18,10 @@ import java.text.NumberFormat;
 @Data
 public class SiteDataVo {
     /**
+     * 站点ID
+     * */
+    String siteId;
+    /**
      * 站点名称
      * */
     String siteName;
@@ -79,7 +83,7 @@ public class SiteDataVo {
     public void setReleaseAverage(String startTime,String endTime) {
         if(pubCount != 0){
             //日平均发布量
-            long betweenDay = DateUtil.between(DateUtil.parse(startTime), DateUtil.parse(endTime), DateUnit.DAY)+2;
+            long betweenDay = DateUtil.between(DateUtil.parse(startTime), DateUtil.parse(endTime), DateUnit.DAY)+1;
             float day_rate = (float)pubCount / betweenDay;
             averageDay = nf.format(day_rate);
             //周平均发布量
