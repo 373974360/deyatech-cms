@@ -1,8 +1,10 @@
 package com.deyatech.station.service;
 
 import com.deyatech.common.base.BaseService;
+import com.deyatech.common.entity.RestResult;
 import com.deyatech.station.entity.CatalogUser;
 import com.deyatech.station.vo.CatalogUserVo;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Collection;
 import java.util.List;
@@ -48,4 +50,20 @@ public interface CatalogUserService extends BaseService<CatalogUser> {
      * @return
      */
     List<String> getUsersCatalogs(List<String> userIds);
+
+    /**
+     * 删除用户栏目栏目根据栏目编号
+     *
+     * @param catalogIds
+     * @return
+     */
+    int removeUserCatalogByCatalogIds(List<String> catalogIds);
+
+    /**
+     * 根据栏目ID获取栏目用户的权限列表
+     *
+     * @param catalogId
+     * @return
+     * */
+    List<CatalogUserVo> getCatalogUserListByCatalogId(@RequestParam("catalogId") String catalogId);
 }

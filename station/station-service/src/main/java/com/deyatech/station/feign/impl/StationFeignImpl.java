@@ -9,10 +9,14 @@ import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.config.SiteProperties;
 import com.deyatech.station.entity.Catalog;
+import com.deyatech.station.entity.CatalogUser;
+import com.deyatech.station.entity.Template;
 import com.deyatech.station.feign.StationFeign;
 import com.deyatech.station.service.CatalogService;
+import com.deyatech.station.service.CatalogUserService;
 import com.deyatech.station.service.MaterialService;
 import com.deyatech.station.service.TemplateService;
+import com.deyatech.station.vo.CatalogUserVo;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.vo.TemplateVo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +46,8 @@ public class StationFeignImpl implements StationFeign {
     TemplateService templateService;
     @Autowired
     MaterialService materialService;
+    @Autowired
+    CatalogUserService catalogUserService;
 
     @Override
     public RestResult<String> getStationGroupTemplatePathBySiteId(String siteId) {
@@ -110,5 +116,10 @@ public class StationFeignImpl implements StationFeign {
         QueryWrapper<Catalog> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("site_id", siteId);
         return RestResult.ok(catalogService.list(queryWrapper).stream().collect(Collectors.toMap(Catalog::getId, c->c)));
+    }
+
+    @Override
+    public RestResult<List<CatalogUserVo>> getCatalogUserListByCatalogId(String catalogId) {
+        return RestResult.ok(catalogUserService.getCatalogUserListByCatalogId(catalogId));
     }
 }

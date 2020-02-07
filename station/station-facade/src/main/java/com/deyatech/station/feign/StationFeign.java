@@ -5,6 +5,9 @@ import com.deyatech.common.entity.RestResult;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.config.SiteProperties;
 import com.deyatech.station.entity.Catalog;
+import com.deyatech.station.entity.CatalogUser;
+import com.deyatech.station.entity.Template;
+import com.deyatech.station.vo.CatalogUserVo;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.vo.TemplateVo;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -134,4 +137,13 @@ public interface StationFeign {
      */
     @RequestMapping(value = "/feign/station/catalog/getCatalogInfoMap")
     RestResult<Map<String, Catalog>> getCatalogInfoMap(@RequestParam("siteId") String siteId);
+
+    /**
+     * 根据栏目ID获取栏目用户的权限列表
+     *
+     * @param catalogId
+     * @return
+     * */
+    @RequestMapping(value = "/feign/station/getCatalogUserListByCatalogId")
+    RestResult<List<CatalogUserVo>> getCatalogUserListByCatalogId(@RequestParam("catalogId") String catalogId);
 }

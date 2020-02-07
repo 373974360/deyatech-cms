@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.deyatech.admin.entity.Dictionary;
 import com.deyatech.admin.entity.Role;
 import com.deyatech.admin.feign.AdminFeign;
+import com.deyatech.admin.vo.UserVo;
 import com.deyatech.common.Constants;
 import com.deyatech.common.base.BaseServiceImpl;
 import com.deyatech.common.context.UserContextHelper;
@@ -20,10 +21,7 @@ import com.deyatech.common.enums.ContentOriginTypeEnum;
 import com.deyatech.common.enums.YesNoEnum;
 import com.deyatech.common.exception.BusinessException;
 import com.deyatech.station.cache.SiteCache;
-import com.deyatech.station.entity.Catalog;
-import com.deyatech.station.entity.CatalogAggregation;
-import com.deyatech.station.entity.CatalogRole;
-import com.deyatech.station.entity.CatalogTemplate;
+import com.deyatech.station.entity.*;
 import com.deyatech.station.mapper.CatalogMapper;
 import com.deyatech.station.rabbit.constants.RabbitMQConstants;
 import com.deyatech.station.service.*;
@@ -64,7 +62,7 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
     @Autowired
     AdminFeign adminFeign;
     @Autowired
-    CatalogRoleService catalogRoleService;
+    CatalogUserService catalogUserService;
     @Autowired
     TemplateFeign templateFeign;
     @Autowired
@@ -490,15 +488,13 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
      * 给系统角色默认加上栏目权限
      */
     private void systemRoleAddCatalog(CatalogVo catalogVo){
-        Role role = new Role();
-        role.setType(3);
-        List<Role> roleList = adminFeign.getRoleList(role).getData();
-        if(CollectionUtil.isNotEmpty(roleList)){
-            for(Role r:roleList){
-                CatalogRole catalogRole = new CatalogRole();
-                catalogRole.setRoleId(r.getId());
-                catalogRole.setCatalogId(catalogVo.getId());
-                catalogRoleService.save(catalogRole);
+        List<UserVo> userVoList = adminFeign.getUserListByType(3).getData();
+        if(CollectionUtil.isNotEmpty(userVoList)){
+            for(UserVo user:userVoList){
+                CatalogUser catalogUser = new CatalogUser();
+                catalogUser.setUserId(user.getId());
+                catalogUser.setCatalogId(catalogVo.getId());
+                catalogUserService.save(catalogUser);
             }
         }
     }
@@ -616,8 +612,8 @@ public class CatalogServiceImpl extends BaseServiceImpl<CatalogMapper, Catalog> 
         }
         boolean result = super.removeByIds(all);
         if (result) {
-            // 删除栏目角色
-            catalogRoleService.removeRoleCatalogByCatalogIds(all);
+            // 删除用户栏目
+            catalogUserService.removeUserCatalogByCatalogIds(all);
             // 删除栏目静态页
             removeCatalogStaticPage(paths);
         }

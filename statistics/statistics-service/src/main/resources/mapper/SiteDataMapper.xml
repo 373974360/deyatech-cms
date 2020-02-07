@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.deyatech.statistics.mapper.SiteDataMapper">
+
+
+    <select id="getSiteCountList" parameterType="com.deyatech.statistics.vo.UserDataQueryVo" resultType="com.deyatech.statistics.vo.SiteDataVo">
+        SELECT
+            rsg.id_ as siteId,
+            rsg.name_ as siteName,
+            IFNULL(al.count,0) as count,
+            IFNULL(pub.pubCount,0) as pubCount
+        FROM
+            resource_station_group rsg left join
+            ( SELECT site_id, count( id_ ) AS count FROM station_template where resource_publication_date between #{queryVo.startTime} and #{queryVo.endTime} GROUP BY site_id ) al left join
+            ( SELECT site_id, count( id_ ) AS pubCount FROM station_template where resource_publication_date between #{queryVo.startTime} and #{queryVo.endTime} and status_ = 2 GROUP BY site_id ) pub on al.site_id = pub.site_id on rsg.id_ = al.site_id
+        where
+          rsg.enable_ = 1 order by al.count desc
+    </select>
+</mapper>

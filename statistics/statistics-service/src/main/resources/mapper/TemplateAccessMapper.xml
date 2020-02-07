@@ -89,7 +89,7 @@
                 </foreach>
             </if>
         </where>
-        order by pvCount,uvCount desc
+        order by pvCount desc
         limit #{templateAccessVo.page}, #{templateAccessVo.size}
     </select>
 
@@ -144,7 +144,7 @@
             </foreach>
         </if>) a group by info_id)
         uv on pv.info_id = uv.info_id
-        order by pvCount,uvCount desc
+        order by pvCount desc
         limit #{templateAccessVo.page}, #{templateAccessVo.size}
     </select>
 </mapper>
