@@ -225,6 +225,9 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper, Record> imp
                     .or().like("card_id",record.getTitle())
             );
         }
+        if(record.getIsOpen() != null){
+            queryWrapper.eq("is_open",record.getIsOpen());
+        }
         if(record.getSqFlag() != null){
             queryWrapper.eq("sq_flag",record.getSqFlag());
         }
