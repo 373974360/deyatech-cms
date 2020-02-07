@@ -42,4 +42,24 @@ public interface ResourceFeign {
      */
     @RequestMapping(value = "/feign/resource/getStationSetting")
     RestResult<Setting> getStationSetting(@RequestParam(value = "siteId", required = false) String siteId);
+
+    /**
+     * 是否站点管理员
+     *
+     * @param siteId
+     * @param userId
+     * @return
+     */
+    @RequestMapping(value = "/feign/resource/isSiteAdmin")
+    RestResult<Boolean> isSiteAdmin(@RequestParam("siteId") String siteId, @RequestParam("userId") String userId);
+
+    /**
+     * 是否站点部门管理员
+     *
+     * @param siteId
+     * @param userId
+     * @return
+     */
+    @RequestMapping(value = "/feign/resource/isSiteDepartmentAdmin")
+    RestResult<Boolean> isSiteDepartmentAdmin(@RequestParam("siteId") String siteId, @RequestParam("userId") String userId);
 }

@@ -138,4 +138,12 @@
         </if>
         order by userTreePositionId asc, au.update_time desc
     </select>
+    <!--站点管理员-->
+    <select id="countStationGroupAdmin" resultType="int">
+        select count(1)
+        from resource_station_group_user su
+        join resource_station_group s on s.id_ = su.station_group_id and s.enable_ = 1
+        join admin_user u on u.id_ = su.user_Id and u.enable_ = 1
+        where su.type_ = 1 and su.user_id = #{userId} and su.station_group_id = #{stationGroupId}
+    </select>
 </mapper>

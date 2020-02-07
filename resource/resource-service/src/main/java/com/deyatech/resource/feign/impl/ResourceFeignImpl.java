@@ -5,7 +5,9 @@ import com.deyatech.resource.entity.Setting;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.resource.feign.ResourceFeign;
 import com.deyatech.resource.service.SettingService;
+import com.deyatech.resource.service.StationGroupDepartmentAdminService;
 import com.deyatech.resource.service.StationGroupService;
+import com.deyatech.resource.service.StationGroupUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,6 +28,12 @@ public class ResourceFeignImpl implements ResourceFeign {
     @Autowired
     SettingService settingService;
 
+    @Autowired
+    StationGroupUserService stationGroupUserService;
+
+    @Autowired
+    StationGroupDepartmentAdminService stationGroupDepartmentAdminService;
+
     @Override
     public RestResult<List<StationGroup>> getStationGroupAll() {
         return RestResult.ok(stationGroupService.list());
@@ -39,5 +47,15 @@ public class ResourceFeignImpl implements ResourceFeign {
     @Override
     public RestResult<Setting> getStationSetting(String siteId) {
         return RestResult.ok(settingService.getSetting(siteId));
+    }
+
+    @Override
+    public RestResult<Boolean> isSiteAdmin(String siteId, String userId) {
+        return RestResult.ok(stationGroupUserService.isSiteAdmin(siteId, userId));
+    }
+
+    @Override
+    public RestResult<Boolean> isSiteDepartmentAdmin(String siteId, String userId) {
+        return RestResult.ok(stationGroupDepartmentAdminService.isSiteDepartmentAdmin(siteId, userId));
     }
 }

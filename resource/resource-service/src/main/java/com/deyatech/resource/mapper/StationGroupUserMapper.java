@@ -62,4 +62,13 @@ public interface StationGroupUserMapper extends BaseMapper<StationGroupUser> {
      */
     IPage<StationGroupUserVo> pageStationGroupUser(@Param("page") IPage page, @Param("stationGroupUserVo") StationGroupUserVo stationGroupUserVo);
 
+    /**
+     * 站点管理员
+     *
+     * @param stationGroupId
+     * @param userId
+     * @return
+     */
+    int countStationGroupAdmin(@Param("stationGroupId") String stationGroupId, @Param("userId") String userId);
+
 }

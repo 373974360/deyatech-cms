@@ -3,7 +3,7 @@ package com.deyatech.statistics.controller;
 import com.deyatech.common.base.BaseController;
 import com.deyatech.common.entity.RestResult;
 import com.deyatech.statistics.service.UserDataService;
-import com.deyatech.statistics.vo.UserDataQueryVo;
+import com.deyatech.statistics.vo.DepartmentUserDataQueryVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
@@ -33,11 +33,11 @@ public class UserDataController extends BaseController {
      * @param queryVo
      * @return
      */
-    @RequestMapping("/getDepartmentUserTreeDataList")
+    @RequestMapping("/getDepartmentUserData")
     @ApiOperation(value="检索部门用户树统计数据", notes="检索部门用户树统计数据")
-    @ApiImplicitParam(name = "queryVo", value = "对象", required = true, dataType = "UserDataQueryVo", paramType = "query")
-    public RestResult getDepartmentUserTreeDataList(UserDataQueryVo queryVo) throws Exception {
-        return RestResult.ok(userDataService.getDepartmentUserTreeDataList(queryVo));
+    @ApiImplicitParam(name = "queryVo", value = "对象", required = true, dataType = "DepartmentUserDataQueryVo", paramType = "query")
+    public RestResult getDepartmentUserData(DepartmentUserDataQueryVo queryVo) throws Exception {
+        return RestResult.ok(userDataService.getDepartmentUserData(queryVo));
     }
 
     /**
@@ -46,10 +46,23 @@ public class UserDataController extends BaseController {
      * @param queryVo
      * @return
      */
-    @RequestMapping("/getUserCatalogDataList")
+    @RequestMapping("/getUserCatalogData")
     @ApiOperation(value="检索用户栏目统计数据", notes="检索用户栏目统计数据")
-    @ApiImplicitParam(name = "queryVo", value = "对象", required = true, dataType = "UserDataQueryVo", paramType = "query")
-    public RestResult getUserCatalogDataList(UserDataQueryVo queryVo) throws Exception {
-        return RestResult.ok(userDataService.getUserCatalogDataList(queryVo));
+    @ApiImplicitParam(name = "queryVo", value = "对象", required = true, dataType = "DepartmentUserDataQueryVo", paramType = "query")
+    public RestResult getUserCatalogData(DepartmentUserDataQueryVo queryVo) throws Exception {
+        return RestResult.ok(userDataService.getUserCatalogData(queryVo));
+    }
+
+    /**
+     * 检索用户栏目内容数据
+     *
+     * @param queryVo
+     * @return
+     */
+    @RequestMapping("/getUserCatalogTemplateData")
+    @ApiOperation(value="检索用户栏目内容数据", notes="检索用户栏目内容数据")
+    @ApiImplicitParam(name = "queryVo", value = "对象", required = true, dataType = "DepartmentDataQueryVo", paramType = "query")
+    public RestResult getUserCatalogTemplateData(DepartmentUserDataQueryVo queryVo) {
+        return RestResult.ok(userDataService.getUserCatalogTemplateData(queryVo));
     }
 }

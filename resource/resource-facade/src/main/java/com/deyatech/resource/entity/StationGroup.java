@@ -47,11 +47,11 @@ public class StationGroup extends BaseEntity {
     @TableField("station_group_classification_id")
     private String stationGroupClassificationId;
 
-    @ApiModelProperty(value = "站点部门用户(方便站点关联用户)", dataType = "String")
+    @ApiModelProperty(value = "管理机构(主办方和选择站点用户的部门)", dataType = "String")
     @TableField("department_id")
     private String departmentId;
 
-    @ApiModelProperty(value = "站点部门范围(站点管理员管理范围)", dataType = "String")
+    @ApiModelProperty(value = "包含范围(站点所覆盖的部门范围)", dataType = "String")
     @TableField("range_department_id")
     private String rangeDepartmentId;
 

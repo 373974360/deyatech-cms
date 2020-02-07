@@ -2,10 +2,9 @@ package com.deyatech.station.feign;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.common.entity.RestResult;
-import com.deyatech.common.enums.MaterialUsePlaceEnum;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.config.SiteProperties;
-import com.deyatech.station.entity.Template;
+import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.vo.TemplateVo;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -127,4 +125,13 @@ public interface StationFeign {
      */
     @RequestMapping(value = "/feign/station/material/watermarkHandle")
     RestResult watermarkHandle(@RequestParam("siteId") String siteId, @RequestParam("url") String url);
+
+    /**
+     * 栏目信息映射
+     *
+     * @param siteId
+     * @return
+     */
+    @RequestMapping(value = "/feign/station/catalog/getCatalogInfoMap")
+    RestResult<Map<String, Catalog>> getCatalogInfoMap(@RequestParam("siteId") String siteId);
 }

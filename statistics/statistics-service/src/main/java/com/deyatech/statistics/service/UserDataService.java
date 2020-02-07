@@ -1,6 +1,8 @@
 package com.deyatech.statistics.service;
 
-import com.deyatech.statistics.vo.UserDataQueryVo;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.deyatech.statistics.vo.DepartmentUserDataQueryVo;
+import com.deyatech.statistics.vo.DepartmentUserDataResultVo;
 
 import java.util.Map;
 
@@ -14,12 +16,12 @@ import java.util.Map;
  */
 public interface UserDataService {
     /**
-     * 检索用户部门统计数据
+     * 检索部门用户统计数据
      *
      * @param queryVo
      * @return
      */
-    Map<String, Object> getDepartmentUserTreeDataList(UserDataQueryVo queryVo) throws Exception;
+    Map<String, Object> getDepartmentUserData(DepartmentUserDataQueryVo queryVo) throws Exception;
 
     /**
      * 检索用户栏目统计数据
@@ -27,5 +29,13 @@ public interface UserDataService {
      * @param queryVo
      * @return
      */
-    Map<String, Object> getUserCatalogDataList(UserDataQueryVo queryVo) throws Exception;
+    Map<String, Object> getUserCatalogData(DepartmentUserDataQueryVo queryVo) throws Exception;
+
+    /**
+     * 检索用户栏目内容数据
+     *
+     * @param queryVo
+     * @return
+     */
+    IPage<DepartmentUserDataResultVo> getUserCatalogTemplateData(DepartmentUserDataQueryVo queryVo);
 }

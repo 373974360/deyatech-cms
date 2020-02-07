@@ -27,7 +27,7 @@
         </dependency>
         <dependency>
             <groupId>com.deyatech</groupId>
-            <artifactId>station-facade</artifactId>
+            <artifactId>resource-facade</artifactId>
             <version>${deyatech.version}</version>
         </dependency>
         <dependency>

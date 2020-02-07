@@ -1,14 +1,14 @@
 package com.deyatech.station.feign.impl;
 
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deyatech.common.entity.RestResult;
-import com.deyatech.common.enums.MaterialUsePlaceEnum;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.cache.SiteCache;
 import com.deyatech.station.config.SiteProperties;
-import com.deyatech.station.entity.Template;
+import com.deyatech.station.entity.Catalog;
 import com.deyatech.station.feign.StationFeign;
 import com.deyatech.station.service.CatalogService;
 import com.deyatech.station.service.MaterialService;
@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 描述：
@@ -102,5 +103,12 @@ public class StationFeignImpl implements StationFeign {
     public RestResult watermarkHandle(String siteId, String url) {
         materialService.watermarkHandle(siteId, url);
         return RestResult.ok();
+    }
+
+    @Override
+    public RestResult<Map<String, Catalog>> getCatalogInfoMap(String siteId) {
+        QueryWrapper<Catalog> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("site_id", siteId);
+        return RestResult.ok(catalogService.list(queryWrapper).stream().collect(Collectors.toMap(Catalog::getId, c->c)));
     }
 }

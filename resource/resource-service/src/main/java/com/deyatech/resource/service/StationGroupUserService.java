@@ -99,4 +99,13 @@ public interface StationGroupUserService extends BaseService<StationGroupUser> {
      * @return
      */
     List<StationGroupUserVo> getUserTreeBySiteId(String siteId);
+
+    /**
+     * 是否站点管理员
+     *
+     * @param stationGroupId
+     * @param userId
+     * @return
+     */
+    boolean isSiteAdmin(String stationGroupId, String userId);
 }

@@ -291,4 +291,17 @@ public class StationGroupUserServiceImpl extends BaseServiceImpl<StationGroupUse
         children.add(node);
         return node;
     }
+
+    /**
+     * 是否站点管理员
+     *
+     * @param stationGroupId
+     * @param userId
+     * @return
+     */
+    @Override
+    public boolean isSiteAdmin(String stationGroupId, String userId) {
+        int count = baseMapper.countStationGroupAdmin(stationGroupId, userId);
+        return count > 0 ? true : false;
+    }
 }

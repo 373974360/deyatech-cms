@@ -5,20 +5,20 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 用户统计数据
+ * 部门用户统计结果
  *
  * @author ycx
  * @since 2020-01-21
  */
 @Data
-public class UserDataVo {
+public class DepartmentUserDataResultVo {
     /**
      * 用户ID或者部门ID
      */
     private String value;
     private String label;
     private Integer level;
-    private List<UserDataVo> children;
+    private List<DepartmentUserDataResultVo> children;
     private String parentId;
     /**
      * 部门
@@ -35,6 +35,18 @@ public class UserDataVo {
      */
     private String catalogId;
     private String catalogName;
+    /**
+     * 标题
+     */
+    private String title;
+    /**
+     * 发布时间
+     */
+    private String publishTime;
+    /**
+     * 创建时间
+     */
+    private String createTime;
     /**
      * 总发稿量
      */
