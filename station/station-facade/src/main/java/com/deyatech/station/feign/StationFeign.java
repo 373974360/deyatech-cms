@@ -5,8 +5,6 @@ import com.deyatech.common.entity.RestResult;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.config.SiteProperties;
 import com.deyatech.station.entity.Catalog;
-import com.deyatech.station.entity.CatalogUser;
-import com.deyatech.station.entity.Template;
 import com.deyatech.station.vo.CatalogUserVo;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.vo.TemplateVo;
@@ -17,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**

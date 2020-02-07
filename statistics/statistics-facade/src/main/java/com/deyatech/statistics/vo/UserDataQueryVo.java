@@ -9,27 +9,19 @@ import lombok.Data;
  * @since 2020-01-21
  */
 @Data
-public class DepartmentUserDataQueryVo {
-    /**
-     * 开始时间
-     */
-    private String startTime;
-    /**
-     * 结束时间
-     */
-    private String endTime;
+public class UserDataQueryVo {
     /**
      * 站点ID
      */
     private String siteId;
     /**
-     * 用户类型
-     */
-    private String type;
-    /**
      * 用户ID
      */
     private String userId;
+    /**
+     * 用户类型
+     */
+    private String userType;
     /**
      * 部门ID
      */
@@ -38,6 +30,12 @@ public class DepartmentUserDataQueryVo {
      * 栏目ID
      */
     private String catalogId;
-    private long page;
-    private long size;
+    /**
+     * 开始时间
+     */
+    private String startTime;
+    /**
+     * 结束时间
+     */
+    private String endTime;
 }
