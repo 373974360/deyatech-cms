@@ -49,6 +49,10 @@ public class CatalogDataVo {
      * 平均月发稿量
      * */
     String averageMonth;
+    /**
+     * 栏目保障单位
+     * */
+    String deptName;
 
 
     // 发稿率保留的位数

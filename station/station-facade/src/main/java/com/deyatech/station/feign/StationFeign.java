@@ -5,7 +5,9 @@ import com.deyatech.common.entity.RestResult;
 import com.deyatech.common.enums.MaterialUsePlaceEnum;
 import com.deyatech.resource.entity.StationGroup;
 import com.deyatech.station.config.SiteProperties;
+import com.deyatech.station.entity.CatalogUser;
 import com.deyatech.station.entity.Template;
+import com.deyatech.station.vo.CatalogUserVo;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.station.vo.TemplateVo;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -127,4 +129,13 @@ public interface StationFeign {
      */
     @RequestMapping(value = "/feign/station/material/watermarkHandle")
     RestResult watermarkHandle(@RequestParam("siteId") String siteId, @RequestParam("url") String url);
+
+    /**
+     * 根据栏目ID获取栏目用户的权限列表
+     *
+     * @param catalogId
+     * @return
+     * */
+    @RequestMapping(value = "/feign/station/getCatalogUserListByCatalogId")
+    RestResult<List<CatalogUserVo>> getCatalogUserListByCatalogId(@RequestParam("catalogId") String catalogId);
 }

@@ -1,7 +1,13 @@
 package com.deyatech.statistics.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
+import com.deyatech.admin.entity.Department;
+import com.deyatech.admin.feign.AdminFeign;
+import com.deyatech.admin.vo.DepartmentVo;
+import com.deyatech.admin.vo.UserVo;
 import com.deyatech.station.feign.StationFeign;
+import com.deyatech.station.vo.CatalogUserVo;
 import com.deyatech.station.vo.CatalogVo;
 import com.deyatech.statistics.mapper.CatalogDataMapper;
 import com.deyatech.statistics.mapper.SiteDataMapper;
@@ -32,6 +38,8 @@ public class CatalogDataServiceImpl implements CatalogDataService {
     CatalogDataMapper catalogDataMapper;
     @Autowired
     StationFeign stationFeign;
+    @Autowired
+    AdminFeign adminFeign;
 
     @Override
     public List<CatalogDataVo> getCatalogCountList(UserDataQueryVo queryVo) {
@@ -49,10 +57,29 @@ public class CatalogDataServiceImpl implements CatalogDataService {
                 catalogDataVo.setReleaseRate();
                 //日平均发稿量
                 catalogDataVo.setReleaseAverage(queryVo.getStartTime(),queryVo.getEndTime());
+                //内容保障单位
+                catalogDataVo.setDeptName(setDeptName(catalogVo.getId()));
                 result.add(catalogDataVo);
             }
         }
         return result;
+    }
+
+
+    private String setDeptName(String catalogId){
+        String deptName = "";
+        List<CatalogUserVo> catalogUserVoList = stationFeign.getCatalogUserListByCatalogId(catalogId).getData();
+        if(CollectionUtil.isNotEmpty(catalogUserVoList)){
+            for(CatalogUserVo catalogUserVo:catalogUserVoList){
+                UserVo userVo = adminFeign.getUserByUserId(catalogUserVo.getUserId()).getData();
+                Department department = adminFeign.getDepartmentById(userVo.getDepartmentId()).getData();
+                deptName += ","+department.getName();
+            }
+        }
+        if(StrUtil.isNotBlank(deptName)){
+            deptName = deptName.substring(1);
+        }
+        return deptName;
     }
 
     private int sumCount(int count,CatalogVo catalogVo,List<CatalogDataVo> catalogDataVoList){

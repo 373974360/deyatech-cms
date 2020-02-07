@@ -148,4 +148,11 @@ public class CatalogUserServiceImpl extends BaseServiceImpl<CatalogUserMapper, C
         return baseMapper.removeUserCatalogByCatalogIds(catalogIds);
     }
 
+    @Override
+    public List<CatalogUserVo> getCatalogUserListByCatalogId(String catalogId) {
+        CatalogUser catalogUser = new CatalogUser();
+        catalogUser.setCatalogId(catalogId);
+        return setVoProperties(super.listByBean(catalogUser));
+    }
+
 }
